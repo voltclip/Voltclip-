@@ -2601,17 +2601,30 @@ let{data:likesSum}=await sb.from(`videos`).select(`likes_count`).eq(`user_id`,cu
 }async function editPaypalLink(){
   if(!currentUser){openAuth();return}
   const current=_cachedProfile?.paypal_link||''
-  const link=prompt('Ton lien PayPal.me (ex: paypal.me/tonpseudo) :',current)
+  const link=prompt('Ton email PayPal ou lien PayPal.me :',current)
   if(link===null)return
-  const clean=link.trim().replace(/^https?:\/\/(www\.)?paypal\.me\//i,'paypal.me/')
+  const t=link.trim()
+  let clean=''
+  if(t){
+    // Email PayPal
+    if(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(t)){clean=t}
+    // Lien paypal.me
+    else{clean=t.replace(/^https?:\/\/(www\.)?paypal\.me\//i,'paypal.me/')}
+  }
   await sb.from('profiles').update({paypal_link:clean||null}).eq('id',currentUser.id)
-  toast(clean?'💜 Lien PayPal sauvegardé ✓':'Lien PayPal supprimé')
+  toast(clean?'💜 PayPal sauvegardé ✓':'Lien PayPal supprimé')
   refreshProfile()
 }
 function donateToUser(){
   const link=window._currentPublicPaypalLink
   if(!link){toast('Ce créateur n\'a pas encore ajouté de PayPal');return}
-  const url=link.startsWith('http')?link:'https://'+link
+  let url
+  // Email PayPal → lien de don officiel
+  if(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(link)){
+    url='https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business='+encodeURIComponent(link)+'&currency_code=EUR&item_name=Soutenir+ce+cr%C3%A9ateur+VoltClip'
+  } else {
+    url=link.startsWith('http')?link:'https://'+link
+  }
   window.open(url,'_blank')
 }
 async function editProfile(){let bio=prompt(`Ta bio (max 100 caractères) :`);bio!==null&&(await sb.from(`profiles`).update({bio:bio.slice(0,100)}).eq(`id`,currentUser.id),toast(`Profil mis à jour ✓`),refreshProfile())}async function changeAvatar(){if(!currentUser){openAuth();return}let input=document.createElement(`input`);input.type=`file`,input.accept=`image/*`,input.onchange=async()=>{let file=input.files[0];if(!file)return;let path=`${currentUser.id}/avatar.jpg`,{error}=await sb.storage.from(`avatars`).upload(path,file,{upsert:!0});if(error){toast(`Erreur upload avatar`);return}let{data:{publicUrl}}=sb.storage.from(`avatars`).getPublicUrl(path);await sb.from(`profiles`).update({avatar_url:publicUrl}).eq(`id`,currentUser.id),toast(`Avatar mis à jour ✓`),refreshProfile()},input.click()}
