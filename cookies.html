@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Politique de cookies — VoltClip</title>
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://serpex-game26.github.io/Voltclip/cookies.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0f;--surface:#13131a;--border:rgba(255,255,255,0.07);--text:#f0f0f5;--muted:rgba(255,255,255,0.5);--accent:#7c5cfc;--accent2:#fc5c7d;--font-mono:'Space Mono',monospace;--font:'DM Sans',sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:16px 24px;background:rgba(10,10,15,.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+.nav-logo{font-family:var(--font-mono);font-size:16px;font-weight:700;color:#fff;text-decoration:none}
+.nav-logo span{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.nav-back{font-family:var(--font-mono);font-size:11px;color:rgba(255,255,255,0.5);text-decoration:none;transition:color .2s}
+.nav-back:hover{color:#fff}
+.container{max-width:760px;margin:0 auto;padding:100px 24px 60px}
+h1{font-family:var(--font-mono);font-size:clamp(22px,5vw,36px);font-weight:700;margin-bottom:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.date{font-family:var(--font-mono);font-size:11px;color:rgba(255,255,255,0.5);letter-spacing:.1em;margin-bottom:40px}
+h2{font-family:var(--font-mono);font-size:14px;font-weight:700;color:#fff;letter-spacing:.06em;margin:36px 0 12px;text-transform:uppercase;padding-bottom:8px;border-bottom:1px solid var(--border)}
+p{font-size:15px;color:rgba(255,255,255,0.5);line-height:1.75;margin-bottom:12px}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+table{width:100%;border-collapse:collapse;margin:16px 0}
+th{font-family:var(--font-mono);font-size:11px;color:var(--accent);text-align:left;padding:10px 12px;border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.06em}
+td{font-size:14px;color:rgba(255,255,255,0.5);padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.04);vertical-align:top}
+tr:last-child td{border-bottom:none}
+.badge{display:inline-block;border-radius:20px;padding:3px 10px;font-family:var(--font-mono);font-size:9px;font-weight:700;letter-spacing:.06em}
+.badge.required{background:rgba(124,92,252,.2);color:var(--accent);border:1px solid rgba(124,92,252,.3)}
+.badge.optional{background:rgba(252,92,125,.12);color:#fc5c7d;border:1px solid rgba(252,92,125,.25)}
+footer{text-align:center;padding:40px 24px;font-family:var(--font-mono);font-size:11px;color:rgba(255,255,255,0.3);border-top:1px solid var(--border)}
+</style>
+</head>
+<body>
+<nav>
+  <a href="index.html" class="nav-logo">⚡ <span>VOLT</span>CLIP</a>
+  <a href="index.html" class="nav-back">← Retour</a>
+</nav>
+
+<div class="container">
+  <h1>Politique de cookies</h1>
+  <p class="date">Dernière mise à jour : mars 2026</p>
+
+  <p>VoltClip utilise des cookies et technologies similaires (localStorage, sessionStorage) pour assurer le fonctionnement de la plateforme, améliorer l'expérience utilisateur et afficher des publicités pertinentes.</p>
+
+  <h2>1. Qu'est-ce qu'un cookie ?</h2>
+  <p>Un cookie est un petit fichier texte stocké sur votre appareil lors de votre visite sur un site web. Il permet de mémoriser des informations entre vos visites.</p>
+
+  <h2>2. Cookies utilisés sur VoltClip</h2>
+  <table>
+    <tr>
+      <th>Cookie / Clé</th>
+      <th>Type</th>
+      <th>Durée</th>
+      <th>Finalité</th>
+    </tr>
+    <tr>
+      <td><code>voltclip_session</code></td>
+      <td><span class="badge required">Nécessaire</span></td>
+      <td>Session</td>
+      <td>Authentification Supabase</td>
+    </tr>
+    <tr>
+      <td><code>voltclip_interests</code></td>
+      <td><span class="badge required">Nécessaire</span></td>
+      <td>1 an</td>
+      <td>Mémorisation des centres d'intérêt pour le feed</td>
+    </tr>
+    <tr>
+      <td><code>voltclip_age_ok</code></td>
+      <td><span class="badge required">Nécessaire</span></td>
+      <td>1 an</td>
+      <td>Validation de la vérification d'âge (18+)</td>
+    </tr>
+    <tr>
+      <td><code>voltclip_premium</code></td>
+      <td><span class="badge required">Nécessaire</span></td>
+      <td>Persistant</td>
+      <td>Statut abonnement VoltPass</td>
+    </tr>
+    <tr>
+      <td>Cookies Google AdSense</td>
+      <td><span class="badge optional">Publicitaire</span></td>
+      <td>13 mois</td>
+      <td>Publicités personnalisées selon vos intérêts</td>
+    </tr>
+    <tr>
+      <td>Cookies Google Analytics</td>
+      <td><span class="badge optional">Analytique</span></td>
+      <td>13 mois</td>
+      <td>Statistiques de fréquentation anonymisées</td>
+    </tr>
+  </table>
+
+  <h2>3. Cookies nécessaires</h2>
+  <p>Ces cookies sont indispensables au fonctionnement de VoltClip. Sans eux, vous ne pourrez pas vous connecter ou utiliser les fonctionnalités principales. Ils ne peuvent pas être refusés.</p>
+
+  <h2>4. Cookies publicitaires (Google AdSense)</h2>
+  <p>VoltClip utilise Google AdSense pour afficher des publicités. Google peut utiliser des cookies pour personnaliser les annonces en fonction de vos visites sur VoltClip et d'autres sites.</p>
+  <p>Vous pouvez refuser ces cookies via notre bandeau de consentement ou directement sur <a href="https://adssettings.google.com" target="_blank">adssettings.google.com</a>.</p>
+
+  <h2>5. Gérer vos préférences</h2>
+  <p>Lors de votre première visite, un bandeau vous permet de choisir vos préférences cookies. Vous pouvez les modifier à tout moment en :</p>
+  <p>— Utilisant les paramètres de votre navigateur pour bloquer ou supprimer les cookies<br>
+  — Visitant <a href="https://www.youronlinechoices.eu" target="_blank">youronlinechoices.eu</a> pour les cookies publicitaires<br>
+  — Contactant : <a href="mailto:hervecaporale17@gmail.com">hervecaporale17@gmail.com</a></p>
+
+  <h2>6. Contact</h2>
+  <p>Pour toute question : <a href="mailto:hervecaporale17@gmail.com">hervecaporale17@gmail.com</a></p>
+
+</div>
+
+<footer>
+  <p>© 2026 VoltClip — Caporale Hervé</p>
+</footer>
+</body>
+</html>

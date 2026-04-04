@@ -1,0 +1,49 @@
+{
+  "name": "VoltClip",
+  "short_name": "VoltClip",
+  "description": "Le réseau de vidéos courtes nouvelle génération",
+  "start_url": "/Voltclip/voltclip.html",
+  "scope": "/Voltclip/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a0a0f",
+  "theme_color": "#7c5cfc",
+  "lang": "fr",
+  "categories": ["social", "entertainment"],
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Feed",
+      "short_name": "Feed",
+      "description": "Voir le feed vidéo",
+      "url": "/Voltclip/voltclip.html",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
