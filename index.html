@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VoltClip — La plateforme de battle vidéo où les créateurs s'affrontent</title>
+<meta name="description" content="VoltClip — Publie tes clips, affronte d'autres créateurs en battle vidéo, vote pour les meilleurs talents. Danse, vocal, gaming, humour. Feed plein écran, classement mondial 2026.">
+<meta name="keywords" content="VoltClip, battle vidéo, duel créateur, vote talent, danse battle, vocal battle, gaming clips, humour, feed plein écran, classement mondial, clips courts">
+<meta name="robots" content="index, follow">
+<meta name="author" content="VoltClip">
+<meta name="theme-color" content="#7c5cfc">
+<meta property="og:type" content="website">
+<meta property="og:title" content="VoltClip — Battle de clips ⚔️ | Danse · Vocal · Gaming · Humour">
+<meta property="og:description" content="Publie tes clips, affronte d'autres créateurs en duel vidéo, vote pour les meilleurs. Feed plein écran, battles, classement mondial.">
+<meta property="og:locale" content="fr_FR">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="VoltClip — Battle de clips ⚔️ Danse, Vocal, Gaming & Humour">
+<meta name="twitter:description" content="La plateforme de battle créatif. Publie tes clips, affronte d'autres créateurs en duel, vote pour le meilleur. Feed, algo, DM, classement ⚔️">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Bebas+Neue&display=swap" rel="stylesheet">
+<script>
+if (localStorage.getItem('voltclip_cookies') === 'accepted') {
+  var s = document.createElement('script');
+  s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5433648295830648';
+  s.async = true; s.crossOrigin = 'anonymous';
+  document.head.appendChild(s);
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "VoltClip",
+  "description": "Plateforme de battle créatif. Clips plein écran, duels vidéo avec votes, classement mondial, algorithme personnalisé, messagerie privée.",
+  "applicationCategory": "SocialNetworkingApplication",
+  "operatingSystem": "Web, Android, iOS",
+  "inLanguage": "fr",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
+  "featureList": ["Battles vidéo avec vote communautaire","Feed plein écran","Classement mondial","Danse · Vocal · Gaming · Humour · Freestyle","Messagerie privée","Notifications push","Streak quotidien"]
+}
+</script>
+<style>
+:root {
+  --bg: #0a0a0f;
+  --surface: #13131a;
+  --surface2: #1c1c27;
+  --border: rgba(255,255,255,0.07);
+  --text: #f0f0f5;
+  --muted: rgba(255,255,255,0.38);
+  --accent: #7c5cfc;
+  --accent2: #fc5c7d;
+  --gold: #f5c842;
+  --green: #2ecc71;
+  --font-mono: 'Space Mono', monospace;
+  --font: 'DM Sans', sans-serif;
+  --font-display: 'Bebas Neue', sans-serif;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--font);overflow-x:hidden;min-height:100vh}
+
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:.5}
+
+.glow-orb{position:fixed;border-radius:50%;filter:blur(140px);pointer-events:none;z-index:0}
+.glow-orb.purple{width:700px;height:700px;background:rgba(124,92,252,.1);top:-200px;right:-200px}
+.glow-orb.pink{width:500px;height:500px;background:rgba(252,92,125,.07);bottom:5%;left:-150px}
+.glow-orb.gold{width:300px;height:300px;background:rgba(245,200,66,.05);top:40%;left:50%;transform:translateX(-50%)}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:16px 28px;background:rgba(10,10,15,.88);backdrop-filter:blur(24px);border-bottom:1px solid var(--border)}
+.nav-logo{font-family:var(--font-mono);font-size:17px;font-weight:700;color:#fff;text-decoration:none;display:flex;align-items:center;gap:8px}
+.nav-logo .bolt{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:20px}
+.nav-links{display:flex;align-items:center;gap:24px}
+.nav-links a{font-family:var(--font-mono);font-size:11px;color:var(--muted);text-decoration:none;letter-spacing:.06em;transition:color .15s}
+.nav-links a:hover{color:#fff}
+.nav-cta{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-family:var(--font-mono);font-size:12px;font-weight:700;padding:10px 22px;border-radius:30px;text-decoration:none;letter-spacing:.04em;transition:transform .15s,box-shadow .15s;box-shadow:0 4px 20px rgba(124,92,252,.35)}
+.nav-cta:hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(124,92,252,.5)}
+@media(max-width:600px){.nav-links{display:none}}
+
+/* ── RESPONSIVE TABLETTE ── */
+@media(max-width:900px){
+  .dual{grid-template-columns:1fr}
+  .dual-panel:first-child{border-right:none;border-bottom:1px solid var(--border)}
+  .features-grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
+  .journey{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+}
+/* ── RESPONSIVE MOBILE ── */
+@media(max-width:600px){
+  #hero{padding:100px 16px 60px;gap:20px}
+  .hero-title{font-size:clamp(52px,16vw,80px)}
+  .hero-tagline{font-size:clamp(13px,4vw,18px)}
+  .hero-sub{font-size:14px}
+  .talent-stage{max-width:100%;height:110px}
+  .talent-card{padding:8px 10px;gap:7px}
+  .talent-card .votes{display:none}
+  .hero-actions{flex-direction:column;width:100%;padding:0 8px}
+  .btn-primary,.btn-gold{width:100%;justify-content:center;font-size:13px;padding:15px 20px}
+  .stats-bar{flex-direction:column}
+  .stat-item{border-right:none;border-bottom:1px solid var(--border);padding:18px 16px}
+  .stat-item:last-child{border-bottom:none}
+  .stat-val{font-size:34px}
+  .section-wrap{padding:48px 16px}
+  .section-title{font-size:clamp(28px,8vw,40px)}
+  .dual{grid-template-columns:1fr}
+  .dual-panel:first-child{border-right:none;border-bottom:1px solid var(--border)}
+  .dual-panel{padding:28px 20px}
+  .battle-showcase{grid-template-columns:1fr;gap:10px}
+  .battle-vs{margin:0 auto}
+  .categories-grid{grid-template-columns:repeat(3,1fr);gap:8px}
+  .cat-card{padding:14px 8px}
+  .cat-emoji{font-size:22px}
+  .cat-name{font-size:9px}
+  .cat-count{display:none}
+  .journey{grid-template-columns:1fr 1fr}
+  .features-grid{grid-template-columns:1fr}
+  .cta-actions{flex-direction:column;padding:0 8px}
+  .cta-actions a{width:100%;justify-content:center}
+  footer{flex-direction:column;text-align:center}
+  .footer-links{justify-content:center}
+  .ad-slot{margin:16px 8px}
+}
+
+#hero{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:130px 24px 80px;gap:28px;overflow:hidden}
+
+.hero-spotlight{position:absolute;top:0;left:50%;transform:translateX(-50%);width:1px;height:60%;background:linear-gradient(to bottom,rgba(245,200,66,.35),transparent);pointer-events:none}
+.hero-spotlight::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:280px;height:280px;background:radial-gradient(ellipse,rgba(245,200,66,.1),transparent 70%);border-radius:50%}
+
+.hero-eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:.18em;color:var(--gold);text-transform:uppercase;display:flex;align-items:center;gap:10px;animation:fadeUp .6s ease both;opacity:.9}
+.hero-eyebrow::before,.hero-eyebrow::after{content:'';width:24px;height:1px;background:var(--gold);opacity:.5}
+
+.hero-title{font-family:var(--font-display);font-size:clamp(60px,13vw,130px);line-height:.92;letter-spacing:.02em;color:#fff;animation:fadeUp .6s .1s ease both}
+.hero-title .volt{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+
+.hero-tagline{font-family:var(--font-display);font-size:clamp(16px,3.5vw,30px);color:rgba(255,255,255,.5);letter-spacing:.08em;animation:fadeUp .6s .15s ease both;line-height:1.1}
+
+.hero-sub{font-size:16px;color:rgba(255,255,255,.58);max-width:540px;line-height:1.7;animation:fadeUp .6s .2s ease both}
+.hero-sub strong{color:#fff;font-weight:600}
+
+.talent-stage{position:relative;width:100%;max-width:480px;height:130px;animation:fadeUp .6s .25s ease both}
+.talent-card{position:absolute;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:10px 14px;display:flex;align-items:center;gap:10px;backdrop-filter:blur(10px);white-space:nowrap}
+.talent-card .avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.talent-card .info{text-align:left}
+.talent-card .name{font-family:var(--font-mono);font-size:10px;font-weight:700;color:#fff}
+.talent-card .cat{font-size:10px;color:var(--muted);margin-top:1px}
+.talent-card .votes{font-family:var(--font-mono);font-size:10px;color:var(--gold);margin-left:auto;padding-left:10px}
+.talent-card:nth-child(1){left:0;top:14px;transform:rotate(-3deg);border-color:rgba(124,92,252,.3);animation:float1 4s ease-in-out infinite}
+.talent-card:nth-child(2){left:50%;transform:translateX(-50%) rotate(1deg);top:4px;border-color:rgba(245,200,66,.35);box-shadow:0 8px 28px rgba(245,200,66,.1);animation:float2 3.5s ease-in-out infinite}
+.talent-card:nth-child(3){right:0;top:18px;transform:rotate(4deg);border-color:rgba(252,92,125,.3);animation:float3 4.5s ease-in-out infinite}
+@keyframes float1{0%,100%{transform:rotate(-3deg) translateY(0)}50%{transform:rotate(-3deg) translateY(-8px)}}
+@keyframes float2{0%,100%{transform:translateX(-50%) rotate(1deg) translateY(0)}50%{transform:translateX(-50%) rotate(1deg) translateY(-12px)}}
+@keyframes float3{0%,100%{transform:rotate(4deg) translateY(0)}50%{transform:rotate(4deg) translateY(-6px)}}
+
+.talent-ticker{display:flex;align-items:center;gap:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:40px;padding:10px 22px;animation:fadeUp .6s .3s ease both}
+.ticker-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 7px var(--green);animation:pdot 2s ease-in-out infinite;flex-shrink:0}
+.ticker-text{font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,.55);letter-spacing:.06em}
+.ticker-count{font-family:var(--font-mono);font-size:10px;font-weight:700;color:#fff}
+@keyframes pdot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.6)}}
+
+.hero-actions{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;animation:fadeUp .6s .35s ease both}
+
+.btn-primary{display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-family:var(--font-mono);font-size:14px;font-weight:700;padding:16px 32px;border-radius:40px;text-decoration:none;letter-spacing:.04em;transition:transform .15s,box-shadow .15s;box-shadow:0 6px 32px rgba(124,92,252,.45);position:relative;overflow:hidden}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 40px rgba(124,92,252,.6)}
+.btn-primary:active{transform:scale(.97)}
+.btn-primary .arrow{transition:transform .2s}
+.btn-primary:hover .arrow{transform:translateX(4px)}
+.btn-gold{display:inline-flex;align-items:center;gap:8px;background:transparent;border:1.5px solid rgba(245,200,66,.35);color:var(--gold);font-family:var(--font-mono);font-size:13px;padding:15px 26px;border-radius:40px;text-decoration:none;transition:border-color .2s,background .2s;letter-spacing:.04em}
+.btn-gold:hover{border-color:var(--gold);background:rgba(245,200,66,.08);color:#fff}
+.btn-ghost{display:inline-flex;align-items:center;gap:8px;background:var(--surface);border:1.5px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:15px 26px;border-radius:40px;text-decoration:none;transition:border-color .2s,background .2s}
+.btn-ghost:hover{border-color:rgba(124,92,252,.5);background:rgba(124,92,252,.08)}
+
+.stats-bar{position:relative;z-index:1;display:flex;justify-content:center;flex-wrap:wrap;background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.stat-item{flex:1;min-width:140px;padding:28px 20px;text-align:center;border-right:1px solid var(--border)}
+.stat-item:last-child{border-right:none}
+.stat-val{font-family:var(--font-display);font-size:44px;line-height:1}
+.stat-val.purple{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.stat-val.gold{background:linear-gradient(135deg,var(--gold),#f58c42);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.stat-label{font-family:var(--font-mono);font-size:10px;color:var(--muted);letter-spacing:.1em;margin-top:6px;text-transform:uppercase}
+@media(max-width:600px){.stats-bar{flex-direction:column}.stat-item{border-right:none;border-bottom:1px solid var(--border)}.stat-item:last-child{border-bottom:none}}
+
+.section-wrap{position:relative;z-index:1;padding:80px 24px;max-width:1080px;margin:0 auto}
+.section-label{font-family:var(--font-mono);font-size:10px;letter-spacing:.2em;color:var(--accent);text-transform:uppercase;margin-bottom:16px}
+.section-label.gold{color:var(--gold)}
+.section-title{font-family:var(--font-display);font-size:clamp(36px,6vw,58px);line-height:1;color:#fff;margin-bottom:16px}
+.section-title .grad{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.section-title .grad-gold{background:linear-gradient(135deg,var(--gold),#f58c42);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.section-sub{font-size:15px;color:var(--muted);max-width:540px;line-height:1.65;margin-bottom:44px}
+
+/* DUAL */
+.dual{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--border);border-radius:24px;overflow:hidden}
+.dual-panel{padding:48px 40px;position:relative;overflow:hidden}
+.dual-panel:first-child{background:linear-gradient(135deg,rgba(124,92,252,.07),rgba(124,92,252,.02));border-right:1px solid var(--border)}
+.dual-panel:last-child{background:linear-gradient(135deg,rgba(245,200,66,.05),rgba(245,200,66,.01))}
+.dual-panel::before{content:'';position:absolute;top:-80px;right:-80px;width:220px;height:220px;border-radius:50%;pointer-events:none}
+.dual-panel:first-child::before{background:radial-gradient(circle,rgba(124,92,252,.14),transparent 70%)}
+.dual-panel:last-child::before{background:radial-gradient(circle,rgba(245,200,66,.1),transparent 70%)}
+.dual-tag{font-family:var(--font-mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;border-radius:20px;padding:4px 12px;display:inline-block;margin-bottom:16px}
+.dual-tag.creator{background:rgba(124,92,252,.15);color:var(--accent);border:1px solid rgba(124,92,252,.3)}
+.dual-tag.producer{background:rgba(245,200,66,.12);color:var(--gold);border:1px solid rgba(245,200,66,.3)}
+.dual-title{font-family:var(--font-display);font-size:clamp(26px,3.5vw,42px);color:#fff;margin-bottom:14px;line-height:1}
+.dual-text{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:24px}
+.dual-perks{display:flex;flex-direction:column;gap:10px;margin-bottom:28px}
+.perk{display:flex;align-items:center;gap:12px;font-size:13px;color:rgba(255,255,255,.7)}
+.perk-icon{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.perk-icon.purple{background:rgba(124,92,252,.15)}
+.perk-icon.gold{background:rgba(245,200,66,.12)}
+@media(max-width:680px){.dual{grid-template-columns:1fr}.dual-panel:first-child{border-right:none;border-bottom:1px solid var(--border)}}
+
+/* BATTLE */
+.battle-showcase{display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:22px;padding:32px;position:relative;overflow:hidden}
+.battle-showcase::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 100%,rgba(124,92,252,.07),transparent 60%);pointer-events:none}
+.battle-side{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
+.battle-avatar{width:66px;height:66px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:30px}
+.battle-avatar.left{background:linear-gradient(135deg,rgba(124,92,252,.2),rgba(124,92,252,.05));border:2px solid rgba(124,92,252,.3)}
+.battle-avatar.right{background:linear-gradient(135deg,rgba(252,92,125,.2),rgba(252,92,125,.05));border:2px solid rgba(252,92,125,.3)}
+.battle-name{font-family:var(--font-mono);font-size:11px;font-weight:700;color:#fff}
+.battle-country{font-size:11px;color:var(--muted)}
+.battle-score{font-family:var(--font-display);font-size:26px;color:#fff;line-height:1}
+.battle-votes{font-family:var(--font-mono);font-size:9px;color:var(--muted);letter-spacing:.08em}
+.battle-vs{font-family:var(--font-display);font-size:44px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;padding:0 4px}
+.battle-bar{width:100%;height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;margin-top:6px}
+.battle-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+@media(max-width:560px){.battle-showcase{grid-template-columns:1fr}.battle-vs{margin:0 auto}}
+
+/* JOURNEY */
+.journey{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:2px;background:var(--border);border-radius:18px;overflow:hidden}
+.journey-step{background:var(--bg);padding:28px 20px;position:relative}
+.journey-step::after{content:attr(data-num);position:absolute;top:12px;right:16px;font-family:var(--font-display);font-size:48px;color:rgba(255,255,255,.04);line-height:1}
+.j-icon{font-size:26px;margin-bottom:12px}
+.j-title{font-family:var(--font-mono);font-size:11px;font-weight:700;color:#fff;margin-bottom:6px}
+.j-text{font-size:12px;color:var(--muted);line-height:1.6}
+.j-badge{display:inline-block;margin-top:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:20px;padding:3px 10px;font-family:var(--font-mono);font-size:9px;font-weight:700;color:#fff;letter-spacing:.06em}
+.j-badge.gold{background:linear-gradient(135deg,var(--gold),#f58c42)}
+
+/* CATEGORIES */
+.categories-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.cat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 14px;text-align:center;cursor:pointer;transition:border-color .2s,transform .2s,background .2s;position:relative;overflow:hidden;text-decoration:none;display:block}
+.cat-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .2s;pointer-events:none}
+.cat-card:hover{transform:translateY(-3px)}
+.cat-card:hover::before{opacity:1}
+.cat-emoji{font-size:28px;display:block;margin-bottom:8px}
+.cat-name{font-family:var(--font-mono);font-size:10px;font-weight:700;color:#fff;letter-spacing:.04em}
+.cat-count{font-size:10px;color:var(--muted);margin-top:3px;line-height:1.3}
+
+.cat-card:nth-child(1){border-color:rgba(252,92,125,.15)}.cat-card:nth-child(1)::before{background:radial-gradient(circle at top,rgba(252,92,125,.06),transparent 70%)}.cat-card:nth-child(1):hover{border-color:rgba(252,92,125,.4);background:rgba(252,92,125,.04)}
+.cat-card:nth-child(2){border-color:rgba(124,92,252,.15)}.cat-card:nth-child(2)::before{background:radial-gradient(circle at top,rgba(124,92,252,.06),transparent 70%)}.cat-card:nth-child(2):hover{border-color:rgba(124,92,252,.4);background:rgba(124,92,252,.04)}
+.cat-card:nth-child(3){border-color:rgba(46,204,113,.15)}.cat-card:nth-child(3)::before{background:radial-gradient(circle at top,rgba(46,204,113,.06),transparent 70%)}.cat-card:nth-child(3):hover{border-color:rgba(46,204,113,.4);background:rgba(46,204,113,.04)}
+.cat-card:nth-child(4){border-color:rgba(245,200,66,.15)}.cat-card:nth-child(4)::before{background:radial-gradient(circle at top,rgba(245,200,66,.06),transparent 70%)}.cat-card:nth-child(4):hover{border-color:rgba(245,200,66,.4);background:rgba(245,200,66,.04)}
+.cat-card:nth-child(5){border-color:rgba(52,152,219,.15)}.cat-card:nth-child(5)::before{background:radial-gradient(circle at top,rgba(52,152,219,.06),transparent 70%)}.cat-card:nth-child(5):hover{border-color:rgba(52,152,219,.4);background:rgba(52,152,219,.04)}
+.cat-card:nth-child(6){border-color:rgba(230,126,34,.15)}.cat-card:nth-child(6)::before{background:radial-gradient(circle at top,rgba(230,126,34,.06),transparent 70%)}.cat-card:nth-child(6):hover{border-color:rgba(230,126,34,.4);background:rgba(230,126,34,.04)}
+.cat-card:nth-child(7){border-color:rgba(155,89,182,.15)}.cat-card:nth-child(7)::before{background:radial-gradient(circle at top,rgba(155,89,182,.06),transparent 70%)}.cat-card:nth-child(7):hover{border-color:rgba(155,89,182,.4);background:rgba(155,89,182,.04)}
+.cat-card:nth-child(8){border-color:rgba(231,76,60,.15)}.cat-card:nth-child(8)::before{background:radial-gradient(circle at top,rgba(231,76,60,.06),transparent 70%)}.cat-card:nth-child(8):hover{border-color:rgba(231,76,60,.4);background:rgba(231,76,60,.04)}
+
+/* FEATURES */
+.features-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.feature-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:26px 22px;position:relative;overflow:hidden;transition:border-color .2s,transform .2s}
+.feature-card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at top left,rgba(124,92,252,.05),transparent 60%);pointer-events:none}
+.feature-card:hover{border-color:rgba(124,92,252,.28);transform:translateY(-2px)}
+.feature-icon{font-size:28px;margin-bottom:12px;display:block}
+.feature-name{font-family:var(--font-mono);font-size:12px;font-weight:700;color:#fff;margin-bottom:7px}
+.feature-desc{font-size:12px;color:var(--muted);line-height:1.6}
+.feature-badge{position:absolute;top:14px;right:14px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:20px;padding:3px 9px;font-family:var(--font-mono);font-size:9px;font-weight:700;color:#fff;letter-spacing:.06em}
+.feature-badge.gold{background:linear-gradient(135deg,var(--gold),#f58c42)}
+
+#cta{position:relative;z-index:1;padding:80px 24px 100px;text-align:center;overflow:hidden}
+.cta-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(124,92,252,.12),transparent 70%);pointer-events:none}
+.cta-title{font-family:var(--font-display);font-size:clamp(40px,8vw,84px);line-height:.95;color:#fff;margin-bottom:20px;position:relative}
+.cta-sub{font-size:15px;color:var(--muted);max-width:440px;margin:0 auto 36px;line-height:1.6;position:relative}
+.cta-actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;position:relative}
+
+footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:32px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;max-width:1080px;margin:0 auto}
+.footer-logo{font-family:var(--font-mono);font-size:14px;font-weight:700;color:var(--muted)}
+.footer-logo span{color:var(--accent)}
+.footer-links{display:flex;gap:18px;list-style:none;flex-wrap:wrap}
+.footer-links a{font-family:var(--font-mono);font-size:11px;color:var(--muted);text-decoration:none;letter-spacing:.05em;transition:color .15s}
+.footer-links a:hover{color:var(--text)}
+.footer-copy{font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,.18);letter-spacing:.05em}
+@media(max-width:600px){footer{flex-direction:column;text-align:center}.footer-links{justify-content:center}}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .6s ease,transform .6s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:3px}
+</style>
+</head>
+<body>
+
+<div class="glow-orb purple" aria-hidden="true"></div>
+<div class="glow-orb pink" aria-hidden="true"></div>
+<div class="glow-orb gold" aria-hidden="true"></div>
+
+<nav role="navigation" aria-label="Navigation principale">
+  <a href="/" class="nav-logo" aria-label="VoltClip accueil">
+    <span class="bolt">⚡</span> VOLTCLIP
+  </a>
+  <div class="nav-links">
+    <a href="#battles">Battles</a>
+    <a href="#categories">Catégories</a>
+    <a href="#features">Features</a>
+  </div>
+  <a href="voltclip.html" class="nav-cta">Lancer l'app ⚡</a>
+</nav>
+
+<header id="hero" role="banner">
+  <div class="hero-spotlight" aria-hidden="true"></div>
+
+  <div class="hero-eyebrow" aria-hidden="true">Plateforme de battle créatif · 2026</div>
+
+  <h1 class="hero-title">
+    <span class="volt">VOLT</span><span>CLIP</span>
+  </h1>
+
+  <p class="hero-tagline">AFFRONTE. VOTE. DOMINE.</p>
+
+  <p class="hero-sub">
+    Publie tes clips, affronte d'autres créateurs en <strong>duel vidéo</strong>,
+    vote pour les meilleurs. La communauté décide qui domine l'arène.
+  </p>
+
+  <div class="talent-stage" aria-hidden="true">
+    <div class="talent-card">
+      <div class="avatar" style="background:rgba(124,92,252,.15)">🎤</div>
+      <div class="info"><div class="name">@maya_sings</div><div class="cat">🇺🇸 Musique</div></div>
+      <div class="votes">⚡ 14.2k</div>
+    </div>
+    <div class="talent-card">
+      <div class="avatar" style="background:rgba(245,200,66,.12)">🏆</div>
+      <div class="info"><div class="name">@street_art_rio</div><div class="cat">🇧🇷 Art · #1</div></div>
+      <div class="votes">🔥 TOP</div>
+    </div>
+    <div class="talent-card">
+      <div class="avatar" style="background:rgba(252,92,125,.12)">💃</div>
+      <div class="info"><div class="name">@seoul_dancer</div><div class="cat">🇰🇷 Danse</div></div>
+      <div class="votes">⚡ 9.8k</div>
+    </div>
+  </div>
+
+  <div class="talent-ticker">
+    <div class="ticker-dot"></div>
+    <span class="ticker-text">BATTLES EN COURS ·&nbsp;</span>
+    <span class="ticker-count" id="liveCount">247</span>
+    <span class="ticker-text">&nbsp;· TALENTS EN LIGNE</span>
+  </div>
+
+  <div class="hero-actions">
+    <a href="voltclip.html" class="btn-primary">
+      ⚡ Lancer VoltClip <span class="arrow">→</span>
+    </a>
+    <a href="#battles" class="btn-ghost">Voir les battles</a>
+  </div>
+</header>
+
+<div class="stats-bar" role="region" aria-label="Chiffres clés">
+  <div class="stat-item"><div class="stat-val purple">∞</div><div class="stat-label">Talents mondiaux</div></div>
+  <div class="stat-item"><div class="stat-val gold">⚔️</div><div class="stat-label">Battles par catégorie</div></div>
+  <div class="stat-item"><div class="stat-val purple">100%</div><div class="stat-label">Gratuit</div></div>
+  <div class="stat-item"><div class="stat-val gold">🌍</div><div class="stat-label">Accessible partout</div></div>
+</div>
+
+<!-- POURQUOI VOLTCLIP -->
+<div style="position:relative;z-index:1;padding:80px 24px;max-width:1080px;margin:0 auto" id="talent">
+  <div class="dual reveal">
+    <div class="dual-panel">
+      <span class="dual-tag creator">🎬 CRÉATEURS</span>
+      <h2 class="dual-title">TON CLIP<br>MÉRITE<br>D'ÊTRE VU</h2>
+      <p class="dual-text">Publie tes vidéos, entre automatiquement en battle dans ta catégorie et grimpe dans le classement mondial. Plus tu gagnes de votes, plus tu deviens visible.</p>
+      <div class="dual-perks">
+        <div class="perk"><div class="perk-icon purple">🎯</div>Battle automatique dès l'upload</div>
+        <div class="perk"><div class="perk-icon purple">🏆</div>Classement mondial en temps réel</div>
+        <div class="perk"><div class="perk-icon purple">📊</div>Stats — vues, votes, taux de complétion</div>
+        <div class="perk"><div class="perk-icon purple">💬</div>DM direct avec la communauté</div>
+      </div>
+      <a href="voltclip.html" class="btn-primary" style="align-self:flex-start">Publier mon clip ⚡</a>
+    </div>
+    <div class="dual-panel">
+      <span class="dual-tag" style="background:rgba(46,204,113,.12);color:#2ecc71;border:1px solid rgba(46,204,113,.3)">🗳️ VOTANTS</span>
+      <h2 class="dual-title">DECIDE<br>QUI EST<br>LE MEILLEUR</h2>
+      <p class="dual-text">Scroll infini de battles côte à côte. Un vote par battle, des centaines de duels à juger. Deviens l'un des top votants du classement mondial.</p>
+      <div class="dual-perks">
+        <div class="perk"><div class="perk-icon" style="background:rgba(46,204,113,.12)">🎬</div>Feed de battles plein écran snap</div>
+        <div class="perk"><div class="perk-icon" style="background:rgba(46,204,113,.12)">⚡</div>Résultats en temps réel animés</div>
+        <div class="perk"><div class="perk-icon" style="background:rgba(46,204,113,.12)">🏅</div>Classement mondial des meilleurs votants</div>
+        <div class="perk"><div class="perk-icon" style="background:rgba(46,204,113,.12)">🔥</div>Streak quotidien — médaille or/argent/bronze</div>
+      </div>
+      <a href="voltclip.html" class="btn-ghost" style="align-self:flex-start">Voter maintenant →</a>
+    </div>
+  </div>
+</div>
+
+<!-- BATTLE -->
+<div class="section-wrap" id="battles">
+  <div class="section-label">⚔️ ClipBattle</div>
+  <h2 class="section-title">La compétition<br><span class="grad">en temps réel</span></h2>
+  <p class="section-sub">Deux talents s'affrontent dans la même catégorie. Le public vote. Le gagnant monte dans le classement mondial. Simple. Brutal. Décisif.</p>
+
+  <div class="battle-showcase reveal">
+    <div class="battle-side">
+      <div class="battle-avatar left">🎤</div>
+      <div class="battle-name">@maya_sings</div>
+      <div class="battle-country">🇺🇸 New York</div>
+      <div class="battle-score">8 241</div>
+      <div class="battle-votes">VOTES</div>
+      <div style="width:100%;margin-top:4px">
+        <div class="battle-bar"><div class="battle-bar-fill" style="width:62%"></div></div>
+      </div>
+    </div>
+    <div class="battle-vs">VS</div>
+    <div class="battle-side">
+      <div class="battle-avatar right">🎵</div>
+      <div class="battle-name">@paris_remy</div>
+      <div class="battle-country">🇫🇷 Paris</div>
+      <div class="battle-score">5 012</div>
+      <div class="battle-votes">VOTES</div>
+      <div style="width:100%;margin-top:4px">
+        <div class="battle-bar"><div class="battle-bar-fill" style="width:38%;background:linear-gradient(90deg,var(--accent2),var(--accent))"></div></div>
+      </div>
+    </div>
+  </div>
+  <p style="text-align:center;font-family:var(--font-mono);font-size:10px;color:var(--muted);margin-top:14px;letter-spacing:.06em">CATÉGORIE : MUSIQUE · 🌍 BATTLE MONDIAL · ⏱ 47H RESTANTES</p>
+</div>
+
+<!-- CATEGORIES -->
+<div class="section-wrap" id="categories">
+  <div class="section-label gold">🌟 Disciplines</div>
+  <h2 class="section-title">Toutes les<br><span class="grad-gold">formes de talent</span></h2>
+  <p class="section-sub">Chaque discipline a son propre classement et ses propres battles. Ton talent a forcément sa place ici.</p>
+
+  <div class="categories-grid reveal">
+    <a class="cat-card" href="voltclip.html"><span class="cat-emoji">🎤</span><div class="cat-name">MUSIQUE</div><div class="cat-count">Chant · Rap · Beatbox</div></a>
+    <a class="cat-card" href="voltclip.html"><span class="cat-emoji">💃</span><div class="cat-name">DANSE</div><div class="cat-count">Street · Contemporary · Waacking</div></a>
+    <a class="cat-card" href="voltclip.html"><span class="cat-emoji">🎭</span><div class="cat-name">COMÉDIE</div><div class="cat-count">Stand-up · Sketch · Mime</div></a>
+    <a class="cat-card" href="voltclip.html"><span class="cat-emoji">🎨</span><div class="cat-name">ART VISUEL</div><div class="cat-count">Dessin · Digital · Graffiti</div></a>
+    <a class="cat-card" href="voltclip.html"><span class="cat-emoji">🤸</span><div class="cat-name">SPORT</div><div class="cat-count">Freestyle · Acrobatie · Tricks</div></a>
+    <a class="cat-card" href="voltclip.html"><span class="cat-emoji">🍳</span><div class="cat-name">CUISINE</div><div class="cat-count">Recettes · Plating · Speed cook</div></a>
+    <a class="cat-card" href="voltclip.html"><span class="cat-emoji">🎮</span><div class="cat-name">GAMING</div><div class="cat-count">Highlights · Speedrun · IRL</div></a>
+    <a class="cat-card" href="voltclip.html"><span class="cat-emoji">✨</span><div class="cat-name">AUTRE</div><div class="cat-count">Magie · Illusions · Unique</div></a>
+  </div>
+</div>
+
+<!-- JOURNEY -->
+<div class="section-wrap">
+  <div class="section-label">Parcours</div>
+  <h2 class="section-title">De l'upload<br><span class="grad">au sommet</span></h2>
+
+  <div class="journey reveal">
+    <div class="journey-step" data-num="01">
+      <div class="j-icon">📱</div>
+      <h3 class="j-title">TU UPLOADES</h3>
+      <p class="j-text">Publie ton clip depuis ton mobile. Choisis ta catégorie, titre, hashtags. Publie en quelques secondes.</p>
+    </div>
+    <div class="journey-step" data-num="02">
+      <div class="j-icon">⚔️</div>
+      <h3 class="j-title">TU BATTLES</h3>
+      <p class="j-text">VoltClip t'apparie automatiquement avec un autre talent de ta catégorie. La bataille commence.</p>
+      <span class="j-badge">AUTO-MATCH</span>
+    </div>
+    <div class="journey-step" data-num="03">
+      <div class="j-icon">🌍</div>
+      <h3 class="j-title">LE MONDE VOTE</h3>
+      <p class="j-text">Des milliers de viewers du monde entier regardent et votent pour leur favori. En temps réel.</p>
+    </div>
+    <div class="journey-step" data-num="04">
+      <div class="j-icon">📈</div>
+      <h3 class="j-title">TU GRIMPES</h3>
+      <p class="j-text">Chaque victoire te fait monter dans le classement mondial de ta discipline. Semaine après semaine.</p>
+    </div>
+    <div class="journey-step" data-num="05">
+      <div class="j-icon">👑</div>
+      <h3 class="j-title">TU DOMINES</h3>
+      <p class="j-text">Cumule les victoires, grimpe dans le classement mondial de ta discipline. Le #1 de ta catégorie, c'est toi.</p>
+      <span class="j-badge gold">🏆 OBJECTIF</span>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<div class="section-wrap">
+  <div class="section-label">Plateforme</div>
+  <h2 class="section-title">Tout pour<br><span class="grad">dominer l'arène</span></h2>
+
+  <div class="features-grid reveal">
+    <article class="feature-card">
+      <span class="feature-badge gold">CORE</span>
+      <span class="feature-icon">⚔️</span>
+      <h3 class="feature-name">ClipBattle — Système de battle</h3>
+      <p class="feature-desc">Chaque vidéo est automatiquement mise en battle dans sa catégorie. Le public vote, les stats sont publiques.</p>
+    </article>
+    <article class="feature-card">
+      <span class="feature-icon">🏆</span>
+      <h3 class="feature-name">Classement mondial temps réel</h3>
+      <p class="feature-desc">Semaine, mois, all-time — chaque catégorie a son classement. Les meilleurs talents deviennent visibles naturellement.</p>
+    </article>
+    <article class="feature-card">
+      <span class="feature-icon">🧠</span>
+      <h3 class="feature-name">Algorithme de découverte v4</h3>
+      <p class="feature-desc">Feed personnalisé qui expose les meilleurs talents au bon public au bon moment. 9 signaux comportementaux analysés.</p>
+    </article>
+    <article class="feature-card">
+      <span class="feature-badge">LIVE</span>
+      <span class="feature-icon">🌍</span>
+      <h3 class="feature-name">Audience mondiale sans frontières</h3>
+      <p class="feature-desc">Un talent à Lagos peut battre un créateur à Tokyo. Le vote du public est universel et en temps réel.</p>
+    </article>
+    <article class="feature-card">
+      <span class="feature-icon">📊</span>
+      <h3 class="feature-name">Analytics créateur complet</h3>
+      <p class="feature-desc">Vues, votes gagnés, taux de complétion, historique battles, progression classement, pics d'audience.</p>
+    </article>
+    <article class="feature-card">
+      <span class="feature-icon">💬</span>
+      <h3 class="feature-name">Messagerie privée intégrée</h3>
+      <p class="feature-desc">DM temps réel. Envoie un message à n'importe quel créateur depuis son profil. Zéro intermédiaire.</p>
+    </article>
+    <article class="feature-card">
+      <span class="feature-icon">👤</span>
+      <h3 class="feature-name">Profil talent public</h3>
+      <p class="feature-desc">Chaque créateur a une vitrine permanente : grille de vidéos, stats, classement actuel, battles gagnées.</p>
+    </article>
+    <article class="feature-card">
+      <span class="feature-icon">📱</span>
+      <h3 class="feature-name">100% mobile, zéro installation</h3>
+      <p class="feature-desc">Fonctionne directement dans le navigateur mobile. Upload depuis la galerie ou directement à la caméra.</p>
+    </article>
+  </div>
+</div>
+
+<!-- CTA -->
+<section id="cta" style="max-width:none;padding:80px 24px 100px;text-align:center;position:relative;z-index:1">
+  <div class="cta-bg" aria-hidden="true"></div>
+  <h2 class="cta-title">Prêt à entrer<br><span style="background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent">dans l'arène ?</span></h2>
+  <p class="cta-sub">Rejoins VoltClip gratuitement. Publie tes clips, lance des battles, vote pour les meilleurs. Fonctionne dans ton navigateur.</p>
+  <div class="cta-actions">
+    <a href="voltclip.html" class="btn-primary" style="font-size:15px;padding:18px 38px">
+      ⚡ Lancer VoltClip <span class="arrow">→</span>
+    </a>
+  </div>
+</section>
+
+<!-- PUB ADSENSE BANNIÈRE MILIEU -->
+<div class="ad-slot" style="text-align:center;padding:20px 24px;position:relative;z-index:1;max-width:1080px;margin:0 auto" id="adMid">
+  <ins class="adsbygoogle"
+       style="display:block"
+       data-ad-client="ca-pub-5433648295830648"
+       data-ad-slot="auto"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+</div>
+<script>
+if (localStorage.getItem('voltclip_cookies') === 'accepted') {
+  document.getElementById('adMid').style.display = 'block';
+  try { (adsbygoogle = window.adsbygoogle || []).push({}); } catch(e) {}
+} else {
+  document.getElementById('adMid').style.display = 'none';
+}
+</script>
+
+<footer role="contentinfo">
+  <div class="footer-logo">⚡ <span>VOLT</span>CLIP</div>
+  <nav aria-label="Liens footer">
+    <ul class="footer-links">
+      <li><a href="voltclip.html">App</a></li>
+      <li><a href="#battles">Battles</a></li>
+      <li><a href="#categories">Catégories</a></li>
+      <li><a href="#features">Features</a></li>
+    </ul>
+  </nav>
+  <nav aria-label="Liens légaux" style="margin-top:12px">
+    <ul class="footer-links" style="font-size:10px;opacity:.6">
+      <li><a href="mentions-legales.html">Mentions légales</a></li>
+      <li><a href="politique-confidentialite.html">Confidentialité</a></li>
+      <li><a href="cgu.html">CGU</a></li>
+      <li><a href="cookies.html">Cookies</a></li>
+    </ul>
+  </nav>
+  <div class="footer-copy">© 2026 VoltClip — Caporale Hervé — Tous droits réservés</div>
+</footer>
+
+<div id="cookieBanner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;background:rgba(19,19,26,0.98);backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,0.07);padding:16px 20px;display:flex;flex-wrap:wrap;align-items:center;gap:12px">
+  <p style="flex:1;min-width:220px;font-size:13px;color:rgba(255,255,255,0.6);margin:0">🍪 VoltClip utilise des cookies pour le fonctionnement du service et des publicités personnalisées. <a href="cookies.html" style="color:#7c5cfc">En savoir plus</a></p>
+  <div style="display:flex;gap:8px;flex-shrink:0">
+    <button onclick="refuseCookies()" style="background:none;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.5);font-size:12px;padding:8px 16px;border-radius:20px;cursor:pointer;font-family:'Space Mono',monospace">Refuser</button>
+    <button onclick="acceptCookies()" style="background:linear-gradient(135deg,#7c5cfc,#fc5c7d);border:none;color:#fff;font-size:12px;font-weight:700;padding:8px 20px;border-radius:20px;cursor:pointer;font-family:'Space Mono',monospace">Accepter</button>
+  </div>
+</div>
+
+<script>
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (!e.isIntersecting) return
+    e.target.classList.add('visible')
+    const children = Array.from(e.target.children)
+    if (children.length > 1) {
+      children.forEach((child, i) => {
+        child.style.opacity = '0'
+        child.style.transform = 'translateY(20px)'
+        child.style.transition = 'opacity .5s ease, transform .5s ease'
+        setTimeout(() => { child.style.opacity = '1'; child.style.transform = 'translateY(0)' }, i * 60 + 80)
+      })
+    }
+    obs.unobserve(e.target)
+  })
+}, { threshold: 0.08 })
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el))
+
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const target = document.querySelector(a.getAttribute('href'))
+    if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth', block: 'start' }) }
+  })
+})
+
+let count = 247
+setInterval(() => {
+  count += Math.floor(Math.random() * 3) - 1
+  count = Math.max(230, Math.min(280, count))
+  const el = document.getElementById('liveCount')
+  if (el) el.textContent = count
+}, 2800)
+
+function acceptCookies() {
+  localStorage.setItem('voltclip_cookies','accepted');
+  document.getElementById('cookieBanner').style.display='none';
+  if (!window._adsLoaded) {
+    window._adsLoaded = true;
+    var s = document.createElement('script');
+    s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5433648295830648';
+    s.async = true; s.crossOrigin = 'anonymous';
+    s.onload = function() {
+      var adSlots = document.querySelectorAll('.adsbygoogle');
+      adSlots.forEach(function() {
+        try { (adsbygoogle = window.adsbygoogle || []).push({}); } catch(e) {}
+      });
+    };
+    document.head.appendChild(s);
+  }
+  var adMid = document.getElementById('adMid');
+  if (adMid) adMid.style.display = 'block';
+}
+function refuseCookies() { localStorage.setItem('voltclip_cookies','refused'); document.getElementById('cookieBanner').style.display='none' }
+if (!localStorage.getItem('voltclip_cookies')) document.getElementById('cookieBanner').style.display='flex'
+</script>
+
+<script id="voltclip-i18n">
+(function(){
+/* ══════════════════════════════════════════════════════
+   VoltClip — Auto i18n (12 langues)
+   Détecte navigator.language → applique les traductions
+   ══════════════════════════════════════════════════════ */
+
+const T = {
+  en:{
+    page_title:"VoltClip — The video battle platform where creators compete",
+    meta_desc:"VoltClip — Post your clips, challenge other creators in video battles, vote for the best. Full-screen feed, world ranking, 2026.",
+    nav_categories:"Categories",nav_battles:"Battles",nav_cta:"Launch app ⚡",
+    hero_eyebrow:"Creative battle platform · 2026",
+    hero_tagline:"BATTLE. VOTE. DOMINATE.",
+    hero_sub:'Post your clips, challenge other creators in <strong>video battles</strong>, vote for the best. The community decides who rules the arena.',
+    hero_cta1:"⚡ Launch VoltClip →",hero_cta2:"See the battles",
+    ticker_before:"LIVE BATTLES ·\u00a0",ticker_after:"\u00a0· TALENTS ONLINE",
+    stat1:"Global talents",stat2:"Battles by category",stat3:"Free",stat4:"Accessible worldwide",
+    creator_tag:"🎬 CREATORS",creator_title:"YOUR CLIP<br>DESERVES<br>TO BE SEEN",
+    creator_text:"Post your videos, automatically enter battles in your category and climb the world ranking. The more votes you win, the more visible you become.",
+    creator_p1:"Automatic battle on upload",creator_p2:"World ranking in real time",
+    creator_p3:"Stats — views, votes, completion rate",creator_p4:"Direct DM with the community",
+    creator_cta:"Post my clip ⚡",
+    voter_tag:"🗳️ VOTERS",voter_title:"DECIDE<br>WHO IS<br>THE BEST",
+    voter_text:"Infinite scroll of side-by-side battles. One vote per battle, hundreds of duels to judge. Become one of the top voters in the world ranking.",
+    voter_p1:"Full-screen snap battles feed",voter_p2:"Live animated results",
+    voter_p3:"World ranking of top voters",voter_p4:"Daily streak — gold/silver/bronze medal",
+    voter_cta:"Vote now →",
+    battle_section:"⚔️ ClipBattle",
+    battle_title:'The competition<br><span class="grad">in real time</span>',
+    battle_sub:"Two talents compete in the same category. The public votes. The winner climbs the world ranking. Simple. Brutal. Decisive.",
+    battle_footer:"CATEGORY: MUSIC · 🌍 WORLD BATTLE · ⏱ 47H LEFT",
+    cat_section:"🌟 Disciplines",cat_title:'All the<br><span class="grad-gold">forms of talent</span>',
+    cat_sub:"Each discipline has its own ranking and battles. Your talent definitely has a place here.",
+    cat_music:"MUSIC",cat_music_s:"Singing · Rap · Beatbox",cat_dance:"DANCE",cat_dance_s:"Street · Contemporary · Waacking",
+    cat_comedy:"COMEDY",cat_comedy_s:"Stand-up · Sketch · Mime",cat_art:"VISUAL ART",cat_art_s:"Drawing · Digital · Graffiti",
+    cat_sport:"SPORT",cat_sport_s:"Freestyle · Acrobatics · Tricks",cat_cooking:"COOKING",cat_cooking_s:"Recipes · Plating · Speed cook",
+    cat_gaming:"GAMING",cat_gaming_s:"Highlights · Speedrun · IRL",cat_other:"OTHER",cat_other_s:"Magic · Illusions · Unique",
+    journey_label:"Journey",journey_title:'From upload<br><span class="grad">to the top</span>',
+    j1:"YOU UPLOAD",j1t:"Post your clip from your phone. Choose category, title, hashtags. Published in seconds.",
+    j2:"YOU BATTLE",j2t:"VoltClip automatically matches you with another talent in your category. The battle begins.",
+    j3:"THE WORLD VOTES",j3t:"Thousands of viewers from around the world watch and vote for their favourite. In real time.",
+    j4:"YOU CLIMB",j4t:"Each win moves you up the world ranking for your discipline. Week after week.",
+    j5:"YOU DOMINATE",j5t:"Stack up wins, climb the world ranking in your discipline. The #1 in your category — that's you.",
+    feat_section:"Platform",feat_title:'Everything to<br><span class="grad">dominate the arena</span>',
+    f1:"ClipBattle — Battle system",f1d:"Every video is automatically entered in a battle in its category. The public votes, stats are public.",
+    f2:"Real-time world ranking",f2d:"Week, month, all-time — each category has its ranking. The best talents become naturally visible.",
+    f3:"Discovery algorithm v4",f3d:"Personalised feed exposing the best talents to the right audience at the right time. 9 behavioural signals analysed.",
+    f4:"Global audience — no borders",f4d:"A talent in Lagos can beat a creator in Tokyo. Public voting is universal and real-time.",
+    f5:"Complete creator analytics",f5d:"Views, votes won, completion rate, battle history, ranking progression, audience peaks.",
+    f6:"Integrated private messaging",f6d:"Real-time DM. Send a message to any creator from their profile. Zero intermediaries.",
+    f7:"Public talent profile",f7d:"Every creator has a permanent showcase: video grid, stats, current ranking, battles won.",
+    f8:"100% mobile, zero install",f8d:"Works directly in your mobile browser. Upload from gallery or straight from camera.",
+    cta_title:'Ready to enter<br><span style="background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent">the arena?</span>',
+    cta_sub:"Join VoltClip for free. Post clips, launch battles, vote for the best. Works in your browser.",
+    cta_btn:"⚡ Launch VoltClip →",
+    footer_categories:"Categories",footer_battles:"Battles",footer_features:"Features",
+    cookie_text:'🍪 VoltClip uses cookies for service functionality and personalised advertising. <a href="cookies.html" style="color:#7c5cfc">Learn more</a>',
+    cookie_accept:"Accept",cookie_refuse:"Decline",
+  },
+  es:{
+    page_title:"VoltClip — La plataforma de batalla de vídeos donde compiten los creadores",
+    meta_desc:"VoltClip — Publica tus clips, desafía a otros creadores en batallas de vídeo, vota a los mejores. Feed pantalla completa, ranking mundial 2026.",
+    nav_categories:"Categorías",nav_battles:"Batallas",nav_cta:"Abrir la app ⚡",
+    hero_eyebrow:"Plataforma de batalla creativa · 2026",hero_tagline:"ENFRENTA. VOTA. DOMINA.",
+    hero_sub:'Publica tus clips, enfrenta a otros creadores en <strong>duelos de vídeo</strong>, vota por los mejores. La comunidad decide quién domina la arena.',
+    hero_cta1:"⚡ Abrir VoltClip →",hero_cta2:"Ver las batallas",
+    ticker_before:"BATALLAS EN CURSO ·\u00a0",ticker_after:"\u00a0· TALENTOS EN LÍNEA",
+    stat1:"Talentos mundiales",stat2:"Batallas por categoría",stat3:"Gratis",stat4:"Accesible en todo el mundo",
+    creator_tag:"🎬 CREADORES",creator_title:"TU CLIP<br>MERECE<br>SER VISTO",
+    creator_text:"Publica tus vídeos, entra automáticamente en batallas de tu categoría y sube en el ranking mundial.",
+    creator_p1:"Batalla automática al subir",creator_p2:"Ranking mundial en tiempo real",
+    creator_p3:"Stats — vistas, votos, tasa de finalización",creator_p4:"DM directo con la comunidad",
+    creator_cta:"Publicar mi clip ⚡",
+    voter_tag:"🗳️ VOTANTES",voter_title:"DECIDE<br>QUIÉN ES<br>EL MEJOR",
+    voter_text:"Scroll infinito de batallas cara a cara. Un voto por batalla, cientos de duelos para juzgar.",
+    voter_p1:"Feed de batallas en pantalla completa",voter_p2:"Resultados en tiempo real animados",
+    voter_p3:"Ranking mundial de mejores votantes",voter_p4:"Racha diaria — medalla oro/plata/bronce",
+    voter_cta:"Votar ahora →",
+    battle_section:"⚔️ ClipBattle",battle_title:'La competición<br><span class="grad">en tiempo real</span>',
+    battle_sub:"Dos talentos compiten en la misma categoría. El público vota. El ganador sube en el ranking mundial.",
+    battle_footer:"CATEGORÍA: MÚSICA · 🌍 BATALLA MUNDIAL · ⏱ 47H RESTANTES",
+    cat_section:"🌟 Disciplinas",cat_title:'Todas las<br><span class="grad-gold">formas de talento</span>',
+    cat_sub:"Cada disciplina tiene su propio ranking y batallas. Tu talento definitivamente tiene un lugar aquí.",
+    cat_music:"MÚSICA",cat_music_s:"Canto · Rap · Beatbox",cat_dance:"BAILE",cat_dance_s:"Street · Contemporáneo · Waacking",
+    cat_comedy:"COMEDIA",cat_comedy_s:"Stand-up · Sketch · Mimo",cat_art:"ARTE VISUAL",cat_art_s:"Dibujo · Digital · Graffiti",
+    cat_sport:"DEPORTE",cat_sport_s:"Freestyle · Acrobacia · Trucos",cat_cooking:"COCINA",cat_cooking_s:"Recetas · Plating · Speed cook",
+    cat_gaming:"GAMING",cat_gaming_s:"Highlights · Speedrun · IRL",cat_other:"OTRO",cat_other_s:"Magia · Ilusiones · Único",
+    journey_label:"Recorrido",journey_title:'Del upload<br><span class="grad">a la cima</span>',
+    j1:"SUBES EL CLIP",j1t:"Publica tu clip desde el móvil. Elige categoría, título, hashtags. Publicado en segundos.",
+    j2:"COMBATES",j2t:"VoltClip te empareja automáticamente con otro talento de tu categoría. Empieza la batalla.",
+    j3:"EL MUNDO VOTA",j3t:"Miles de espectadores de todo el mundo ven y votan por su favorito. En tiempo real.",
+    j4:"SUBES",j4t:"Cada victoria te hace subir en el ranking mundial de tu disciplina. Semana tras semana.",
+    j5:"DOMINAS",j5t:"Acumula victorias, sube en el ranking mundial. El #1 de tu categoría eres tú.",
+    feat_section:"Plataforma",feat_title:'Todo para<br><span class="grad">dominar la arena</span>',
+    f1:"ClipBattle — Sistema de batalla",f1d:"Cada vídeo entra automáticamente en una batalla en su categoría. El público vota, las stats son públicas.",
+    f2:"Ranking mundial en tiempo real",f2d:"Semana, mes, all-time — cada categoría tiene su ranking.",
+    f3:"Algoritmo de descubrimiento v4",f3d:"Feed personalizado que expone los mejores talentos al público correcto en el momento correcto.",
+    f4:"Audiencia mundial sin fronteras",f4d:"Un talento en Lagos puede vencer a un creador en Tokio. El voto es universal y en tiempo real.",
+    f5:"Analytics de creador completo",f5d:"Vistas, votos ganados, tasa de finalización, historial de batallas, progresión del ranking.",
+    f6:"Mensajería privada integrada",f6d:"DM en tiempo real. Manda un mensaje a cualquier creador desde su perfil.",
+    f7:"Perfil de talento público",f7d:"Cada creador tiene su escaparate permanente: cuadrícula de vídeos, stats, ranking actual.",
+    f8:"100% móvil, cero instalación",f8d:"Funciona directamente en el navegador móvil. Sube desde galería o directamente desde la cámara.",
+    cta_title:'¿Listo para entrar<br><span style="background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent">en la arena?</span>',
+    cta_sub:"Únete a VoltClip gratis. Publica clips, lanza batallas, vota por los mejores. Funciona en tu navegador.",
+    cta_btn:"⚡ Abrir VoltClip →",
+    footer_categories:"Categorías",footer_battles:"Batallas",footer_features:"Features",
+    cookie_text:'🍪 VoltClip usa cookies para el funcionamiento del servicio y publicidad personalizada. <a href="cookies.html" style="color:#7c5cfc">Más información</a>',
+    cookie_accept:"Aceptar",cookie_refuse:"Rechazar",
+  },
+  pt:{
+    page_title:"VoltClip — A plataforma de batalha de vídeos onde criadores se enfrentam",
+    nav_categories:"Categorias",nav_battles:"Batalhas",nav_cta:"Abrir o app ⚡",
+    hero_eyebrow:"Plataforma de batalha criativa · 2026",hero_tagline:"ENFRENTA. VOTA. DOMINA.",
+    hero_sub:'Publica os teus clips, desafia outros criadores em <strong>duelos de vídeo</strong>, vota nos melhores. A comunidade decide quem domina a arena.',
+    hero_cta1:"⚡ Abrir VoltClip →",hero_cta2:"Ver as batalhas",
+    ticker_before:"BATALHAS EM CURSO ·\u00a0",ticker_after:"\u00a0· TALENTOS ONLINE",
+    stat1:"Talentos mundiais",stat2:"Batalhas por categoria",stat3:"Grátis",stat4:"Acessível em todo o mundo",
+    creator_tag:"🎬 CRIADORES",creator_title:"O TEU CLIP<br>MERECE<br>SER VISTO",
+    creator_text:"Publica os teus vídeos, entra automaticamente em batalhas na tua categoria e sobe no ranking mundial.",
+    creator_p1:"Batalha automática ao publicar",creator_p2:"Ranking mundial em tempo real",
+    creator_p3:"Stats — vistas, votos, taxa de conclusão",creator_p4:"DM direto com a comunidade",
+    creator_cta:"Publicar o meu clip ⚡",
+    voter_tag:"🗳️ VOTANTES",voter_title:"DECIDE<br>QUEM É<br>O MELHOR",
+    voter_text:"Scroll infinito de batalhas lado a lado. Um voto por batalha, centenas de duelos para julgar.",
+    voter_p1:"Feed de batalhas em tela cheia",voter_p2:"Resultados em tempo real animados",
+    voter_p3:"Ranking mundial dos top votantes",voter_p4:"Streak diário — medalha ouro/prata/bronze",
+    voter_cta:"Votar agora →",
+    battle_section:"⚔️ ClipBattle",battle_title:'A competição<br><span class="grad">em tempo real</span>',
+    battle_sub:"Dois talentos competem na mesma categoria. O público vota. O vencedor sobe no ranking mundial.",
+    battle_footer:"CATEGORIA: MÚSICA · 🌍 BATALHA MUNDIAL · ⏱ 47H RESTANTES",
+    cat_section:"🌟 Disciplinas",cat_title:'Todas as<br><span class="grad-gold">formas de talento</span>',
+    cat_sub:"Cada disciplina tem o seu próprio ranking e batalhas. O teu talento definitivamente tem lugar aqui.",
+    cat_music:"MÚSICA",cat_music_s:"Canto · Rap · Beatbox",cat_dance:"DANÇA",cat_dance_s:"Street · Contemporâneo · Waacking",
+    cat_comedy:"COMÉDIA",cat_comedy_s:"Stand-up · Sketch · Mimo",cat_art:"ARTE VISUAL",cat_art_s:"Desenho · Digital · Graffiti",
+    cat_sport:"DESPORTO",cat_sport_s:"Freestyle · Acrobacia · Truques",cat_cooking:"CULINÁRIA",cat_cooking_s:"Receitas · Plating · Speed cook",
+    cat_gaming:"GAMING",cat_gaming_s:"Highlights · Speedrun · IRL",cat_other:"OUTRO",cat_other_s:"Magia · Ilusões · Único",
+    journey_label:"Percurso",journey_title:'Do upload<br><span class="grad">ao topo</span>',
+    j1:"PUBLICAS",j1t:"Publica o teu clip do telemóvel. Escolhe categoria, título, hashtags. Publicado em segundos.",
+    j2:"BATALHAS",j2t:"VoltClip emparelha-te automaticamente com outro talento da tua categoria. A batalha começa.",
+    j3:"O MUNDO VOTA",j3t:"Milhares de espetadores de todo o mundo assistem e votam no seu favorito. Em tempo real.",
+    j4:"SUBES",j4t:"Cada vitória faz-te subir no ranking mundial da tua disciplina.",
+    j5:"DOMINAS",j5t:"Acumula vitórias, sobe no ranking mundial. O #1 da tua categoria és tu.",
+    feat_section:"Plataforma",feat_title:'Tudo para<br><span class="grad">dominar a arena</span>',
+    f1:"ClipBattle — Sistema de batalha",f1d:"Cada vídeo entra automaticamente em batalha na sua categoria.",
+    f2:"Ranking mundial em tempo real",f2d:"Semana, mês, all-time — cada categoria tem o seu ranking.",
+    f3:"Algoritmo de descoberta v4",f3d:"Feed personalizado que expõe os melhores talentos à audiência certa no momento certo.",
+    f4:"Audiência mundial sem fronteiras",f4d:"Um talento em Lagos pode vencer um criador em Tóquio.",
+    f5:"Analytics completo para criadores",f5d:"Vistas, votos ganhos, taxa de conclusão, histórico de batalhas, progressão no ranking.",
+    f6:"Mensagens privadas integradas",f6d:"DM em tempo real. Envia mensagem a qualquer criador a partir do seu perfil.",
+    f7:"Perfil de talento público",f7d:"Cada criador tem a sua montra permanente: grelha de vídeos, stats, ranking atual.",
+    f8:"100% móvel, zero instalação",f8d:"Funciona diretamente no navegador móvel. Upload da galeria ou diretamente da câmara.",
+    cta_title:'Pronto para entrar<br><span style="background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent">na arena?</span>',
+    cta_sub:"Junta-te ao VoltClip gratuitamente. Publica clips, lança batalhas, vota nos melhores.",
+    cta_btn:"⚡ Abrir VoltClip →",
+    footer_categories:"Categorias",footer_battles:"Batalhas",footer_features:"Features",
+    cookie_text:'🍪 O VoltClip usa cookies para o funcionamento do serviço e publicidade personalizada. <a href="cookies.html" style="color:#7c5cfc">Saber mais</a>',
+    cookie_accept:"Aceitar",cookie_refuse:"Recusar",
+  },
+  de:{
+    page_title:"VoltClip — Die Video-Battle-Plattform, auf der Creators gegeneinander antreten",
+    nav_categories:"Kategorien",nav_battles:"Battles",nav_cta:"App starten ⚡",
+    hero_eyebrow:"Kreative Battle-Plattform · 2026",hero_tagline:"KÄMPFE. WÄHLE. DOMINIERE.",
+    hero_sub:'Veröffentliche deine Clips, fordere andere Creator zu <strong>Video-Duellen</strong> heraus, wähle die Besten. Die Community entscheidet, wer die Arena beherrscht.',
+    hero_cta1:"⚡ VoltClip starten →",hero_cta2:"Battles ansehen",
+    ticker_before:"LAUFENDE BATTLES ·\u00a0",ticker_after:"\u00a0· TALENTE ONLINE",
+    stat1:"Weltweite Talente",stat2:"Battles pro Kategorie",stat3:"Kostenlos",stat4:"Weltweit zugänglich",
+    creator_tag:"🎬 CREATOR",creator_title:"DEIN CLIP<br>VERDIENT<br>GESEHEN ZU WERDEN",
+    creator_text:"Lade deine Videos hoch, tritt automatisch in Battles deiner Kategorie an und klettere in der Weltrangliste.",
+    creator_p1:"Automatisches Battle beim Upload",creator_p2:"Weltrangliste in Echtzeit",
+    creator_p3:"Stats — Aufrufe, Stimmen, Abschlussrate",creator_p4:"Direkte DMs mit der Community",
+    creator_cta:"Meinen Clip posten ⚡",
+    voter_tag:"🗳️ WÄHLER",voter_title:"ENTSCHEIDE<br>WER DER<br>BESTE IST",
+    voter_text:"Endloser Scroll von Side-by-Side-Battles. Eine Stimme pro Battle, Hunderte von Duellen zu bewerten.",
+    voter_p1:"Vollbild-Battle-Feed",voter_p2:"Animierte Ergebnisse in Echtzeit",
+    voter_p3:"Weltrangliste der besten Wähler",voter_p4:"Tägliche Streak — Gold/Silber/Bronze-Medaille",
+    voter_cta:"Jetzt abstimmen →",
+    battle_section:"⚔️ ClipBattle",battle_title:'Der Wettbewerb<br><span class="grad">in Echtzeit</span>',
+    battle_sub:"Zwei Talente treten in derselben Kategorie gegeneinander an. Das Publikum stimmt ab. Der Gewinner steigt.",
+    battle_footer:"KATEGORIE: MUSIK · 🌍 WELTBATTLE · ⏱ NOCH 47H",
+    cat_section:"🌟 Disziplinen",cat_title:'Alle<br><span class="grad-gold">Talentformen</span>',
+    cat_sub:"Jede Disziplin hat ihre eigene Rangliste und Battles. Dein Talent hat definitiv seinen Platz hier.",
+    cat_music:"MUSIK",cat_music_s:"Gesang · Rap · Beatbox",cat_dance:"TANZ",cat_dance_s:"Street · Contemporary · Waacking",
+    cat_comedy:"COMEDY",cat_comedy_s:"Stand-up · Sketch · Pantomime",cat_art:"VISUELLE KUNST",cat_art_s:"Zeichnen · Digital · Graffiti",
+    cat_sport:"SPORT",cat_sport_s:"Freestyle · Akrobatik · Tricks",cat_cooking:"KOCHEN",cat_cooking_s:"Rezepte · Plating · Speed cook",
+    cat_gaming:"GAMING",cat_gaming_s:"Highlights · Speedrun · IRL",cat_other:"SONSTIGES",cat_other_s:"Magie · Illusionen · Einzigartig",
+    journey_label:"Dein Weg",journey_title:'Vom Upload<br><span class="grad">an die Spitze</span>',
+    j1:"DU UPLOADEST",j1t:"Lade deinen Clip vom Handy hoch. Wähle Kategorie, Titel, Hashtags. In Sekunden veröffentlicht.",
+    j2:"DU KÄMPFST",j2t:"VoltClip verbindet dich automatisch mit einem anderen Talent deiner Kategorie. Der Battle beginnt.",
+    j3:"DIE WELT STIMMT AB",j3t:"Tausende Zuschauer aus aller Welt schauen zu und stimmen in Echtzeit ab.",
+    j4:"DU STEIGST",j4t:"Jeder Sieg lässt dich in der Weltrangliste aufsteigen. Woche für Woche.",
+    j5:"DU DOMINIERST",j5t:"Sammle Siege, klettere in der Weltrangliste. Die #1 deiner Kategorie — das bist du.",
+    feat_section:"Plattform",feat_title:'Alles um<br><span class="grad">die Arena zu dominieren</span>',
+    f1:"ClipBattle — Battle-System",f1d:"Jedes Video wird automatisch in ein Battle in seiner Kategorie eingetragen.",
+    f2:"Weltrangliste in Echtzeit",f2d:"Woche, Monat, All-Time — jede Kategorie hat ihre Rangliste.",
+    f3:"Discovery-Algorithmus v4",f3d:"Personalisierter Feed, der die besten Talente zur richtigen Zeit dem richtigen Publikum zeigt.",
+    f4:"Weltweites Publikum ohne Grenzen",f4d:"Ein Talent in Lagos kann einen Creator in Tokio schlagen.",
+    f5:"Vollständige Creator-Analytics",f5d:"Aufrufe, gewonnene Stimmen, Abschlussrate, Battle-Verlauf, Ranglisten-Progression.",
+    f6:"Integriertes privates Messaging",f6d:"Echtzeit-DM. Schreibe jedem Creator eine Nachricht über sein Profil.",
+    f7:"Öffentliches Talent-Profil",f7d:"Jeder Creator hat sein permanentes Schaufenster: Video-Grid, Stats, aktuelle Rangliste.",
+    f8:"100% mobil, keine Installation",f8d:"Funktioniert direkt im mobilen Browser. Upload aus der Galerie oder von der Kamera.",
+    cta_title:'Bereit, die<br><span style="background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent">Arena zu betreten?</span>',
+    cta_sub:"Tritt VoltClip kostenlos bei. Poste Clips, starte Battles, stimme für die Besten.",
+    cta_btn:"⚡ VoltClip starten →",
+    footer_categories:"Kategorien",footer_battles:"Battles",footer_features:"Features",
+    cookie_text:'🍪 VoltClip verwendet Cookies für den Servicebetrieb und personalisierte Werbung. <a href="cookies.html" style="color:#7c5cfc">Mehr erfahren</a>',
+    cookie_accept:"Akzeptieren",cookie_refuse:"Ablehnen",
+  },
+  it:{
+    page_title:"VoltClip — La piattaforma di battle video dove i creator si sfidano",
+    nav_categories:"Categorie",nav_battles:"Battaglie",nav_cta:"Apri l'app ⚡",
+    hero_eyebrow:"Piattaforma di battle creativa · 2026",hero_tagline:"SFIDA. VOTA. DOMINA.",
+    hero_sub:'Pubblica i tuoi clip, sfida altri creator in <strong>duelli video</strong>, vota i migliori. La community decide chi domina l\'arena.',
+    hero_cta1:"⚡ Apri VoltClip →",hero_cta2:"Guarda le battaglie",
+    ticker_before:"BATTAGLIE IN CORSO ·\u00a0",ticker_after:"\u00a0· TALENTI ONLINE",
+    stat1:"Talenti mondiali",stat2:"Battaglie per categoria",stat3:"Gratuito",stat4:"Accessibile ovunque",
+    creator_tag:"🎬 CREATOR",creator_title:"IL TUO CLIP<br>MERITA<br>DI ESSERE VISTO",
+    creator_text:"Pubblica i tuoi video, entra automaticamente in battaglie nella tua categoria e sali nella classifica mondiale.",
+    creator_p1:"Battaglia automatica all'upload",creator_p2:"Classifica mondiale in tempo reale",
+    creator_p3:"Stats — visualizzazioni, voti, tasso di completamento",creator_p4:"DM diretto con la community",
+    creator_cta:"Pubblica il mio clip ⚡",
+    voter_tag:"🗳️ VOTANTI",voter_title:"DECIDI<br>CHI È<br>IL MIGLIORE",
+    voter_text:"Scroll infinito di battaglie fianco a fianco. Un voto per battaglia, centinaia di duelli da giudicare.",
+    voter_p1:"Feed di battaglie a schermo intero",voter_p2:"Risultati animati in tempo reale",
+    voter_p3:"Classifica mondiale dei top votanti",voter_p4:"Streak giornaliero — medaglia oro/argento/bronzo",
+    voter_cta:"Vota adesso →",
+    battle_section:"⚔️ ClipBattle",battle_title:'La competizione<br><span class="grad">in tempo reale</span>',
+    battle_sub:"Due talenti si sfidano nella stessa categoria. Il pubblico vota. Il vincitore sale nella classifica mondiale.",
+    battle_footer:"CATEGORIA: MUSICA · 🌍 BATTLE MONDIALE · ⏱ 47H RIMANENTI",
+    cat_section:"🌟 Discipline",cat_title:'Tutte le<br><span class="grad-gold">forme di talento</span>',
+    cat_sub:"Ogni disciplina ha la sua classifica e le sue battaglie. Il tuo talento ha sicuramente un posto qui.",
+    cat_music:"MUSICA",cat_music_s:"Canto · Rap · Beatbox",cat_dance:"DANZA",cat_dance_s:"Street · Contemporanea · Waacking",
+    cat_comedy:"COMMEDIA",cat_comedy_s:"Stand-up · Sketch · Mimo",cat_art:"ARTE VISIVA",cat_art_s:"Disegno · Digitale · Graffiti",
+    cat_sport:"SPORT",cat_sport_s:"Freestyle · Acrobatica · Tricks",cat_cooking:"CUCINA",cat_cooking_s:"Ricette · Plating · Speed cook",
+    cat_gaming:"GAMING",cat_gaming_s:"Highlights · Speedrun · IRL",cat_other:"ALTRO",cat_other_s:"Magia · Illusioni · Unico",
+    journey_label:"Percorso",journey_title:'Dall\'upload<br><span class="grad">alla vetta</span>',
+    j1:"CARICHI",j1t:"Pubblica il tuo clip dal cellulare. Scegli categoria, titolo, hashtag. Pubblicato in pochi secondi.",
+    j2:"COMBATTI",j2t:"VoltClip ti abbina automaticamente con un altro talento della tua categoria.",
+    j3:"IL MONDO VOTA",j3t:"Migliaia di spettatori da tutto il mondo guardano e votano per il loro preferito.",
+    j4:"SALI",j4t:"Ogni vittoria ti fa salire nella classifica mondiale della tua disciplina.",
+    j5:"DOMINI",j5t:"Accumula vittorie, sali nella classifica mondiale. Il #1 della tua categoria sei tu.",
+    feat_section:"Piattaforma",feat_title:'Tutto per<br><span class="grad">dominare l\'arena</span>',
+    f1:"ClipBattle — Sistema di battaglia",f1d:"Ogni video entra automaticamente in una battaglia nella sua categoria.",
+    f2:"Classifica mondiale in tempo reale",f2d:"Settimana, mese, all-time — ogni categoria ha la sua classifica.",
+    f3:"Algoritmo di scoperta v4",f3d:"Feed personalizzato che espone i migliori talenti al pubblico giusto al momento giusto.",
+    f4:"Pubblico mondiale senza frontiere",f4d:"Un talento a Lagos può battere un creator a Tokyo.",
+    f5:"Analytics creator completo",f5d:"Visualizzazioni, voti vinti, tasso di completamento, storico battaglie, progressione classifica.",
+    f6:"Messaggistica privata integrata",f6d:"DM in tempo reale. Manda un messaggio a qualsiasi creator dal suo profilo.",
+    f7:"Profilo talento pubblico",f7d:"Ogni creator ha la sua vetrina permanente: griglia video, stats, classifica attuale.",
+    f8:"100% mobile, zero installazione",f8d:"Funziona direttamente nel browser mobile. Upload dalla galleria o dalla fotocamera.",
+    cta_title:'Pronto ad entrare<br><span style="background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent">nell\'arena?</span>',
+    cta_sub:"Unisciti a VoltClip gratuitamente. Pubblica clip, lancia battaglie, vota i migliori.",
+    cta_btn:"⚡ Apri VoltClip →",
+    footer_categories:"Categorie",footer_battles:"Battaglie",footer_features:"Features",
+    cookie_text:'🍪 VoltClip usa i cookie per il funzionamento del servizio e la pubblicità personalizzata. <a href="cookies.html" style="color:#7c5cfc">Scopri di più</a>',
+    cookie_accept:"Accetta",cookie_refuse:"Rifiuta",
+  },
+  ar:{
+    rtl:true,
+    page_title:"VoltClip — منصة معارك الفيديو حيث يتنافس المبدعون",
+    nav_categories:"الفئات",nav_battles:"المعارك",nav_cta:"فتح التطبيق ⚡",
+    hero_eyebrow:"منصة معارك إبداعية · 2026",hero_tagline:"تحدَّ. صوِّت. تسيَّد.",
+    hero_sub:'انشر مقاطعك، تحدى منشئي المحتوى في <strong>مبارزات الفيديو</strong>، صوّت للأفضل. المجتمع يقرر من يتسيّد الساحة.',
+    hero_cta1:"⚡ فتح VoltClip →",hero_cta2:"مشاهدة المعارك",
+    ticker_before:"معارك جارية ·\u00a0",ticker_after:"\u00a0· مواهب متصلة",
+    stat1:"مواهب عالمية",stat2:"معارك لكل فئة",stat3:"مجاني",stat4:"متاح في كل مكان",
+    creator_tag:"🎬 المنشئون",creator_title:"مقطعك<br>يستحق<br>أن يُشاهَد",
+    creator_text:"انشر مقاطعك، ادخل المعارك تلقائياً في فئتك، وتسلق التصنيف العالمي.",
+    creator_p1:"معركة تلقائية عند النشر",creator_p2:"تصنيف عالمي في الوقت الفعلي",
+    creator_p3:"إحصاءات — المشاهدات والأصوات ومعدل الإكمال",creator_p4:"رسائل مباشرة مع المجتمع",
+    creator_cta:"نشر مقطعي ⚡",
+    voter_tag:"🗳️ الناخبون",voter_title:"قرِّر<br>من هو<br>الأفضل",
+    voter_text:"تمرير لا نهائي للمعارك جنباً إلى جنب. صوت واحد لكل معركة، مئات المبارزات للتقييم.",
+    voter_p1:"خلاصة المعارك بملء الشاشة",voter_p2:"نتائج حية ومتحركة",
+    voter_p3:"التصنيف العالمي لأفضل الناخبين",voter_p4:"تتابع يومي — ميدالية ذهب/فضة/برونز",
+    voter_cta:"صوّت الآن →",
+    battle_section:"⚔️ ClipBattle",battle_title:'المنافسة<br><span class="grad">في الوقت الفعلي</span>',
+    battle_sub:"موهبتان تتنافسان في نفس الفئة. يصوّت الجمهور. الفائز يرتقي في التصنيف العالمي.",
+    battle_footer:"الفئة: موسيقى · 🌍 معركة عالمية · ⏱ 47 ساعة متبقية",
+    cat_section:"🌟 التخصصات",cat_title:'جميع أشكال<br><span class="grad-gold">الموهبة</span>',
+    cat_sub:"لكل تخصص تصنيفه ومعاركه الخاصة. موهبتك بالتأكيد لها مكان هنا.",
+    cat_music:"موسيقى",cat_music_s:"غناء · راب · بيتبوكس",cat_dance:"رقص",cat_dance_s:"ستريت · معاصر · واكينغ",
+    cat_comedy:"كوميديا",cat_comedy_s:"ستاند أب · سكيتش · بانتوميم",cat_art:"فن بصري",cat_art_s:"رسم · رقمي · غرافيتي",
+    cat_sport:"رياضة",cat_sport_s:"فريستايل · أكروباتيك · حيل",cat_cooking:"طبخ",cat_cooking_s:"وصفات · تقديم · طبخ سريع",
+    cat_gaming:"جيمنغ",cat_gaming_s:"Highlights · Speedrun · IRL",cat_other:"أخرى",cat_other_s:"سحر · وهم · فريد",
+    journey_label:"المسار",journey_title:'من الرفع<br><span class="grad">إلى القمة</span>',
+    j1:"ترفع المقطع",j1t:"انشر مقطعك من هاتفك. اختر الفئة والعنوان والهاشتاقات. نُشر في ثوانٍ.",
+    j2:"تتنافس",j2t:"VoltClip يقرنك تلقائياً مع موهبة أخرى في فئتك. تبدأ المعركة.",
+    j3:"العالم يصوّت",j3t:"آلاف المشاهدين من حول العالم يصوتون لمفضلهم في الوقت الفعلي.",
+    j4:"تتسلق",j4t:"كل فوز يرفعك في التصنيف العالمي لتخصصك. أسبوع بعد أسبوع.",
+    j5:"تتسيّد",j5t:"اجمع الانتصارات، تسلق التصنيف العالمي. المركز الأول في فئتك — هذا أنت.",
+    feat_section:"المنصة",feat_title:'كل شيء<br><span class="grad">للهيمنة على الساحة</span>',
+    f1:"ClipBattle — نظام المعارك",f1d:"كل فيديو يدخل تلقائياً في معركة ضمن فئته. يصوّت الجمهور، والإحصاءات عامة.",
+    f2:"التصنيف العالمي في الوقت الفعلي",f2d:"أسبوع، شهر، كل الأوقات — لكل فئة تصنيفها.",
+    f3:"خوارزمية الاكتشاف v4",f3d:"خلاصة مخصصة تعرض أفضل المواهب للجمهور الصحيح في الوقت الصحيح.",
+    f4:"جمهور عالمي بلا حدود",f4d:"موهبة في لاغوس يمكنها التغلب على منشئ في طوكيو.",
+    f5:"تحليلات كاملة للمنشئين",f5d:"المشاهدات، الأصوات المكتسبة، معدل الإكمال، تاريخ المعارك، تطور التصنيف.",
+    f6:"رسائل خاصة مدمجة",f6d:"رسائل مباشرة في الوقت الفعلي. أرسل رسالة لأي منشئ من ملفه الشخصي.",
+    f7:"ملف الموهبة العام",f7d:"لكل منشئ واجهة دائمة: شبكة فيديو، إحصاءات، التصنيف الحالي.",
+    f8:"100% موبايل، بدون تنزيل",f8d:"يعمل مباشرة في متصفح الهاتف. رفع من المعرض أو مباشرة من الكاميرا.",
+    cta_title:'مستعد للدخول<br><span style="background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent">إلى الساحة؟</span>',
+    cta_sub:"انضم إلى VoltClip مجاناً. انشر مقاطع، أطلق معارك، صوّت للأفضل.",
+    cta_btn:"⚡ فتح VoltClip →",
+    footer_categories:"الفئات",footer_battles:"المعارك",footer_features:"المزايا",
+    cookie_text:'🍪 يستخدم VoltClip ملفات تعريف الارتباط لتشغيل الخدمة والإعلانات المخصصة. <a href="cookies.html" style="color:#7c5cfc">اعرف المزيد</a>',
+    cookie_accept:"قبول",cookie_refuse:"رفض",
+  },
+  ja:{
+    page_title:"VoltClip — クリエイターが競い合う動画バトルプラットフォーム",
+    nav_categories:"カテゴリー",nav_battles:"バトル",nav_cta:"アプリを開く ⚡",
+    hero_eyebrow:"クリエイティブバトルプラットフォーム · 2026",hero_tagline:"戦え。投票せよ。支配せよ。",
+    hero_sub:'クリップを投稿して、他のクリエイターと<strong>動画デュエル</strong>で戦い、最高の才能に投票しよう。',
+    hero_cta1:"⚡ VoltClipを開く →",hero_cta2:"バトルを見る",
+    ticker_before:"進行中のバトル ·\u00a0",ticker_after:"\u00a0· オンラインの才能",
+    stat1:"世界中の才能",stat2:"カテゴリー別バトル",stat3:"無料",stat4:"世界中でアクセス可能",
+    creator_tag:"🎬 クリエイター",creator_title:"あなたのクリップは<br>見られる価値が<br>ある",
+    creator_text:"動画を投稿して、カテゴリーのバトルに自動参加し、世界ランキングを上げよう。",
+    creator_p1:"アップロードで自動バトル",creator_p2:"リアルタイム世界ランキング",
+    creator_p3:"統計 — 視聴数、票数、完了率",creator_p4:"コミュニティとの直接DM",
+    creator_cta:"クリップを投稿 ⚡",
+    voter_tag:"🗳️ 投票者",voter_title:"誰が最高か<br>あなたが<br>決める",
+    voter_text:"サイドバイサイドバトルの無限スクロール。1バトル1票、数百の決闘を審判しよう。",
+    voter_p1:"フルスクリーンバトルフィード",voter_p2:"リアルタイムアニメーション結果",
+    voter_p3:"トップ投票者の世界ランキング",voter_p4:"デイリーストリーク — 金/銀/銅メダル",
+    voter_cta:"今すぐ投票 →",
+    battle_section:"⚔️ ClipBattle",battle_title:'リアルタイムの<br><span class="grad">競争</span>',
+    battle_sub:"同じカテゴリーの2つの才能が対戦。観客が投票。勝者は世界ランキングを上昇。",
+    battle_footer:"カテゴリー：音楽 · 🌍 ワールドバトル · ⏱ 残り47時間",
+    cat_section:"🌟 ディシプリン",cat_title:'才能の<br><span class="grad-gold">あらゆる形</span>',
+    cat_sub:"各ディシプリンには独自のランキングとバトルがある。あなたの才能にも必ず居場所がある。",
+    cat_music:"音楽",cat_music_s:"歌·ラップ·ビートボックス",cat_dance:"ダンス",cat_dance_s:"ストリート·コンテンポラリー·ワッキング",
+    cat_comedy:"コメディ",cat_comedy_s:"スタンドアップ·スケッチ·マイム",cat_art:"ビジュアルアート",cat_art_s:"絵·デジタル·グラフィティ",
+    cat_sport:"スポーツ",cat_sport_s:"フリースタイル·アクロバット·トリック",cat_cooking:"料理",cat_cooking_s:"レシピ·盛り付け·スピードクック",
+    cat_gaming:"ゲーミング",cat_gaming_s:"ハイライト·スピードラン·IRL",cat_other:"その他",cat_other_s:"マジック·イリュージョン·ユニーク",
+    journey_label:"ジャーニー",journey_title:'アップロードから<br><span class="grad">頂点へ</span>',
+    j1:"アップロード",j1t:"スマホからクリップを投稿。カテゴリー、タイトル、ハッシュタグを選択。数秒で公開。",
+    j2:"バトル",j2t:"VoltClipがあなたのカテゴリーの別の才能と自動マッチング。バトル開始。",
+    j3:"世界が投票",j3t:"世界中から何千人もの視聴者がリアルタイムでお気に入りに投票。",
+    j4:"ランキングアップ",j4t:"勝つたびにディシプリンの世界ランキングが上昇。週ごとに成長。",
+    j5:"支配",j5t:"勝利を積み重ね、ディシプリンの世界ランキングを制覇。あなたのカテゴリーの#1はあなただ。",
+    feat_section:"プラットフォーム",feat_title:'アリーナを支配するための<br><span class="grad">すべて</span>',
+    f1:"ClipBattle — バトルシステム",f1d:"すべての動画はカテゴリーのバトルに自動エントリー。観客が投票し、統計は公開。",
+    f2:"リアルタイム世界ランキング",f2d:"週間·月間·全期間 — 各カテゴリーにランキングあり。",
+    f3:"ディスカバリーアルゴリズム v4",f3d:"最高の才能を適切なオーディエンスに適切なタイミングで届けるパーソナライズドフィード。",
+    f4:"国境なき世界オーディエンス",f4d:"ラゴスの才能が東京のクリエイターを倒せる。投票は普遍的でリアルタイム。",
+    f5:"完全クリエイター分析",f5d:"視聴数、獲得票数、完了率、バトル履歴、ランキング推移。",
+    f6:"統合プライベートメッセージ",f6d:"リアルタイムDM。プロフィールから任意のクリエイターにメッセージ。",
+    f7:"公開タレントプロフィール",f7d:"各クリエイターに永続的なショーケース：動画グリッド、統計、現在のランキング。",
+    f8:"100%モバイル、インストール不要",f8d:"モバイルブラウザで直接動作。ギャラリーまたはカメラから直接アップロード。",
+    cta_title:'アリーナに入る<br><span style="background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent">準備はできた？</span>',
+    cta_sub:"VoltClipに無料参加。クリップを投稿、バトルを開始、最高の才能に投票。ブラウザで動作。",
+    cta_btn:"⚡ VoltClipを開く →",
+    footer_categories:"カテゴリー",footer_battles:"バトル",footer_features:"機能",
+    cookie_text:'🍪 VoltClipはサービス運営とパーソナライズド広告のためにCookieを使用します。 <a href="cookies.html" style="color:#7c5cfc">詳細を見る</a>',
+    cookie_accept:"同意する",cookie_refuse:"拒否する",
+  },
+  ko:{
+    page_title:"VoltClip — 크리에이터가 경쟁하는 영상 배틀 플랫폼",
+    nav_categories:"카테고리",nav_battles:"배틀",nav_cta:"앱 열기 ⚡",
+    hero_eyebrow:"크리에이티브 배틀 플랫폼 · 2026",hero_tagline:"도전해라. 투표해라. 지배해라.",
+    hero_sub:'클립을 올리고, 다른 크리에이터와 <strong>영상 듀얼</strong>을 펼치고, 최고에게 투표하세요.',
+    hero_cta1:"⚡ VoltClip 열기 →",hero_cta2:"배틀 보기",
+    ticker_before:"진행 중인 배틀 ·\u00a0",ticker_after:"\u00a0· 온라인 탤런트",
+    stat1:"전 세계 탤런트",stat2:"카테고리별 배틀",stat3:"무료",stat4:"전 세계 이용 가능",
+    creator_tag:"🎬 크리에이터",creator_title:"당신의 클립은<br>볼 가치가<br>있습니다",
+    creator_text:"영상을 올리고, 카테고리 배틀에 자동 참가하여 세계 랭킹을 올리세요.",
+    creator_p1:"업로드 시 자동 배틀",creator_p2:"실시간 세계 랭킹",
+    creator_p3:"통계 — 조회수, 투표수, 완료율",creator_p4:"커뮤니티와 직접 DM",
+    creator_cta:"내 클립 올리기 ⚡",
+    voter_tag:"🗳️ 투표자",voter_title:"누가 최고인지<br>당신이<br>결정하세요",
+    voter_text:"나란히 펼쳐지는 배틀의 무한 스크롤. 배틀당 한 표, 수백 개의 듀얼을 심판하세요.",
+    voter_p1:"전체 화면 배틀 피드",voter_p2:"실시간 애니메이션 결과",
+    voter_p3:"최고 투표자 세계 랭킹",voter_p4:"데일리 스트릭 — 금/은/동 메달",
+    voter_cta:"지금 투표하기 →",
+    battle_section:"⚔️ ClipBattle",battle_title:'실시간<br><span class="grad">경쟁</span>',
+    battle_sub:"같은 카테고리에서 두 탤런트가 대결합니다. 관객이 투표합니다. 승자는 세계 랭킹을 올립니다.",
+    battle_footer:"카테고리: 음악 · 🌍 월드 배틀 · ⏱ 47시간 남음",
+    cat_section:"🌟 종목",cat_title:'모든<br><span class="grad-gold">재능의 형태</span>',
+    cat_sub:"각 종목마다 고유의 랭킹과 배틀이 있습니다. 당신의 재능도 분명 자리가 있습니다.",
+    cat_music:"음악",cat_music_s:"노래 · 랩 · 비트박스",cat_dance:"댄스",cat_dance_s:"스트릿 · 현대무용 · 와킹",
+    cat_comedy:"코미디",cat_comedy_s:"스탠드업 · 스케치 · 마임",cat_art:"비주얼 아트",cat_art_s:"드로잉 · 디지털 · 그라피티",
+    cat_sport:"스포츠",cat_sport_s:"프리스타일 · 아크로바틱 · 트릭",cat_cooking:"요리",cat_cooking_s:"레시피 · 플레이팅 · 스피드 쿡",
+    cat_gaming:"게이밍",cat_gaming_s:"하이라이트 · 스피드런 · IRL",cat_other:"기타",cat_other_s:"마술 · 일루전 · 유니크",
+    journey_label:"여정",journey_title:'업로드부터<br><span class="grad">정상까지</span>',
+    j1:"업로드",j1t:"스마트폰에서 클립을 올리세요. 카테고리, 제목, 해시태그를 선택하세요.",
+    j2:"배틀",j2t:"VoltClip이 같은 카테고리의 다른 탤런트와 자동으로 매칭해줍니다.",
+    j3:"세계가 투표",j3t:"전 세계 수천 명의 시청자가 실시간으로 자신의 최애를 보고 투표합니다.",
+    j4:"상승",j4t:"매 승리마다 종목 세계 랭킹이 올라갑니다. 주마다 성장하세요.",
+    j5:"지배",j5t:"승리를 쌓고, 종목 세계 랭킹을 정복하세요. 카테고리 1위는 당신입니다.",
+    feat_section:"플랫폼",feat_title:'아레나를 지배하는<br><span class="grad">모든 것</span>',
+    f1:"ClipBattle — 배틀 시스템",f1d:"모든 영상은 카테고리 배틀에 자동 참가됩니다.",
+    f2:"실시간 세계 랭킹",f2d:"주간, 월간, 전체 — 각 카테고리마다 랭킹이 있습니다.",
+    f3:"디스커버리 알고리즘 v4",f3d:"최고의 탤런트를 적시에 적합한 시청자에게 노출하는 개인화 피드.",
+    f4:"국경 없는 글로벌 관객",f4d:"라고스의 탤런트가 도쿄의 크리에이터를 이길 수 있습니다.",
+    f5:"완전한 크리에이터 분석",f5d:"조회수, 획득 투표수, 완료율, 배틀 기록, 랭킹 변화.",
+    f6:"통합 프라이빗 메시지",f6d:"실시간 DM. 프로필에서 모든 크리에이터에게 메시지를 보내세요.",
+    f7:"공개 탤런트 프로필",f7d:"모든 크리에이터가 영구 쇼케이스를 가집니다: 영상 그리드, 통계, 현재 랭킹.",
+    f8:"100% 모바일, 설치 없음",f8d:"모바일 브라우저에서 바로 작동합니다.",
+    cta_title:'아레나에 입장할<br><span style="background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent">준비가 됐나요?</span>',
+    cta_sub:"VoltClip에 무료로 참가하세요. 클립을 올리고, 배틀을 시작하고, 최고에게 투표하세요.",
+    cta_btn:"⚡ VoltClip 열기 →",
+    footer_categories:"카테고리",footer_battles:"배틀",footer_features:"기능",
+    cookie_text:'🍪 VoltClip은 서비스 운영 및 맞춤 광고를 위해 쿠키를 사용합니다. <a href="cookies.html" style="color:#7c5cfc">자세히 알아보기</a>',
+    cookie_accept:"수락",cookie_refuse:"거부",
+  },
+  tr:{
+    page_title:"VoltClip — İçerik üreticilerinin yarıştığı video battle platformu",
+    nav_categories:"Kategoriler",nav_battles:"Battle'lar",nav_cta:"Uygulamayı aç ⚡",
+    hero_eyebrow:"Yaratıcı battle platformu · 2026",hero_tagline:"KARŞILAŞ. OY VER. HÂKİM OL.",
+    hero_sub:'Kliplerini yayınla, diğer içerik üreticileriyle <strong>video düellolarında</strong> karşılaş, en iyilere oy ver.',
+    hero_cta1:"⚡ VoltClip'i aç →",hero_cta2:"Battle'ları gör",
+    ticker_before:"DEVAM EDEN BATTLE'LAR ·\u00a0",ticker_after:"\u00a0· ONLINE YETENEKLER",
+    stat1:"Dünya geneli yetenekler",stat2:"Kategori başına battle",stat3:"Ücretsiz",stat4:"Her yerden erişilebilir",
+    creator_tag:"🎬 İÇERİK ÜRETİCİLERİ",creator_title:"KLİBİN<br>GÖRÜLMEYİ<br>HAK EDİYOR",
+    creator_text:"Videolarını yayınla, kategorinde battle'lara otomatik olarak katıl ve dünya sıralamasında yüksel.",
+    creator_p1:"Yüklemede otomatik battle",creator_p2:"Gerçek zamanlı dünya sıralaması",
+    creator_p3:"İstatistikler — görüntülemeler, oylar, tamamlanma oranı",creator_p4:"Toplulukla doğrudan DM",
+    creator_cta:"Klibimi yayınla ⚡",
+    voter_tag:"🗳️ OY VERENLER",voter_title:"EN İYİNİN<br>KİM OLDUĞUNA<br>SEN KARAR VER",
+    voter_text:"Yan yana battle'ların sonsuz kaydırması. Battle başına bir oy, yüzlerce düello.",
+    voter_p1:"Tam ekran battle feed'i",voter_p2:"Gerçek zamanlı animasyonlu sonuçlar",
+    voter_p3:"En iyi oy verenlerin dünya sıralaması",voter_p4:"Günlük seri — altın/gümüş/bronz madalya",
+    voter_cta:"Şimdi oy ver →",
+    battle_section:"⚔️ ClipBattle",battle_title:'Gerçek zamanlı<br><span class="grad">rekabet</span>',
+    battle_sub:"Aynı kategoride iki yetenek karşı karşıya. Seyirciler oy veriyor. Kazanan dünya sıralamasında yükseliyor.",
+    battle_footer:"KATEGORİ: MÜZİK · 🌍 DÜNYA BATTLE'I · ⏱ 47 SAAT KALDI",
+    cat_section:"🌟 Dallar",cat_title:'Yeteneğin tüm<br><span class="grad-gold">biçimleri</span>',
+    cat_sub:"Her dalın kendi sıralaması ve battle'ları var. Yeteneğinin burada kesinlikle yeri var.",
+    cat_music:"MÜZİK",cat_music_s:"Şarkı · Rap · Beatbox",cat_dance:"DANS",cat_dance_s:"Street · Çağdaş · Waacking",
+    cat_comedy:"KOMEDİ",cat_comedy_s:"Stand-up · Skeç · Pantomim",cat_art:"GÖRSEL SANAT",cat_art_s:"Çizim · Dijital · Grafiti",
+    cat_sport:"SPOR",cat_sport_s:"Freestyle · Akrobasi · Tricks",cat_cooking:"YEMEK",cat_cooking_s:"Tarifler · Sunum · Hızlı pişirme",
+    cat_gaming:"GAMING",cat_gaming_s:"Highlights · Speedrun · IRL",cat_other:"DİĞER",cat_other_s:"Sihir · İllüzyon · Eşsiz",
+    journey_label:"Yolculuk",journey_title:'Yüklemeden<br><span class="grad">zirveye</span>',
+    j1:"YÜKLEYEBİLİRSİN",j1t:"Klibini telefonundan paylaş. Kategori, başlık, hashtag seç. Saniyeler içinde yayınla.",
+    j2:"BATTLE EDEBİLİRSİN",j2t:"VoltClip seni kategorindeki başka bir yetenekle otomatik olarak eşleştirir.",
+    j3:"DÜNYA OY VERİR",j3t:"Dünyanın her yerinden binlerce izleyici favorilerine gerçek zamanlı oy verir.",
+    j4:"YÜKSELEBİLİRSİN",j4t:"Her galibiyet seni dalının dünya sıralamasında yukarı taşır.",
+    j5:"HÂKİM OLABİLİRSİN",j5t:"Galibiyetleri topla, dalının dünya sıralamasında zirveye çık. Kategorinin #1'i sensin.",
+    feat_section:"Platform",feat_title:'Arenaya hâkim olmak için<br><span class="grad">her şey</span>',
+    f1:"ClipBattle — Battle sistemi",f1d:"Her video kategorisindeki bir battle'a otomatik olarak girer.",
+    f2:"Gerçek zamanlı dünya sıralaması",f2d:"Hafta, ay, tüm zamanlar — her kategorinin kendi sıralaması var.",
+    f3:"Keşif algoritması v4",f3d:"En iyi yetenekleri doğru zamanda doğru kitleye sunan kişiselleştirilmiş feed.",
+    f4:"Sınır tanımayan küresel izleyici",f4d:"Lagos'taki bir yetenek Tokyo'daki bir içerik üreticisini yenebilir.",
+    f5:"Eksiksiz içerik üretici analitiği",f5d:"Görüntülemeler, kazanılan oylar, tamamlanma oranı, battle geçmişi.",
+    f6:"Entegre özel mesajlaşma",f6d:"Gerçek zamanlı DM. Profilinden herhangi bir içerik üreticisine mesaj gönder.",
+    f7:"Herkese açık yetenek profili",f7d:"Her içerik üreticisinin kalıcı bir vitrini var: video ızgarası, istatistikler.",
+    f8:"100% mobil, kurulum yok",f8d:"Doğrudan mobil tarayıcıda çalışır. Galeriden veya doğrudan kameradan yükle.",
+    cta_title:'Arenaya girmeye<br><span style="background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent">hazır mısın?</span>',
+    cta_sub:"VoltClip'e ücretsiz katıl. Klip yayınla, battle başlat, en iyilere oy ver.",
+    cta_btn:"⚡ VoltClip'i aç →",
+    footer_categories:"Kategoriler",footer_battles:"Battle'lar",footer_features:"Özellikler",
+    cookie_text:'🍪 VoltClip, hizmetin işleyişi ve kişiselleştirilmiş reklamlar için çerezler kullanır. <a href="cookies.html" style="color:#7c5cfc">Daha fazla bilgi</a>',
+    cookie_accept:"Kabul et",cookie_refuse:"Reddet",
+  },
+  nl:{
+    page_title:"VoltClip — Het video battle platform waar creators tegen elkaar strijden",
+    nav_categories:"Categorieën",nav_battles:"Battles",nav_cta:"App openen ⚡",
+    hero_eyebrow:"Creatief battle platform · 2026",hero_tagline:"BEVECHT. STEM. DOMINEER.",
+    hero_sub:'Post je clips, daag andere creators uit in <strong>video-duels</strong>, stem voor de besten. De community beslist wie de arena domineert.',
+    hero_cta1:"⚡ VoltClip openen →",hero_cta2:"Battles bekijken",
+    ticker_before:"LOPENDE BATTLES ·\u00a0",ticker_after:"\u00a0· TALENTEN ONLINE",
+    stat1:"Wereldwijde talenten",stat2:"Battles per categorie",stat3:"Gratis",stat4:"Overal toegankelijk",
+    creator_tag:"🎬 CREATORS",creator_title:"JOUW CLIP<br>VERDIENT<br>GEZIEN TE WORDEN",
+    creator_text:"Post je video's, neem automatisch deel aan battles in jouw categorie en klim in de wereldranglijst.",
+    creator_p1:"Automatische battle bij upload",creator_p2:"Wereldranglijst in real time",
+    creator_p3:"Stats — views, stemmen, voltooiingspercentage",creator_p4:"Directe DM met de community",
+    creator_cta:"Mijn clip posten ⚡",
+    voter_tag:"🗳️ STEMMERS",voter_title:"BESLIS<br>WIE DE<br>BESTE IS",
+    voter_text:"Eindeloos scrollen van zij-aan-zij battles. Één stem per battle, honderden duels om te beoordelen.",
+    voter_p1:"Full-screen battle feed",voter_p2:"Live geanimeerde resultaten",
+    voter_p3:"Wereldranglijst van beste stemmers",voter_p4:"Dagelijkse streak — goud/zilver/brons medaille",
+    voter_cta:"Nu stemmen →",
+    battle_section:"⚔️ ClipBattle",battle_title:'De competitie<br><span class="grad">in real time</span>',
+    battle_sub:"Twee talenten strijden in dezelfde categorie. Het publiek stemt. De winnaar klimt in de wereldranglijst.",
+    battle_footer:"CATEGORIE: MUZIEK · 🌍 WERELD BATTLE · ⏱ 47U RESTEREND",
+    cat_section:"🌟 Disciplines",cat_title:'Alle vormen van<br><span class="grad-gold">talent</span>',
+    cat_sub:"Elke discipline heeft zijn eigen ranking en battles. Jouw talent heeft hier zeker een plek.",
+    cat_music:"MUZIEK",cat_music_s:"Zang · Rap · Beatbox",cat_dance:"DANS",cat_dance_s:"Street · Contemporary · Waacking",
+    cat_comedy:"KOMEDIE",cat_comedy_s:"Stand-up · Sketch · Mime",cat_art:"VISUELE KUNST",cat_art_s:"Tekenen · Digitaal · Graffiti",
+    cat_sport:"SPORT",cat_sport_s:"Freestyle · Acrobatiek · Tricks",cat_cooking:"KOKEN",cat_cooking_s:"Recepten · Plating · Speed cook",
+    cat_gaming:"GAMING",cat_gaming_s:"Highlights · Speedrun · IRL",cat_other:"OVERIGE",cat_other_s:"Magie · Illusies · Uniek",
+    journey_label:"Traject",journey_title:'Van upload<br><span class="grad">naar de top</span>',
+    j1:"JE UPLOADT",j1t:"Post je clip van je telefoon. Kies categorie, titel, hashtags. In seconden gepubliceerd.",
+    j2:"JE BATTLET",j2t:"VoltClip koppelt je automatisch aan een ander talent in jouw categorie.",
+    j3:"DE WERELD STEMT",j3t:"Duizenden kijkers van over de hele wereld kijken en stemmen in real time.",
+    j4:"JE STIJGT",j4t:"Elke overwinning brengt je hoger in de wereldranglijst van jouw discipline.",
+    j5:"JE DOMINEERT",j5t:"Verzamel overwinningen, klim naar de top. De #1 van jouw categorie ben jij.",
+    feat_section:"Platform",feat_title:'Alles om<br><span class="grad">de arena te domineren</span>',
+    f1:"ClipBattle — Battle systeem",f1d:"Elk video wordt automatisch in een battle in zijn categorie geplaatst.",
+    f2:"Wereldranglijst in real time",f2d:"Week, maand, all-time — elke categorie heeft zijn ranking.",
+    f3:"Discovery-algoritme v4",f3d:"Gepersonaliseerde feed die de beste talenten op het juiste moment aan het juiste publiek toont.",
+    f4:"Wereldpubliek zonder grenzen",f4d:"Een talent in Lagos kan een creator in Tokio verslaan.",
+    f5:"Volledige creator analytics",f5d:"Views, gewonnen stemmen, voltooiingspercentage, battle geschiedenis.",
+    f6:"Geïntegreerde privéberichten",f6d:"Real-time DM. Stuur een bericht naar elke creator vanaf hun profiel.",
+    f7:"Openbaar talentprofiel",f7d:"Elke creator heeft een permanent showcasevenster: videogrid, stats, huidige ranking.",
+    f8:"100% mobiel, geen installatie",f8d:"Werkt direct in de mobiele browser. Upload vanuit galerij of van camera.",
+    cta_title:'Klaar om de<br><span style="background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent">arena te betreden?</span>',
+    cta_sub:"Word gratis lid van VoltClip. Post clips, start battles, stem voor de besten.",
+    cta_btn:"⚡ VoltClip openen →",
+    footer_categories:"Categorieën",footer_battles:"Battles",footer_features:"Features",
+    cookie_text:'🍪 VoltClip gebruikt cookies voor de werking van de dienst en gepersonaliseerde advertenties. <a href="cookies.html" style="color:#7c5cfc">Meer informatie</a>',
+    cookie_accept:"Accepteren",cookie_refuse:"Weigeren",
+  },
+  ru:{
+    page_title:"VoltClip — Платформа видео-баттлов, где соревнуются создатели контента",
+    nav_categories:"Категории",nav_battles:"Баттлы",nav_cta:"Открыть приложение ⚡",
+    hero_eyebrow:"Платформа творческих баттлов · 2026",hero_tagline:"СРАЗИСЬ. ГОЛОСУЙ. ДОМИНИРУЙ.",
+    hero_sub:'Публикуй клипы, вступай в <strong>видео-дуэли</strong> с другими создателями, голосуй за лучших.',
+    hero_cta1:"⚡ Открыть VoltClip →",hero_cta2:"Смотреть баттлы",
+    ticker_before:"АКТИВНЫЕ БАТТЛЫ ·\u00a0",ticker_after:"\u00a0· ТАЛАНТОВ ОНЛАЙН",
+    stat1:"Мировые таланты",stat2:"Баттлы по категориям",stat3:"Бесплатно",stat4:"Доступно везде",
+    creator_tag:"🎬 СОЗДАТЕЛИ",creator_title:"ТВОЙ КЛИП<br>ЗАСЛУЖИВАЕТ<br>БЫТЬ УВИДЕННЫМ",
+    creator_text:"Публикуй видео, автоматически участвуй в баттлах своей категории и поднимайся в мировом рейтинге.",
+    creator_p1:"Автоматический баттл при загрузке",creator_p2:"Мировой рейтинг в реальном времени",
+    creator_p3:"Статистика — просмотры, голоса, процент досмотров",creator_p4:"Прямые DM с сообществом",
+    creator_cta:"Опубликовать клип ⚡",
+    voter_tag:"🗳️ ГОЛОСУЮЩИЕ",voter_title:"РЕШИ<br>КТО<br>ЛУЧШИЙ",
+    voter_text:"Бесконечная лента параллельных баттлов. Один голос на баттл, сотни дуэлей на оценку.",
+    voter_p1:"Полноэкранная лента баттлов",voter_p2:"Живые анимированные результаты",
+    voter_p3:"Мировой рейтинг лучших голосующих",voter_p4:"Ежедневная серия — золотая/серебряная/бронзовая медаль",
+    voter_cta:"Голосовать сейчас →",
+    battle_section:"⚔️ ClipBattle",battle_title:'Соревнование<br><span class="grad">в реальном времени</span>',
+    battle_sub:"Два таланта соревнуются в одной категории. Публика голосует. Победитель поднимается в рейтинге.",
+    battle_footer:"КАТЕГОРИЯ: МУЗЫКА · 🌍 МИРОВОЙ БАТТЛ · ⏱ ОСТАЛОСЬ 47Ч",
+    cat_section:"🌟 Дисциплины",cat_title:'Все формы<br><span class="grad-gold">таланта</span>',
+    cat_sub:"У каждой дисциплины свой рейтинг и свои баттлы. Твоему таланту точно найдётся место здесь.",
+    cat_music:"МУЗЫКА",cat_music_s:"Вокал · Рэп · Битбокс",cat_dance:"ТАНЦЫ",cat_dance_s:"Стрит · Контемп · Уокинг",
+    cat_comedy:"КОМЕДИЯ",cat_comedy_s:"Стендап · Скетч · Пантомима",cat_art:"ВИЗУАЛЬНОЕ ИСКУССТВО",cat_art_s:"Рисунок · Диджитал · Граффити",
+    cat_sport:"СПОРТ",cat_sport_s:"Фристайл · Акробатика · Трюки",cat_cooking:"КУЛИНАРИЯ",cat_cooking_s:"Рецепты · Подача · Скоростная готовка",
+    cat_gaming:"ГЕЙМИНГ",cat_gaming_s:"Хайлайты · Спидран · IRL",cat_other:"ДРУГОЕ",cat_other_s:"Магия · Иллюзии · Уникальное",
+    journey_label:"Путь",journey_title:'От загрузки<br><span class="grad">до вершины</span>',
+    j1:"ТЫ ЗАГРУЖАЕШЬ",j1t:"Опубликуй клип с телефона. Выбери категорию, название, хэштеги. Опубликовано за секунды.",
+    j2:"ТЫ СРАЖАЕШЬСЯ",j2t:"VoltClip автоматически подбирает тебе соперника из твоей категории.",
+    j3:"МИР ГОЛОСУЕТ",j3t:"Тысячи зрителей со всего мира голосуют за фаворита в реальном времени.",
+    j4:"ТЫ ПОДНИМАЕШЬСЯ",j4t:"Каждая победа поднимает тебя в мировом рейтинге дисциплины.",
+    j5:"ТЫ ДОМИНИРУЕШЬ",j5t:"Накапливай победы, поднимайся на вершину мирового рейтинга. #1 — это ты.",
+    feat_section:"Платформа",feat_title:'Всё для<br><span class="grad">господства на арене</span>',
+    f1:"ClipBattle — Система баттлов",f1d:"Каждое видео автоматически участвует в баттле своей категории.",
+    f2:"Мировой рейтинг в реальном времени",f2d:"Неделя, месяц, всё время — у каждой категории свой рейтинг.",
+    f3:"Алгоритм обнаружения v4",f3d:"Персонализированная лента, показывающая лучшие таланты нужной аудитории в нужное время.",
+    f4:"Мировая аудитория без границ",f4d:"Талант из Лагоса может победить создателя из Токио.",
+    f5:"Полная аналитика создателя",f5d:"Просмотры, полученные голоса, процент досмотра, история баттлов.",
+    f6:"Встроенные личные сообщения",f6d:"DM в реальном времени. Отправь сообщение любому создателю с его профиля.",
+    f7:"Публичный профиль таланта",f7d:"У каждого создателя постоянная витрина: сетка видео, статистика, текущий рейтинг.",
+    f8:"100% мобильный, без установки",f8d:"Работает прямо в мобильном браузере. Загрузка из галереи или с камеры.",
+    cta_title:'Готов войти<br><span style="background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent">на арену?</span>',
+    cta_sub:"Присоединяйся к VoltClip бесплатно. Публикуй клипы, запускай баттлы, голосуй за лучших.",
+    cta_btn:"⚡ Открыть VoltClip →",
+    footer_categories:"Категории",footer_battles:"Баттлы",footer_features:"Функции",
+    cookie_text:'🍪 VoltClip использует cookies для работы сервиса и персонализированной рекламы. <a href="cookies.html" style="color:#7c5cfc">Подробнее</a>',
+    cookie_accept:"Принять",cookie_refuse:"Отказать",
+  },
+  zh:{
+    page_title:"VoltClip — 创作者竞技的视频对决平台",
+    nav_categories:"分类",nav_battles:"对决",nav_cta:"打开应用 ⚡",
+    hero_eyebrow:"创意对决平台 · 2026",hero_tagline:"出战。投票。称霸。",
+    hero_sub:'发布你的短视频，与其他创作者进行<strong>视频决斗</strong>，为最佳创作者投票。社区决定谁主宰竞技场。',
+    hero_cta1:"⚡ 打开 VoltClip →",hero_cta2:"观看对决",
+    ticker_before:"进行中的对决 ·\u00a0",ticker_after:"\u00a0· 在线达人",
+    stat1:"全球达人",stat2:"各类别对决",stat3:"免费",stat4:"全球可访问",
+    creator_tag:"🎬 创作者",creator_title:"你的视频<br>值得被<br>看见",
+    creator_text:"发布你的视频，自动参与你所在类别的对决，攀升世界排名。",
+    creator_p1:"上传即自动对决",creator_p2:"实时世界排名",
+    creator_p3:"数据 — 观看量、票数、完播率",creator_p4:"与社区直接私信",
+    creator_cta:"发布我的视频 ⚡",
+    voter_tag:"🗳️ 投票者",voter_title:"由你决定<br>谁是<br>最强",
+    voter_text:"无限滚动的并排对决。每场对决一票，评判数百场决斗。",
+    voter_p1:"全屏对决信息流",voter_p2:"实时动态结果",
+    voter_p3:"顶级投票者世界排名",voter_p4:"每日连击 — 金/银/铜奖章",
+    voter_cta:"立即投票 →",
+    battle_section:"⚔️ ClipBattle",battle_title:'实时<br><span class="grad">竞争</span>',
+    battle_sub:"同类别的两位达人对决。观众投票。胜者攀升世界排名。简单。激烈。决定性的。",
+    battle_footer:"类别：音乐 · 🌍 世界对决 · ⏱ 剩余47小时",
+    cat_section:"🌟 类别",cat_title:'才能的<br><span class="grad-gold">所有形式</span>',
+    cat_sub:"每个类别都有自己的排名和对决。你的才能在这里一定有一席之地。",
+    cat_music:"音乐",cat_music_s:"演唱 · 说唱 · Beatbox",cat_dance:"舞蹈",cat_dance_s:"街舞 · 当代舞 · Waacking",
+    cat_comedy:"喜剧",cat_comedy_s:"脱口秀 · 小品 · 哑剧",cat_art:"视觉艺术",cat_art_s:"绘画 · 数字艺术 · 涂鸦",
+    cat_sport:"运动",cat_sport_s:"自由式 · 杂技 · 技巧",cat_cooking:"烹饪",cat_cooking_s:"食谱 · 摆盘 · 极速烹饪",
+    cat_gaming:"游戏",cat_gaming_s:"精彩片段 · 速通 · IRL",cat_other:"其他",cat_other_s:"魔术 · 幻术 · 独特",
+    journey_label:"旅程",journey_title:'从上传<br><span class="grad">到巅峰</span>',
+    j1:"你上传",j1t:"从手机发布你的视频。选择类别、标题、话题标签。几秒内完成发布。",
+    j2:"你对决",j2t:"VoltClip 自动为你匹配同类别的其他达人。对决开始。",
+    j3:"世界投票",j3t:"来自世界各地的数千名观众实时观看并为最爱投票。",
+    j4:"你攀升",j4t:"每次胜利都让你在所在类别的世界排名中上升。周复一周。",
+    j5:"你称霸",j5t:"积累胜利，攀登所在类别的世界排名。你就是类别第一。",
+    feat_section:"平台",feat_title:'称霸竞技场的<br><span class="grad">一切</span>',
+    f1:"ClipBattle — 对决系统",f1d:"每个视频自动进入其类别的对决。观众投票，数据公开。",
+    f2:"实时世界排名",f2d:"周榜、月榜、历史榜 — 每个类别都有排名。",
+    f3:"发现算法 v4",f3d:"个性化信息流，在正确的时间将最佳达人推送给合适的受众。",
+    f4:"无国界全球观众",f4d:"拉各斯的达人可以打败东京的创作者。",
+    f5:"完整创作者数据分析",f5d:"观看量、赢得的票数、完播率、对决历史、排名进展。",
+    f6:"内置私信功能",f6d:"实时私信。从任何创作者的主页发消息。无中间商。",
+    f7:"公开达人主页",f7d:"每位创作者都有永久展示页：视频网格、数据、当前排名。",
+    f8:"100% 移动端，无需安装",f8d:"直接在移动浏览器中运行。从相册或直接从摄像头上传。",
+    cta_title:'准备好进入<br><span style="background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent">竞技场了吗？</span>',
+    cta_sub:"免费加入 VoltClip。发布视频，发起对决，为最佳投票。在浏览器中即可使用。",
+    cta_btn:"⚡ 打开 VoltClip →",
+    footer_categories:"分类",footer_battles:"对决",footer_features:"功能",
+    cookie_text:'🍪 VoltClip 使用 Cookie 来提供服务并投放个性化广告。 <a href="cookies.html" style="color:#7c5cfc">了解更多</a>',
+    cookie_accept:"接受",cookie_refuse:"拒绝",
+  },
+};
+
+/* ── Détection langue ── */
+function _detectLang(){
+  const saved = localStorage.getItem('vc_lang');
+  if(saved && T[saved]) return saved;
+  const nav = (navigator.languages?.[0]||navigator.language||'fr').slice(0,2).toLowerCase();
+  return T[nav] ? nav : 'fr';
+}
+
+/* ── Application des traductions ── */
+function _applyLang(lang){
+  if(lang==='fr'||!T[lang]) return;
+  const t = T[lang];
+  const H = document.documentElement;
+  H.lang = lang;
+  if(t.rtl){ H.dir='rtl'; document.body.style.textAlign='right'; }
+  if(t.page_title) document.title = t.page_title;
+  if(t.meta_desc){
+    const md = document.querySelector('meta[name="description"]');
+    if(md) md.content = t.meta_desc;
+  }
+
+  const txt = (sel, key) => { const el=document.querySelector(sel); if(el&&t[key]!==undefined) el.textContent=t[key]; };
+  const htm = (sel, key) => { const el=document.querySelector(sel); if(el&&t[key]!==undefined) el.innerHTML=t[key]; };
+
+  /* NAV */
+  txt('nav .nav-links a:nth-child(1)', 'nav_battles');
+  txt('nav .nav-links a:nth-child(2)', 'nav_categories');
+  htm('a.nav-cta', 'nav_cta');
+
+  /* HERO */
+  txt('.hero-eyebrow', 'hero_eyebrow');
+  txt('.hero-tagline', 'hero_tagline');
+  htm('.hero-sub', 'hero_sub');
+  htm('header .hero-actions .btn-primary', 'hero_cta1');
+  txt('header .hero-actions .btn-ghost', 'hero_cta2');
+  const tts = document.querySelectorAll('.ticker-text');
+  if(tts[0]&&t.ticker_before) tts[0].textContent=t.ticker_before;
+  if(tts[1]&&t.ticker_after) tts[1].textContent=t.ticker_after;
+
+  /* STATS */
+  const sl = document.querySelectorAll('.stat-label');
+  ['stat1','stat2','stat3','stat4'].forEach((k,i)=>{ if(sl[i]&&t[k]) sl[i].textContent=t[k]; });
+
+  /* CREATOR */
+  txt('.dual-tag.creator', 'creator_tag');
+  htm('.dual-panel:first-child .dual-title', 'creator_title');
+  txt('.dual-panel:first-child .dual-text', 'creator_text');
+  const cp = document.querySelectorAll('.dual-panel:first-child .perk');
+  ['creator_p1','creator_p2','creator_p3','creator_p4'].forEach((k,i)=>{
+    if(cp[i]&&t[k]){ const ic=cp[i].querySelector('.perk-icon'); cp[i].textContent=t[k]; if(ic) cp[i].prepend(ic); }
+  });
+  htm('.dual-panel:first-child a.btn-primary', 'creator_cta');
+
+  /* VOTER */
+  const vtag = document.querySelector('.dual-panel:last-child .dual-tag');
+  if(vtag&&t.voter_tag) vtag.textContent=t.voter_tag;
+  htm('.dual-panel:last-child .dual-title', 'voter_title');
+  txt('.dual-panel:last-child .dual-text', 'voter_text');
+  const vp = document.querySelectorAll('.dual-panel:last-child .perk');
+  ['voter_p1','voter_p2','voter_p3','voter_p4'].forEach((k,i)=>{
+    if(vp[i]&&t[k]){ const ic=vp[i].querySelector('.perk-icon'); vp[i].textContent=t[k]; if(ic) vp[i].prepend(ic); }
+  });
+  txt('.dual-panel:last-child a.btn-ghost', 'voter_cta');
+
+  /* BATTLE */
+  txt('#battles .section-label', 'battle_section');
+  htm('#battles .section-title', 'battle_title');
+  txt('#battles .section-sub', 'battle_sub');
+  document.querySelectorAll('#battles p, #battles ~ p').forEach(p=>{
+    if(p.textContent.includes('CATÉGORIE')||p.textContent.includes('CATEGORY')||p.textContent.includes('CATEGORIA')||p.textContent.includes('KATEGORİ')||p.textContent.includes('カテゴリー')||p.textContent.includes('类别')||p.textContent.includes('الفئة')||p.textContent.includes('카테고리'))
+      if(t.battle_footer) p.textContent=t.battle_footer;
+  });
+
+  /* CATEGORIES */
+  txt('#categories .section-label', 'cat_section');
+  htm('#categories .section-title', 'cat_title');
+  txt('#categories .section-sub', 'cat_sub');
+  const cats = document.querySelectorAll('.cat-card');
+  const catK=[['cat_music','cat_music_s'],['cat_dance','cat_dance_s'],['cat_comedy','cat_comedy_s'],['cat_art','cat_art_s'],['cat_sport','cat_sport_s'],['cat_cooking','cat_cooking_s'],['cat_gaming','cat_gaming_s'],['cat_other','cat_other_s']];
+  cats.forEach((c,i)=>{
+    if(!catK[i]) return;
+    const nm=c.querySelector('.cat-name'), sc=c.querySelector('.cat-count');
+    if(nm&&t[catK[i][0]]) nm.textContent=t[catK[i][0]];
+    if(sc&&t[catK[i][1]]) sc.textContent=t[catK[i][1]];
+  });
+
+  /* JOURNEY */
+  const jWrap = document.querySelector('.journey')?.closest('.section-wrap');
+  if(jWrap){
+    const jl=jWrap.querySelector('.section-label'), jt=jWrap.querySelector('.section-title');
+    if(jl&&t.journey_label) jl.textContent=t.journey_label;
+    if(jt&&t.journey_title) jt.innerHTML=t.journey_title;
+  }
+  const jS = document.querySelectorAll('.journey-step');
+  const jK=[['j1','j1t'],['j2','j2t'],['j3','j3t'],['j4','j4t'],['j5','j5t']];
+  jS.forEach((s,i)=>{
+    if(!jK[i]) return;
+    const ttl=s.querySelector('.j-title'), tx=s.querySelector('.j-text');
+    if(ttl&&t[jK[i][0]]) ttl.textContent=t[jK[i][0]];
+    if(tx&&t[jK[i][1]]) tx.textContent=t[jK[i][1]];
+  });
+
+  /* FEATURES */
+  const fWrap = document.querySelector('.features-grid')?.closest('.section-wrap');
+  if(fWrap){
+    const fl=fWrap.querySelector('.section-label'), ft=fWrap.querySelector('.section-title');
+    if(fl&&t.feat_section) fl.textContent=t.feat_section;
+    if(ft&&t.feat_title) ft.innerHTML=t.feat_title;
+  }
+  const fC = document.querySelectorAll('.feature-card');
+  const fK=[['f1','f1d'],['f2','f2d'],['f3','f3d'],['f4','f4d'],['f5','f5d'],['f6','f6d'],['f7','f7d'],['f8','f8d']];
+  fC.forEach((c,i)=>{
+    if(!fK[i]) return;
+    const nm=c.querySelector('.feature-name'), dc=c.querySelector('.feature-desc');
+    if(nm&&t[fK[i][0]]) nm.textContent=t[fK[i][0]];
+    if(dc&&t[fK[i][1]]) dc.textContent=t[fK[i][1]];
+  });
+
+  /* CTA */
+  htm('#cta .cta-title', 'cta_title');
+  txt('#cta .cta-sub', 'cta_sub');
+  htm('#cta .btn-primary', 'cta_btn');
+
+  /* FOOTER */
+  const fl = document.querySelectorAll('footer nav:first-of-type .footer-links a');
+  if(fl[1]&&t.footer_battles) fl[1].textContent=t.footer_battles;
+  if(fl[2]&&t.footer_categories) fl[2].textContent=t.footer_categories;
+  if(fl[3]&&t.footer_features) fl[3].textContent=t.footer_features;
+
+  /* COOKIE BANNER */
+  const cb = document.getElementById('cookieBanner');
+  if(cb){
+    const cp2=cb.querySelector('p');
+    if(cp2&&t.cookie_text) cp2.innerHTML=t.cookie_text;
+    const btns=cb.querySelectorAll('button');
+    if(btns[0]&&t.cookie_refuse) btns[0].textContent=t.cookie_refuse;
+    if(btns[1]&&t.cookie_accept) btns[1].textContent=t.cookie_accept;
+  }
+}
+
+/* ── API publique : changer la langue manuellement ── */
+/* Usage: voltclipSetLang('en') ou voltclipSetLang('ar') etc. */
+window.voltclipSetLang = function(lang){
+  localStorage.setItem('vc_lang', lang);
+  location.reload();
+};
+window.voltclipGetLang = function(){ return _detectLang(); };
+
+/* ── Init ── */
+const _lang = _detectLang();
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>_applyLang(_lang));
+else _applyLang(_lang);
+
+})();
+</script>
+</body>
+</html>
