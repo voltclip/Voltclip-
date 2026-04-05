@@ -1356,6 +1356,7 @@ async function loadBattles(append = false) {
   let battleQuery = sb.from('battles')
     .select('*, video_left:video_left_id(video_url,thumbnail_url,user_id,category), video_right:video_right_id(video_url,thumbnail_url,user_id,category)')
     .eq('status', 'active')
+    .or('expires_at.is.null,expires_at.gt.' + new Date().toISOString())
     .order('created_at', { ascending: false })
     .range(battlePage * 20, battlePage * 20 + 19)
   if (currentBattleCategory) battleQuery = battleQuery.eq('category', currentBattleCategory)
@@ -1431,6 +1432,10 @@ async function loadBattles(append = false) {
       _showBattleExpiredOverlay(el, b, pctLeft, pctRight, userLeft, userRight)
       const cdEl = document.getElementById('cd-' + b.id)
       if (cdEl) { cdEl.textContent = '⏱ TERMINÉ'; cdEl.classList.add('urgent') }
+      // Auto-rematch après 4s
+      setTimeout(() => {
+        triggerAutoRematch(b.id, b.category || '', b.video_left_id || '', b.video_right_id || '')
+      }, 4000)
     }
   })
 
@@ -1854,7 +1859,11 @@ function _showBattleExpiredOverlay(div, b, pctLeft, pctRight, userLeft, userRigh
 }
 
 async function triggerAutoRematch(oldBattleId, category, oldLeftId, oldRightId) {
-  if (!currentUser) { openAuth(); return }
+  if (!currentUser) {
+    // Visiteur non connecté : recharger le feed pour afficher un nouveau battle
+    battlePage = 0; battleAllLoaded = false; loadBattles()
+    return
+  }
   toast('⚔️ Recherche d\'un nouveau battle...')
 
   try {
@@ -1949,28 +1958,37 @@ function startBattleTicker() {
     document.querySelectorAll('.battle-item').forEach(div => {
       const battleId = div.dataset.battleId
       const expiresAt = parseInt(div.dataset.expiresAt || '0')
-      if (!battleId || !expiresAt) return
+      if (!battleId) return
+      // expiresAt=0 means pas de date → on skip juste le countdown mais pas le check
+      if (!expiresAt) return
       const msLeft = expiresAt - Date.now()
       const cdEl = document.getElementById('cd-' + battleId)
-      if (!cdEl) return
       if (msLeft <= 0) {
-        // Battle vient d'expirer pendant la session
+        if (cdEl) { cdEl.textContent = '⏱ TERMINÉ'; cdEl.classList.add('urgent') }
+        // Overlay pas encore affiché → on l'affiche et on déclenche l'auto-rematch
         if (!div.querySelector('.battle-expired-overlay')) {
           const pctLeftEl = document.getElementById('pct-left-' + battleId)
           const pctRightEl = document.getElementById('pct-right-' + battleId)
-          const pctLeft = parseInt(pctLeftEl?.textContent) || 50
-          const pctRight = parseInt(pctRightEl?.textContent) || 50
-          const userLeft = div.querySelector('.battle-username[style*="left"]')?.textContent?.replace('🔵 @','')?.trim() || 'user'
+          const rawL = pctLeftEl?.textContent || ''
+          const rawR = pctRightEl?.textContent || ''
+          const pctLeft  = parseInt(rawL) || 50
+          const pctRight = parseInt(rawR) || 50
+          const userLeft  = div.querySelector('.battle-username[style*="left"]')?.textContent?.replace('🔵 @','')?.trim() || 'user'
           const userRight = div.querySelector('.battle-username[style*="right"]')?.textContent?.replace('@','')?.replace('🔴','')?.trim() || 'user'
           const fakeB = { id: battleId, category: div.dataset.category, video_left_id: div.dataset.videoLeftId, video_right_id: div.dataset.videoRightId }
           _showBattleExpiredOverlay(div, fakeB, pctLeft, pctRight, userLeft, userRight)
+          // Auto-rematch après 4s sans intervention
+          setTimeout(() => {
+            if (!document.body.contains(div)) return
+            triggerAutoRematch(battleId, div.dataset.category, div.dataset.videoLeftId, div.dataset.videoRightId)
+          }, 4000)
         }
-        cdEl.textContent = '⏱ TERMINÉ'
-        cdEl.classList.add('urgent')
       } else {
-        cdEl.textContent = formatBattleCountdown(msLeft)
-        if (msLeft < 3600000) cdEl.classList.add('urgent')
-        else cdEl.classList.remove('urgent')
+        if (cdEl) {
+          cdEl.textContent = formatBattleCountdown(msLeft)
+          if (msLeft < 3600000) cdEl.classList.add('urgent')
+          else cdEl.classList.remove('urgent')
+        }
       }
     })
   }, 1000)
