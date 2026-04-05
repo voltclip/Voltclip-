@@ -1862,8 +1862,61 @@ function _showBattleExpiredOverlay(div, b, pctLeft, pctRight, userLeft, userRigh
   `
   div.appendChild(overlay)
 
-  // Passer le battle en inactive dans Supabase (fire & forget)
-  sb.from('battles').update({ status: 'inactive' }).eq('id', b.id).then(() => {})
+  // Sauvegarder le résultat complet dans Supabase
+  ;(async () => {
+    const winnerUserId = winnerSide === 'left'
+      ? (b.video_left?.user_id || null)
+      : winnerSide === 'right'
+      ? (b.video_right?.user_id || null)
+      : null
+    const leftUserId  = b.video_left?.user_id  || null
+    const rightUserId = b.video_right?.user_id || null
+
+    // 1. Mettre à jour le battle avec résultat final
+    await sb.from('battles').update({
+      status: 'inactive',
+      winner_side: winnerSide || null,
+      winner_user_id: winnerUserId
+    }).eq('id', b.id)
+
+    // 2. Incrémenter battles_won du gagnant
+    if (winnerUserId) {
+      const { data: prof } = await sb.from('profiles').select('battles_won').eq('id', winnerUserId).single()
+      await sb.from('profiles').update({ battles_won: (prof?.battles_won || 0) + 1 }).eq('id', winnerUserId)
+    }
+
+    // 3. Notifier les deux créateurs
+    if (leftUserId) {
+      const isWinnerL = winnerUserId === leftUserId
+      await insertNotification({
+        user_id: leftUserId,
+        actor_id: rightUserId || leftUserId,
+        type: 'battle_result',
+        content: isWinnerL
+          ? `🏆 Tu as gagné le battle avec ${pctLeft}% des votes !`
+          : winnerUserId
+          ? `😤 Battle terminé — @${userRight} gagne avec ${pctRight}%`
+          : `⚔️ Match nul dans votre battle — 50/50 !`,
+        related_id: b.id,
+        is_read: false
+      })
+    }
+    if (rightUserId && rightUserId !== leftUserId) {
+      const isWinnerR = winnerUserId === rightUserId
+      await insertNotification({
+        user_id: rightUserId,
+        actor_id: leftUserId || rightUserId,
+        type: 'battle_result',
+        content: isWinnerR
+          ? `🏆 Tu as gagné le battle avec ${pctRight}% des votes !`
+          : winnerUserId
+          ? `😤 Battle terminé — @${userLeft} gagne avec ${pctLeft}%`
+          : `⚔️ Match nul dans votre battle — 50/50 !`,
+        related_id: b.id,
+        is_read: false
+      })
+    }
+  })()
 }
 
 async function triggerAutoRematch(oldBattleId, category, oldLeftId, oldRightId) {
@@ -2505,7 +2558,7 @@ function spawnReaction(){let emoji=LIVE_REACTIONS[Math.floor(Math.random()*LIVE_
 // Filtrer : les battle_challenge lus (refusés) ne doivent pas réapparaître
 data = (data||[]).filter(n => n.type !== 'battle_challenge' || !n.is_read).slice(0,30);
 // Mark all as read
-await sb.from(`notifications`).update({is_read:!0}).eq(`user_id`,currentUser.id);let list=document.getElementById(`notifList`);if(!data?.length){list.innerHTML=`<div class="empty-state"><span class="ei">🔔</span><p>Aucune notification pour l\'instant</p></div>`;return}let typeIcon={like:`❤️`,comment:`💬`,follow:`👤`,mention:`@`,viral:`🔥`,milestone:`🏆`,battle_challenge:`⚔️`,battle_accepted:`🏆`};
+await sb.from(`notifications`).update({is_read:!0}).eq(`user_id`,currentUser.id);let list=document.getElementById(`notifList`);if(!data?.length){list.innerHTML=`<div class="empty-state"><span class="ei">🔔</span><p>Aucune notification pour l\'instant</p></div>`;return}let typeIcon={like:`❤️`,comment:`💬`,follow:`👤`,mention:`@`,viral:`🔥`,milestone:`🏆`,battle_challenge:`⚔️`,battle_accepted:`🏆`,battle_result:`🏆`};
 function renderNotifItem(n) {
   // Battle challenge : affichage spécial avec bouton Accepter
   if (n.type === 'battle_challenge') {
@@ -2542,6 +2595,15 @@ function renderNotifItem(n) {
           <span style="color:var(--accent);font-weight:700">@${escHtml(accepterUsername)}</span>
           a accepté ton défi ! Le battle est en ligne. <span style="color:var(--accent2)">Voir →</span>
         </div>
+        <div class="notif-time">${timeAgo(n.created_at)}</div>
+      </div>`;
+  }
+  // Résultat de battle
+  if (n.type === 'battle_result') {
+    return `
+      <div class="notif-item ${n.is_read?'':'unread'}" onclick="showTab('battle')">
+        <div class="notif-avatar" style="font-size:20px">🏆</div>
+        <div class="notif-text">${escHtml(n.content || n.message || 'Résultat de battle')}</div>
         <div class="notif-time">${timeAgo(n.created_at)}</div>
       </div>`;
   }
