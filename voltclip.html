@@ -2104,7 +2104,7 @@ async function init(){currentTab='battle';try{let{data:{session}}=await sb.auth.
     detectAndSaveLocation();
   }
   checkAdmin();
-}),loadSearch(),loadRank(`week`);checkAdmin();if(currentUser){setupRealtimeNotifs(currentUser.id);await refreshProfile();}else{refreshProfile();}battlePage=0;battleAllLoaded=false;loadBattles();setupRealtimeBattles();startBattleTicker();checkOnboarding();}catch(e){console.error('init error:',e);document.getElementById('battleFeed').innerHTML='<div class="empty-state" style="height:calc(100dvh - 60px)"><span class="ei">⚠️</span><p>Erreur de connexion.<br>Vérifie ta connexion et recharge.</p></div>';}
+}),loadSearch(),loadRank(`week`);checkAgeGate();checkAdmin();if(currentUser){setupRealtimeNotifs(currentUser.id);await refreshProfile();}else{refreshProfile();}battlePage=0;battleAllLoaded=false;loadBattles();setupRealtimeBattles();startBattleTicker();checkOnboarding();}catch(e){console.error('init error:',e);document.getElementById('battleFeed').innerHTML='<div class="empty-state" style="height:calc(100dvh - 60px)"><span class="ei">⚠️</span><p>Erreur de connexion.<br>Vérifie ta connexion et recharge.</p></div>';}
 }
 // ══════════════════════════════════════════
 // NOTIFICATIONS PUSH + REALTIME
