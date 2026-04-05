@@ -1030,7 +1030,7 @@
 // CONFIG — remplace par tes clés Supabase
 // ══════════════════════════════════════════
 function getVideoDuration(file){return new Promise(resolve=>{const v=document.createElement('video');v.preload='metadata';const url=URL.createObjectURL(file);v.onloadedmetadata=()=>{URL.revokeObjectURL(url);resolve(v.duration)};v.onerror=()=>{URL.revokeObjectURL(url);resolve(null)};setTimeout(()=>resolve(null),5000);v.src=url})}
-const SUPABASE_URL=`https://czdfoqgcjbsoupekpxpg.supabase.co`,SUPABASE_ANON=`eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6ZGZvcWdjamJzb3VwZWtweHBnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0MzQ3MzgsImV4cCI6MjA4OTAxMDczOH0.ANivcmm64cYQCZZiFrCpduigWytloZSzwJ1vi1BbOy0`,CLOUDINARY_CLOUD=`dtdkrbdoo`,CLOUDINARY_PRESET=`ml_default`,CLOUDINARY_URL=`https://api.cloudinary.com/v1_1/dtdkrbdoo`,{createClient}=supabase,sb=createClient(SUPABASE_URL,SUPABASE_ANON);
+const SUPABASE_URL=`https://czdfoqgcjbsoupekpxpg.supabase.co`,SUPABASE_ANON=`eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6ZGZvcWdjamJzb3VwZWtweHBnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0MzQ3MzgsImV4cCI6MjA4OTAxMDczOH0.ANivcmm64cYQCZZiFrCpduigWytloZSzwJ1vi1BbOy0`,CLOUDINARY_CLOUD=`dtdkrbdoo`,CLOUDINARY_PRESET=`voltclip_unsigned`,CLOUDINARY_URL=`https://api.cloudinary.com/v1_1/dtdkrbdoo`,{createClient}=supabase,sb=createClient(SUPABASE_URL,SUPABASE_ANON);
 // ══════════════════════════════════════════
 // STATE
 // ══════════════════════════════════════════
@@ -1226,7 +1226,7 @@ async function _loadLbCreators(list) {
       <div class="lb-rank" style="color:${rankColor};font-size:${i<3?'20':'14'}px">${rankLabel}</div>
       <div class="lb-avatar">${avatarHtml}</div>
       <div class="lb-info">
-        <div class="lb-username" style="display:flex;align-items:center;gap:4px">${flag ? '<span style="font-size:13px">'+flag+'</span>' : ''}@${p.username || 'user'}</div>
+        <div class="lb-username" style="display:flex;align-items:center;gap:4px">${flag ? '<span style="font-size:13px">'+flag+'</span>' : ''}@${escHtml(p.username || 'user')}</div>
         <div class="lb-wins">🎬 ${p._videos} vidéo${p._videos>1?'s':''} · 👥 ${fmtScore(p.followers_count||0)} abonnés</div>
         <div style="color:var(--accent);font-family:var(--font-mono);font-size:10px;margin-top:2px">❤️ ${fmtScore(p._likes)} · 👁 ${fmtScore(p._views)}</div>
       </div>
@@ -2170,7 +2170,7 @@ let query=sb.from(`profiles`).select(`id, username, avatar_url, followers_count`
       <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#7c5cfc,#fc5c7d);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;overflow:hidden;flex-shrink:0" onclick="openUserProfile('${p.id}')">
         ${p.avatar_url?`<img src="${p.avatar_url}" style="width:100%;height:100%;object-fit:cover">`:p.username[0].toUpperCase()}
       </div>
-      <div style="font-size:9px;color:rgba(255,255,255,0.7);font-family:'Space Mono',monospace;max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center">@${p.username}</div>
+      <div style="font-size:9px;color:rgba(255,255,255,0.7);font-family:'Space Mono',monospace;max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center">@${escHtml(p.username)}</div>
       <button id="sug-${p.id}" onclick="quickFollow('${p.id}')" style="background:linear-gradient(135deg,#7c5cfc,#fc5c7d);border:none;color:#fff;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;padding:4px 10px;border-radius:20px;cursor:pointer">+Follow</button>
     </div>`).join(``);
 // Met à jour le label
@@ -2366,7 +2366,7 @@ if(currentSearchMode==='users'){
 // Show popular creators
 let{data:creators}=await sb.from('profiles').select('id,username,avatar_url,followers_count,videos_count').order('followers_count',{ascending:false}).limit(10);
 document.getElementById('trendingTitle').style.display='block';document.getElementById('trendingTitle').textContent='🌟 CRÉATEURS POPULAIRES';document.getElementById('trendingTags').style.display='block';
-document.getElementById('trendingTags').innerHTML=(creators||[]).map(u=>`<div class="search-user-item" onclick="openPublicProfile('${u.id}')"><div class="search-user-avatar">${u.avatar_url?`<img src="${u.avatar_url}" alt="">`:u.username[0].toUpperCase()}</div><div class="search-user-info"><div class="search-user-name">@${u.username}</div><div class="search-user-stats">📹 ${fmtNum(u.videos_count)} · 👥 ${fmtNum(u.followers_count)}</div></div></div>`).join('');
+document.getElementById('trendingTags').innerHTML=(creators||[]).map(u=>`<div class="search-user-item" onclick="openPublicProfile('${u.id}')"><div class="search-user-avatar">${u.avatar_url?`<img src="${u.avatar_url}" alt="">`:escHtml(u.username[0].toUpperCase())}</div><div class="search-user-info"><div class="search-user-name">@${escHtml(u.username)}</div><div class="search-user-stats">📹 ${fmtNum(u.videos_count)} · 👥 ${fmtNum(u.followers_count)}</div></div></div>`).join('');
 return;
 } else {document.getElementById('trendingTitle').textContent='TENDANCES';}
 // Trending hashtags
@@ -2404,9 +2404,9 @@ let[usersRes,videosRes,tagsRes]=await Promise.all(promises);
 if(tagsRes.data?.length){html+=`<div class="search-section-title"># HASHTAGS (${tagsRes.data.length})</div>`;html+=`<div style="padding:4px 0 8px">`+tagsRes.data.map(t=>`<button class="hashtag-chip" onclick="searchByTag('${t.name}')">#${t.name} <span style="color:var(--muted);font-size:10px">${fmtNum(t.videos_count)}</span></button>`).join('')+`</div>`}
 if(usersRes.data?.length){html+=`<div class="search-section-title" style="margin-top:${tagsRes.data?.length?'8px':'0'}">👤 CRÉATEURS (${usersRes.data.length})</div>`;html+=usersRes.data.map(u=>`
       <div class="search-user-item" onclick="openPublicProfile('${u.id}')">
-        <div class="search-user-avatar">${u.avatar_url?`<img src="${u.avatar_url}" alt="">`:u.username[0].toUpperCase()}</div>
+        <div class="search-user-avatar">${u.avatar_url?`<img src="${u.avatar_url}" alt="">`:escHtml(u.username[0].toUpperCase())}</div>
         <div class="search-user-info">
-          <div class="search-user-name">@${u.username}</div>
+          <div class="search-user-name">@${escHtml(u.username)}</div>
           <div class="search-user-stats">📹 ${fmtNum(u.videos_count)} · 👥 ${fmtNum(u.followers_count)}</div>
         </div>
       </div>
@@ -2537,7 +2537,7 @@ if(!data?.length){list.innerHTML=`<div class="empty-state"><span class="ei">🏆
           <div class="rank-video-title">${escHtml(v.title)}</div>
           <div class="rank-username" style="cursor:pointer;display:flex;align-items:center;gap:4px" onclick="event.stopPropagation();openPublicProfile('${v.user_id}')">
             ${v.profiles?.country_code ? '<span style=\"font-size:13px\">' + (_COUNTRY_FLAGS[v.profiles.country]||'') + '</span>' : ''}
-            @${v.username}
+            @${escHtml(v.username)}
           </div>
           <div class="rank-score">❤️ ${fmtNum(v.likes_count)} · 👁 ${fmtNum(v.views_count)} · 💬 ${fmtNum(v.comments_count)}</div>
 
@@ -3435,9 +3435,9 @@ if(replyToCommentId){let{data:parentComment}=await sb.from(`comments`).select(`u
 // MENTIONS @USER
 // ══════════════════════════════════════════
 let mentionTimeout=null;async function onCommentInput(val){let dropdown=document.getElementById(`mentionDropdown`),atIdx=val.lastIndexOf(`@`);if(atIdx===-1||val[atIdx-1]&&val[atIdx-1]!==` `){dropdown.classList.remove(`show`);return}let query=val.slice(atIdx+1);if(query.length<1){dropdown.classList.remove(`show`);return}clearTimeout(mentionTimeout),mentionTimeout=setTimeout(async()=>{let{data}=await sb.from(`profiles`).select(`username`).ilike(`username`,`${query}%`).limit(5);if(!data?.length){dropdown.classList.remove(`show`);return}dropdown.innerHTML=data.map(u=>`
-      <div class="mention-item" onclick="insertMention('@${u.username}')">
-        <div style="width:28px;height:28px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">${u.username[0].toUpperCase()}</div>
-        <strong>@${u.username}</strong>
+      <div class="mention-item" onclick="insertMention('@${escHtml(u.username)}')">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">${escHtml(u.username[0].toUpperCase())}</div>
+        <strong>@${escHtml(u.username)}</strong>
       </div>
     `).join(``),dropdown.classList.add(`show`)},200)}function insertMention(mention){let input=document.getElementById(`commentInput`),val=input.value,atIdx=val.lastIndexOf(`@`);input.value=val.slice(0,atIdx)+mention+` `,document.getElementById(`mentionDropdown`).classList.remove(`show`),input.focus()}
 // ══════════════════════════════════════════
@@ -3463,9 +3463,9 @@ av.innerHTML=avatarUrl?`<img src="${avatarUrl}" alt="" style="width:100%;height:
       <div class="msg-time">${timeAgo(m.created_at)}</div>
     </div>
   `).join(``),msgs.scrollTop=msgs.scrollHeight}async function sendDm(){if(!currentUser){openAuth();return}let input=document.getElementById(`convInput`),text=input.value.trim();!text||!currentConvUserId||(input.value=``,playUISound(`comment`),await sb.from(`messages`).insert({sender_id:currentUser.id,receiver_id:currentConvUserId,content:text}),loadMessages())}function closeDmConv(){document.getElementById(`dmConvPage`).classList.remove(`open`),dmRealtimeChannel&&=(sb.removeChannel(dmRealtimeChannel),null),currentConvUserId=null}function openNewDm(){document.getElementById(`newDmModal`).style.display=`flex`}function closeNewDm(){document.getElementById(`newDmModal`).style.display=`none`}async function searchDmUser(q){if(!q.trim()){document.getElementById(`dmUserResults`).innerHTML=``;return}let{data}=await sb.from(`profiles`).select(`id,username,avatar_url`).ilike(`username`,`%${q}%`).neq(`id`,currentUser?.id).limit(8);document.getElementById(`dmUserResults`).innerHTML=(data||[]).map(u=>`
-    <div class="dm-item" onclick="startDmWithUser('${u.id}','${u.username}','${u.avatar_url||``}')">
-      <div class="dm-avatar">${u.avatar_url?`<img src="${u.avatar_url}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:u.username[0].toUpperCase()}</div>
-      <div class="dm-info"><div class="dm-username">@${u.username}</div></div>
+    <div class="dm-item" onclick="startDmWithUser('${u.id}','${escHtml(u.username)}','${u.avatar_url||``}')">
+      <div class="dm-avatar">${u.avatar_url?`<img src="${u.avatar_url}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:escHtml(u.username[0].toUpperCase())}</div>
+      <div class="dm-info"><div class="dm-username">@${escHtml(u.username)}</div></div>
     </div>
   `).join(``)}function startDmWithUser(userId,username,avatarUrl){closeNewDm(),closeDmPage(),openConversation(userId,username,avatarUrl),document.getElementById(`dmPage`).classList.add(`open`)}
 // ══════════════════════════════════════════
@@ -3585,7 +3585,7 @@ let currentSoundName=null;async function openSoundPage(soundName){currentSoundNa
 // ══════════════════════════════════════════
 // BIO CLIQUABLE
 // ══════════════════════════════════════════
-function renderBio(bio){return bio?bio.replace(/#(\w+)/g,`<span class="bio-tag" onclick="searchByTag('$1')">#$1</span>`):`Aucune bio`}
+function renderBio(bio){if(!bio)return`Aucune bio`;const safe=escHtml(bio);return safe.replace(/#(\w+)/g,`<span class="bio-tag" onclick="searchByTag('$1')">#$1</span>`)}
 // ══════════════════════════════════════════
 // VIDÉO ÉPINGLÉE
 // ══════════════════════════════════════════
