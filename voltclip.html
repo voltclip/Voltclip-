@@ -3227,6 +3227,8 @@ async function submitUpload() {
       // INSERT avec retour de l'ID — on attend le vrai résultat
       let insertedVideoId = null;
       try {
+        const _insertCtrl = new AbortController();
+        const _insertTimeout = setTimeout(() => _insertCtrl.abort(), 12000);
         const insertResp = await fetch(`${SUPABASE_URL}/rest/v1/videos`, {
           method: 'POST',
           headers: {
@@ -3235,8 +3237,10 @@ async function submitUpload() {
             'Authorization': `Bearer ${authToken || SUPABASE_ANON}`,
             'Prefer': 'return=representation'
           },
-          body: JSON.stringify(payload)
+          body: JSON.stringify(payload),
+          signal: _insertCtrl.signal
         });
+        clearTimeout(_insertTimeout);
         const insertData = await insertResp.json();
         insertedVideoId = Array.isArray(insertData) ? insertData[0]?.id : insertData?.id;
         // Incrémenter videos_count dans profiles
@@ -3247,7 +3251,7 @@ async function submitUpload() {
             await sb.from('profiles').update({ videos_count: (pData?.videos_count || 0) + 1 }).eq('id', currentUser.id);
           } catch(e) { console.warn('videos_count update:', e); }
         }
-      } catch(e) { console.warn('insert video err', e); }
+      } catch(e) { console.warn('insert video err (possible timeout mobile):', e); }
 
       if (!insertedVideoId) {
         // Fallback: attendre et chercher en base
