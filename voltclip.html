@@ -2844,7 +2844,7 @@ if(!signUpData?.session){
   // Afficher le message de confirmation dans le modal
   const _confirmMsg=document.getElementById('authConfirmMsg');
   const _submitBtn=document.getElementById('authSubmitBtn');
-  if(_confirmMsg){_confirmMsg.style.display='block';_confirmMsg.innerHTML='📩 <strong>Vérifie ta boîte mail !</strong><br>On t\'a envoyé un lien de confirmation à <strong>'+email+'</strong><br><span style="color:#ffffff80;font-size:11px">Clique sur le lien pour activer ton compte ⚡</span>';}
+  if(_confirmMsg){_confirmMsg.style.display='block';_confirmMsg.innerHTML='📩 <strong>Vérifie ta boîte mail !</strong><br>On t\'a envoyé un lien de confirmation à <strong>'+email+'</strong><br><span style="color:#ffffff80;font-size:11px">Clique sur le lien pour activer ton compte ⚡</span><br><span style="color:#ffc107;font-size:11px">⚠️ Si tu ne vois pas l\'email, vérifie ton dossier <strong>Spam</strong> ou <strong>Courrier indésirable</strong></span>';}
   if(_submitBtn)_submitBtn.style.display='none';
   // Sauvegarder birthdate si user existe quand même
   if(signUpData?.user){sb.from('profiles').update({birthdate:_bdVal}).eq('id',signUpData.user.id).catch(()=>{});}
