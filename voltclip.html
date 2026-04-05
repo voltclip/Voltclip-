@@ -2091,11 +2091,12 @@ function startBattleTicker() {
     })
   }, 1000)
 }
-async function init(){currentTab='battle';try{let{data:{session}}=await sb.auth.getSession();currentUser=session?.user??null;_currentAuthToken=session?.access_token||null,sb.auth.onAuthStateChange(async(_,session)=>{
+async function init(){currentTab='battle';try{let{data:{session}}=await sb.auth.getSession();currentUser=session?.user??null;_currentAuthToken=session?.access_token||null,sb.auth.onAuthStateChange(async(event,session)=>{
   _currentAuthToken=session?.access_token||null;
   currentUser=session?.user??null;
   await refreshProfile();
   if(session?.user){
+    if(event==='SIGNED_IN'){closeAuth();toast(`⚡ Connecté ! Bienvenue sur VoltClip`);}
     if(currentTab===`notif`)loadNotifs();
     const{data:prof}=await sb.from(`profiles`).select(`is_banned`).eq(`id`,session.user.id).single();
     if(prof?.is_banned){await sb.auth.signOut();alert(`🚫 Ton compte a été suspendu.`);return;}
@@ -2844,7 +2845,7 @@ if(!signUpData?.session){
   // Afficher le message de confirmation dans le modal
   const _confirmMsg=document.getElementById('authConfirmMsg');
   const _submitBtn=document.getElementById('authSubmitBtn');
-  if(_confirmMsg){_confirmMsg.style.display='block';_confirmMsg.innerHTML='📩 <strong>Vérifie ta boîte mail !</strong><br>On t\'a envoyé un lien de confirmation à <strong>'+email+'</strong><br><span style="color:#ffffff80;font-size:11px">Clique sur le lien pour activer ton compte ⚡</span><br><span style="color:#ffc107;font-size:11px">⚠️ Si tu ne vois pas l\'email, vérifie ton dossier <strong>Spam</strong> ou <strong>Courrier indésirable</strong></span>';}
+  if(_confirmMsg){_confirmMsg.style.display='block';_confirmMsg.innerHTML='📩 <strong>Vérifie ta boîte mail !</strong><br>On t\'a envoyé un lien de confirmation à <strong>'+email+'</strong><br><span style="color:#ffffff80;font-size:11px">Clique sur le lien pour activer ton compte ⚡</span>';}
   if(_submitBtn)_submitBtn.style.display='none';
   // Sauvegarder birthdate si user existe quand même
   if(signUpData?.user){sb.from('profiles').update({birthdate:_bdVal}).eq('id',signUpData.user.id).catch(()=>{});}
