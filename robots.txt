@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://voltclip.github.io/Voltclip-/sitemap.xml
