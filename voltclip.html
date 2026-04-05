@@ -1026,7 +1026,7 @@
   </div>
   <input type="hidden" id="uploadCategory" value="">
   <input type="hidden" id="uploadSubcategory" value="">
-</div></div><div class=upload-err id=uploadErr></div><div class=upload-progress id=uploadProgress style=display:none></div><button class=upload-submit id=uploadSubmit onclick="handlePublishClick(event)">Publier ⚡</button><button class=upload-cancel onclick=closeUpload()>Annuler</button></div></div></div></div><div id=commentsModal><div id=commentsBg onclick=closeComments()></div><div class=comments-box><div class=comments-header><div class=comments-header-top><span class=comments-title>💬 Commentaires (<span id=commentsCount>0</span>)</span><button class=comments-close onclick=closeComments()>✕</button></div><div class=comments-sort><button class="comments-sort-btn active" onclick="sortComments('top',this)">🔥 Top</button><button onclick="sortComments('recent',this)" class=comments-sort-btn>🕐 Récents</button></div></div><div id=commentsList></div><div class=comment-input-row><div class=comment-reply-banner id=replyBanner><span id=replyBannerText>↩ Répondre à @...</span><button style="color:var(--muted);cursor:pointer;background:0 0;border:none;font-size:14px" onclick=cancelReply()>✕</button></div><div class=comment-input-inner style=position:relative><div id=mentionDropdown></div><input onkeydown="if(event.key==='Enter')sendComment()" placeholder="Ajouter un commentaire… (@user pour mentionner)" id=commentInput oninput=onCommentInput(this.value)><button class=comment-send onclick=sendComment()>➤</button></div></div></div></div><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>// ══════════════════════════════════════════
+</div></div><div class=upload-err id=uploadErr></div><div class=upload-progress id=uploadProgress style=display:none></div><button class=upload-submit id=uploadSubmit onclick="handlePublishClick(event)">Publier ⚡</button><button class=upload-cancel onclick=closeUpload()>Annuler</button></div></div></div></div><div id=commentsModal><div id=commentsBg onclick=closeComments()></div><div class=comments-box><div class=comments-header><div class=comments-header-top><span class=comments-title>💬 Commentaires (<span id=commentsCount>0</span>)</span><button class=comments-close onclick=closeComments()>✕</button></div><div class=comments-sort><button class="comments-sort-btn active" onclick="sortComments('top',this)">🔥 Top</button><button onclick="sortComments('recent',this)" class=comments-sort-btn>🕐 Récents</button></div></div><div id=commentsList></div><div class=comment-input-row><div class=comment-reply-banner id=replyBanner><span id=replyBannerText>↩ Répondre à @...</span><button style="color:var(--muted);cursor:pointer;background:0 0;border:none;font-size:14px" onclick=cancelReply()>✕</button></div><div class=comment-input-inner style=position:relative><div id=mentionDropdown></div><input onkeydown="if(event.key==='Enter')sendComment()" placeholder="Ajouter un commentaire… (@user pour mentionner)" id=commentInput oninput=onCommentInput(this.value)><button class=comment-send onclick=sendComment()>➤</button></div></div></div></div><script>// ══════════════════════════════════════════
 // CONFIG — remplace par tes clés Supabase
 // ══════════════════════════════════════════
 function getVideoDuration(file){return new Promise(resolve=>{const v=document.createElement('video');v.preload='metadata';const url=URL.createObjectURL(file);v.onloadedmetadata=()=>{URL.revokeObjectURL(url);resolve(v.duration)};v.onerror=()=>{URL.revokeObjectURL(url);resolve(null)};setTimeout(()=>resolve(null),5000);v.src=url})}
@@ -3629,7 +3629,14 @@ async function pinVideo(videoId){currentUser&&(await sb.from(`videos`).update({i
 // ══════════════════════════════════════════
 // AGE GATE
 // ══════════════════════════════════════════
-let birth=new Date(parseInt(year),parseInt(month)-1,parseInt(day)),now=/* @__PURE__ */ new Date;if(now.getFullYear()-birth.getFullYear()-(now<new Date(now.getFullYear(),birth.getMonth(),birth.getDate())?1:0)<15){errEl.textContent=`🚫 Tu dois avoir au moins 15 ans pour accéder à VoltClip.`,errEl.style.display=`block`;return}let val=`${year}-${String(month).padStart(2,`0`)}-${String(day).padStart(2,`0`)}`;localStorage.setItem(`voltclip_age_ok`,`1`),document.getElementById(`ageGateModal`).classList.remove(`open`),currentUser&&sb.from(`profiles`).update({birthdate:val}).eq(`id`,currentUser.id).then(()=>{})}
+function checkAgeGate(){
+  const AGE_GATE_VERSION=`v2`;
+  if(localStorage.getItem(`voltclip_age_version`)!==AGE_GATE_VERSION){localStorage.removeItem(`voltclip_age_ok`);localStorage.setItem(`voltclip_age_version`,AGE_GATE_VERSION)}
+  if(localStorage.getItem(`voltclip_age_ok`)===`1`)return;
+  let maxDate=new Date;maxDate.setFullYear(maxDate.getFullYear()-15);
+  document.getElementById(`ageGateModal`).classList.add(`open`);
+}
+function submitAgeGate(){let errEl=document.getElementById(`ageGateErr`),day=document.getElementById(`ageDaySelect`).value,month=document.getElementById(`ageMonthSelect`).value,year=document.getElementById(`ageYearSelect`).value;if(!day||!month||!year){errEl.textContent=`Indique ta date de naissance complète`,errEl.style.display=`block`;return}let birth=new Date(parseInt(year),parseInt(month)-1,parseInt(day)),now=/* @__PURE__ */ new Date;if(now.getFullYear()-birth.getFullYear()-(now<new Date(now.getFullYear(),birth.getMonth(),birth.getDate())?1:0)<15){errEl.textContent=`🚫 Tu dois avoir au moins 15 ans pour accéder à VoltClip.`,errEl.style.display=`block`;return}let val=`${year}-${String(month).padStart(2,`0`)}-${String(day).padStart(2,`0`)}`;localStorage.setItem(`voltclip_age_ok`,`1`),document.getElementById(`ageGateModal`).classList.remove(`open`),currentUser&&sb.from(`profiles`).update({birthdate:val}).eq(`id`,currentUser.id).then(()=>{})}
 // ══════════════════════════════════════════
 // UTILS
 // ══════════════════════════════════════════
@@ -4195,7 +4202,6 @@ function openBattleFullscreen(battleId, side) {
 
   modal.style.display = 'flex';
   modal.style.flexDirection = 'column';
-  setTimeout(initCastButton, 300);
   haptic && haptic([10]);
 }
 
