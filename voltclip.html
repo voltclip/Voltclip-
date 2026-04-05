@@ -1984,7 +1984,7 @@ async function triggerAutoRematch(oldBattleId, category, oldLeftId, oldRightId) 
       if (oldLeftId && oldRightId && oldLeftId !== oldRightId) {
         const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
         const catLabel = (BATTLE_CATEGORIES || []).find(c => c.id === category)?.label || category || 'Général'
-        await sb.from('battles').insert({ video_left_id: oldLeftId, video_right_id: oldRightId, title: `Battle ${catLabel} ⚔️`, category: category || null, created_by: currentUser.id, status: 'active', expires_at: expiresAt })
+        await sb.from('battles').insert({ video_left_id: oldLeftId, video_right_id: oldRightId, title: `Battle ${catLabel} ⚔️ #${Math.random().toString(36).slice(2,7).toUpperCase()}`, category: category || null, created_by: currentUser.id, status: 'active', expires_at: expiresAt })
         toast('⚔️ Revanche lancée !')
         battlePage = 0; battleAllLoaded = false; loadBattles(); subscribeBattleRealtime()
       } else { toast('⚠️ Impossible de lancer un nouveau battle') }
@@ -1996,7 +1996,7 @@ async function triggerAutoRematch(oldBattleId, category, oldLeftId, oldRightId) 
     const { error } = await sb.from('battles').insert({
       video_left_id: vid1.id,
       video_right_id: vid2.id,
-      title: `Battle ${catLabel} ⚔️`,
+      title: `Battle ${catLabel} ⚔️ #${Math.random().toString(36).slice(2,7).toUpperCase()}`,
       category: category || null,
       created_by: currentUser.id,
       status: 'active',
@@ -3296,7 +3296,7 @@ async function submitUpload() {
             const { error: battleErr } = await sb.from('battles').insert({
               video_left_id: myVidId,
               video_right_id: opponent.id,
-              title: `Battle ${catLabel} ⚔️`,
+              title: `Battle ${catLabel} ⚔️ #${Math.random().toString(36).slice(2,7).toUpperCase()}`,
               category: matchedCat,
               created_by: currentUser.id,
               status: 'active',
