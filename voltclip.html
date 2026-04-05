@@ -1689,7 +1689,7 @@ function showWinnerAnimation(battleId, side, username) {
   // Badge WINNER
   const badge = document.createElement('div')
   badge.className = 'winner-badge show'
-  badge.innerHTML = '🏆 WINNER<br><span style="font-size:14px;opacity:.8">@' + username + '</span>'
+  badge.innerHTML = '🏆 WINNER<br><span style="font-size:14px;opacity:.8">@' + escHtml(username) + '</span>'
   
   const overlay = document.createElement('div')
   overlay.className = 'winner-overlay'
