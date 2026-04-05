@@ -3265,6 +3265,7 @@ async function submitUpload() {
       (async () => {
         try {
           const uploadCategory = document.getElementById('uploadCategory')?.value || null;
+          const uploadSubcategory = document.getElementById('uploadSubcategory')?.value || null;
           const myVidId = insertedVideoId;
           if (!myVidId) { console.warn('matchmaking: pas d\'ID vidéo'); return; }
 
@@ -3285,7 +3286,7 @@ async function submitUpload() {
           } catch(e) { console.warn('matchmaking: fetch active battles err', e); }
 
           // Chercher un adversaire externe (autre user), jamais déjà en battle
-          const findExternalOpponent = async (filterCat) => {
+          const findExternalOpponent = async (filterCat, filterSubcat) => {
             let q = sb.from('videos')
               .select('id, user_id')
               .eq('status', 'active')
@@ -3294,13 +3295,14 @@ async function submitUpload() {
               .order('created_at', { ascending: true })
               .limit(20);
             if (filterCat) q = q.eq('category', filterCat);
+            if (filterSubcat) q = q.eq('subcategory', filterSubcat);
             const { data: candidates } = await q;
             if (!candidates?.length) return null;
             return candidates.find(v => v.user_id !== currentUser.id && !alreadyInBattle.has(v.id)) || null;
           };
 
-          // Chercher une autre vidéo du même user (même catégorie), jamais déjà en battle
-          const findSelfOpponent = async (filterCat) => {
+          // Chercher une autre vidéo du même user, jamais déjà en battle
+          const findSelfOpponent = async (filterCat, filterSubcat) => {
             let q = sb.from('videos')
               .select('id, user_id')
               .eq('status', 'active')
@@ -3309,6 +3311,7 @@ async function submitUpload() {
               .order('created_at', { ascending: false })
               .limit(20);
             if (filterCat) q = q.eq('category', filterCat);
+            if (filterSubcat) q = q.eq('subcategory', filterSubcat);
             const { data: candidates } = await q;
             if (!candidates?.length) return null;
             return candidates.find(v => !alreadyInBattle.has(v.id)) || null;
@@ -3317,38 +3320,52 @@ async function submitUpload() {
           let opponent = null;
           let matchedCat = uploadCategory;
 
-          // 1er essai : adversaire externe, même catégorie
-          if (uploadCategory) {
-            opponent = await findExternalOpponent(uploadCategory);
+          // 1er essai : adversaire externe, même catégorie + même sous-catégorie
+          if (uploadCategory && uploadSubcategory) {
+            opponent = await findExternalOpponent(uploadCategory, uploadSubcategory);
+            console.debug('[matchmaking] externe même catégorie+sous-cat:', uploadCategory, uploadSubcategory, '| adversaire:', opponent?.id || null);
+          }
+          // 2e essai : adversaire externe, même catégorie seulement
+          if (!opponent && uploadCategory) {
+            opponent = await findExternalOpponent(uploadCategory, null);
             console.debug('[matchmaking] externe même catégorie:', uploadCategory, '| adversaire:', opponent?.id || null);
           }
-          // 2e essai : adversaire externe, toutes catégories
+          // 3e essai : adversaire externe, toutes catégories
           if (!opponent) {
-            opponent = await findExternalOpponent(null);
+            opponent = await findExternalOpponent(null, null);
             console.debug('[matchmaking] externe toutes catégories | adversaire:', opponent?.id || null);
           }
-          // 3e essai : propre vidéo du même user, même catégorie (self-battle autorisé si isolé)
+          // 4e essai : propre vidéo, même catégorie + même sous-catégorie
+          if (!opponent && uploadCategory && uploadSubcategory) {
+            opponent = await findSelfOpponent(uploadCategory, uploadSubcategory);
+            console.debug('[matchmaking] self-battle même catégorie+sous-cat | adversaire:', opponent?.id || null);
+          }
+          // 5e essai : propre vidéo, même catégorie
           if (!opponent && uploadCategory) {
-            opponent = await findSelfOpponent(uploadCategory);
+            opponent = await findSelfOpponent(uploadCategory, null);
             console.debug('[matchmaking] self-battle même catégorie | adversaire:', opponent?.id || null);
           }
-          // 4e essai : propre vidéo, toutes catégories
+          // 6e essai : propre vidéo, toutes catégories
           if (!opponent) {
-            opponent = await findSelfOpponent(null);
+            opponent = await findSelfOpponent(null, null);
             console.debug('[matchmaking] self-battle toutes catégories | adversaire:', opponent?.id || null);
           }
-          // 5e essai : adversaire externe déjà en battle, même catégorie (une vidéo peut être dans plusieurs battles)
+          // 7e essai : adversaire externe déjà en battle, même catégorie + sous-cat
+          if (!opponent && uploadCategory && uploadSubcategory) {
+            const { data: c7 } = await sb.from('videos').select('id, user_id').eq('status', 'active').neq('user_id', currentUser.id).neq('id', myVidId).eq('category', uploadCategory).eq('subcategory', uploadSubcategory).order('created_at', { ascending: true }).limit(20);
+            opponent = c7?.find(v => v.user_id !== currentUser.id) || null;
+            console.debug('[matchmaking] externe déjà en battle même catégorie+sous-cat | adversaire:', opponent?.id || null);
+          }
+          // 8e essai : adversaire externe déjà en battle, même catégorie
           if (!opponent && uploadCategory) {
-            let q = sb.from('videos').select('id, user_id').eq('status', 'active').neq('user_id', currentUser.id).neq('id', myVidId).eq('category', uploadCategory).order('created_at', { ascending: true }).limit(20);
-            const { data: c5 } = await q;
-            opponent = c5?.find(v => v.user_id !== currentUser.id) || null;
+            const { data: c8 } = await sb.from('videos').select('id, user_id').eq('status', 'active').neq('user_id', currentUser.id).neq('id', myVidId).eq('category', uploadCategory).order('created_at', { ascending: true }).limit(20);
+            opponent = c8?.find(v => v.user_id !== currentUser.id) || null;
             console.debug('[matchmaking] externe déjà en battle même catégorie | adversaire:', opponent?.id || null);
           }
-          // 6e essai : adversaire externe déjà en battle, toutes catégories
+          // 9e essai : adversaire externe déjà en battle, toutes catégories
           if (!opponent) {
-            let q = sb.from('videos').select('id, user_id').eq('status', 'active').neq('user_id', currentUser.id).neq('id', myVidId).order('created_at', { ascending: true }).limit(20);
-            const { data: c6 } = await q;
-            opponent = c6?.find(v => v.user_id !== currentUser.id) || null;
+            const { data: c9 } = await sb.from('videos').select('id, user_id').eq('status', 'active').neq('user_id', currentUser.id).neq('id', myVidId).order('created_at', { ascending: true }).limit(20);
+            opponent = c9?.find(v => v.user_id !== currentUser.id) || null;
             console.debug('[matchmaking] externe déjà en battle toutes catégories | adversaire:', opponent?.id || null);
           }
 
