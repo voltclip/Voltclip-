@@ -3322,6 +3322,20 @@ async function submitUpload() {
             opponent = await findSelfOpponent(null);
             console.debug('[matchmaking] self-battle toutes catégories | adversaire:', opponent?.id || null);
           }
+          // 5e essai : adversaire externe déjà en battle, même catégorie (une vidéo peut être dans plusieurs battles)
+          if (!opponent && uploadCategory) {
+            let q = sb.from('videos').select('id, user_id').eq('status', 'active').neq('user_id', currentUser.id).neq('id', myVidId).eq('category', uploadCategory).order('created_at', { ascending: true }).limit(20);
+            const { data: c5 } = await q;
+            opponent = c5?.find(v => v.user_id !== currentUser.id) || null;
+            console.debug('[matchmaking] externe déjà en battle même catégorie | adversaire:', opponent?.id || null);
+          }
+          // 6e essai : adversaire externe déjà en battle, toutes catégories
+          if (!opponent) {
+            let q = sb.from('videos').select('id, user_id').eq('status', 'active').neq('user_id', currentUser.id).neq('id', myVidId).order('created_at', { ascending: true }).limit(20);
+            const { data: c6 } = await q;
+            opponent = c6?.find(v => v.user_id !== currentUser.id) || null;
+            console.debug('[matchmaking] externe déjà en battle toutes catégories | adversaire:', opponent?.id || null);
+          }
 
           if (opponent) {
             const catLabel = (BATTLE_CATEGORIES || []).find(c => c.id === matchedCat)?.label || matchedCat || 'Général';
@@ -3630,13 +3644,11 @@ async function pinVideo(videoId){currentUser&&(await sb.from(`videos`).update({i
 // AGE GATE
 // ══════════════════════════════════════════
 function checkAgeGate(){
-  const AGE_GATE_VERSION=`v2`;
-  if(localStorage.getItem(`voltclip_age_version`)!==AGE_GATE_VERSION){localStorage.removeItem(`voltclip_age_ok`);localStorage.setItem(`voltclip_age_version`,AGE_GATE_VERSION)}
-  if(localStorage.getItem(`voltclip_age_ok`)===`1`)return;
-  let maxDate=new Date;maxDate.setFullYear(maxDate.getFullYear()-15);
-  document.getElementById(`ageGateModal`).classList.add(`open`);
-}
-function submitAgeGate(){let errEl=document.getElementById(`ageGateErr`),day=document.getElementById(`ageDaySelect`).value,month=document.getElementById(`ageMonthSelect`).value,year=document.getElementById(`ageYearSelect`).value;if(!day||!month||!year){errEl.textContent=`Indique ta date de naissance complète`,errEl.style.display=`block`;return}let birth=new Date(parseInt(year),parseInt(month)-1,parseInt(day)),now=/* @__PURE__ */ new Date;if(now.getFullYear()-birth.getFullYear()-(now<new Date(now.getFullYear(),birth.getMonth(),birth.getDate())?1:0)<15){errEl.textContent=`🚫 Tu dois avoir au moins 15 ans pour accéder à VoltClip.`,errEl.style.display=`block`;return}let val=`${year}-${String(month).padStart(2,`0`)}-${String(day).padStart(2,`0`)}`;localStorage.setItem(`voltclip_age_ok`,`1`),document.getElementById(`ageGateModal`).classList.remove(`open`),currentUser&&sb.from(`profiles`).update({birthdate:val}).eq(`id`,currentUser.id).then(()=>{})}
+const AGE_GATE_VERSION=`v2`;if(localStorage.getItem(`voltclip_age_version`)!==AGE_GATE_VERSION){localStorage.removeItem(`voltclip_age_ok`);localStorage.setItem(`voltclip_age_version`,AGE_GATE_VERSION)}
+if(localStorage.getItem(`voltclip_age_ok`)===`1`)return;
+let maxDate=new Date();maxDate.setFullYear(maxDate.getFullYear()-15);const _ag=document.getElementById(`ageGateModal`);_ag.style.display=`flex`;_ag.classList.add(`open`)}
+function submitAgeGate(){let errEl=document.getElementById(`ageGateErr`),day=document.getElementById(`ageDaySelect`).value,month=document.getElementById(`ageMonthSelect`).value,year=document.getElementById(`ageYearSelect`).value;if(!day||!month||!year){errEl.textContent=`Indique ta date de naissance complète`,errEl.style.display=`block`;return}let birth=new Date(parseInt(year),parseInt(month)-1,parseInt(day)),now=/* @__PURE__ */ new Date;if(now.getFullYear()-birth.getFullYear()-(now<new Date(now.getFullYear(),birth.getMonth(),birth.getDate())?1:0)<15){errEl.textContent=`🚫 Tu dois avoir au moins 15 ans pour accéder à VoltClip.`,errEl.style.display=`block`;return}let val=`${year}-${String(month).padStart(2,`0`)}-${String(day).padStart(2,`0`)}`;localStorage.setItem(`voltclip_age_ok`,`1`);const _ag2=document.getElementById(`ageGateModal`);_ag2.style.display=`none`;_ag2.classList.remove(`open`);currentUser&&sb.from(`profiles`).update({birthdate:val}).eq(`id`,currentUser.id).then(()=>{})}
+(function initAgeSelects(){let daySelect=document.getElementById(`ageDaySelect`),yearSelect=document.getElementById(`ageYearSelect`);if(!daySelect||!yearSelect)return;for(let d=1;d<=31;d++){let opt=document.createElement(`option`);opt.value=d,opt.textContent=d,daySelect.appendChild(opt)}let currentYear=(new Date()).getFullYear();for(let y=currentYear-5;y>=1920;y--){let opt=document.createElement(`option`);opt.value=y,opt.textContent=y,yearSelect.appendChild(opt)}})();
 // ══════════════════════════════════════════
 // UTILS
 // ══════════════════════════════════════════
