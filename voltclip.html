@@ -3195,10 +3195,10 @@ async function submitUpload() {
 
     // 3. Préparer les URLs (le trim a déjà été fait localement)
     const rawUrl = cdnData.secure_url;
-    const rawDuration = cdnData.duration || 0;
+    const rawDuration = parseFloat(cdnData.duration) || 0;
     const videoUrl = rawUrl;
     const thumbUrl = rawUrl.replace('/upload/', '/upload/so_0,c_thumb,w_400/').replace(/\.[^.]+$/, '.jpg');
-    const duration = Math.min(rawDuration, uploadMaxDuration);
+    const duration = isFinite(rawDuration) ? Math.min(rawDuration, uploadMaxDuration) : 0;
 
     prog.textContent = '💾 Enregistrement…';
 
