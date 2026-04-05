@@ -2585,7 +2585,7 @@ let{data:videos}=await sb.from(`videos`).select(`id, title, views_count, likes_c
       ${currentProfileTab===`videos`?`
         <button class="profile-thumb-del" onclick="deleteVideo('${v.id}',event)">✕</button>
         <button onclick="event.stopPropagation();pinVideo('${v.id}')" style="position:absolute;top:4px;left:4px;background:rgba(0,0,0,.6);border:none;color:${v.is_pinned?`#ffd700`:`#fff`};width:22px;height:22px;border-radius:50%;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center">📌</button>
-        <button onclick="event.stopPropagation();openBoostModal('${v.id}')" style="position:absolute;bottom:24px;left:50%;transform:translateX(-50%);white-space:nowrap;background:linear-gradient(135deg,#7c5cfc,#fc5c7d);border:none;color:#fff;border-radius:20px;padding:3px 8px;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;cursor:pointer;z-index:5">⚡ Boost</button>
+        <!-- BOOST_BTN_DISABLED <button onclick="event.stopPropagation();openBoostModal('${v.id}')" style="position:absolute;bottom:24px;left:50%;transform:translateX(-50%);white-space:nowrap;background:linear-gradient(135deg,#7c5cfc,#fc5c7d);border:none;color:#fff;border-radius:20px;padding:3px 8px;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;cursor:pointer;z-index:5">⚡ Boost</button> -->
       `:``}
       <span style="position:absolute;bottom:4px;left:4px;font-size:10px;font-weight:700;color:#fff;font-family:'Space Mono',monospace;text-shadow:0 1px 3px rgba(0,0,0,.8)">👁 ${fmtNum(v.views_count)}</span>
     </div>
