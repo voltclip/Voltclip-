@@ -1359,6 +1359,7 @@ async function loadBattles(append = false) {
   battleLoading = true
   const feed = document.getElementById('battleFeed')
   if (!append) feed.innerHTML = '<div class="loader-dots" style="margin-top:45vh"><span></span><span></span><span></span></div>'
+  try {
 
   // ── Étape 1 : récupérer les battles avec vidéos (sans join profiles, évite PGRST) ──
   let battleQuery = sb.from('battles')
@@ -1495,7 +1496,13 @@ async function loadBattles(append = false) {
   }
 
   feed.querySelectorAll('.battle-item').forEach(el => { if (!el._observed) { window._battleObserver.observe(el); el._observed = true } })
-  battleLoading = false
+
+  } catch(e) {
+    console.error('loadBattles error:', e)
+    if (!append) feed.innerHTML = '<div class="empty-state" style="height:calc(100dvh - 60px)"><span class="ei">⚠️</span><p>Erreur de connexion.<br>Vérifie ta connexion et recharge.</p></div>'
+  } finally {
+    battleLoading = false
+  }
 }
 
 function createBattleItem(b, myVotes) {
@@ -1604,14 +1611,16 @@ async function voteBattle(battleId, side, el) {
 
   // Fetch nouveau résultat
   const { data: b } = await sb.from('battles').select('votes_left, votes_right').eq('id', battleId).single()
+  const total = b ? (b.votes_left || 0) + (b.votes_right || 0) : 0
+  const pctLeft = (b && total) ? Math.round(b.votes_left / total * 100) : 50
+  const pctRight = 100 - pctLeft
   if (b) {
-    const total = (b.votes_left || 0) + (b.votes_right || 0)
-    const pctLeft = total ? Math.round(b.votes_left / total * 100) : 50
-    const pctRight = 100 - pctLeft
-
     document.getElementById('pct-left-' + battleId).textContent = pctLeft + '%'
     document.getElementById('pct-right-' + battleId).textContent = pctRight + '%'
-
+    const _fillL = document.getElementById('fill-left-' + battleId)
+    const _fillR = document.getElementById('fill-right-' + battleId)
+    if (_fillL) _fillL.style.background = 'rgba(124,92,252,' + (pctLeft/100*0.4) + ')'
+    if (_fillR) _fillR.style.background = 'rgba(252,92,125,' + (pctRight/100*0.4) + ')'
   }
 
   // Animation badge
@@ -1809,11 +1818,14 @@ function subscribeBattleRealtime() {
 
 function shareBattle(battleId) {
   const url = window.location.origin + window.location.pathname + '?battle=' + battleId
-  const shareText = '🎤 Qui gagne ce battle RAP FR ? Viens voter ! ⚔️\n' + url
+  const _battleEl = document.querySelector('[data-battle-id="' + battleId + '"]')
+  const _cat = _battleEl?.dataset?.category || ''
+  const _catLabel = (BATTLE_CATEGORIES.find(c => c.id === _cat)?.label || '⚔️ Battle').replace(/\s/g, ' ')
+  const shareText = _catLabel + ' — Qui gagne ? Viens voter ! ⚔️\n' + url
   if (navigator.share) {
     navigator.share({ 
-      title: '⚔️ Battle RAP FR — VoltClip', 
-      text: '🎤 Qui gagne ce clash ? Écoute et vote !', 
+      title: '⚔️ ' + _catLabel + ' — VoltClip', 
+      text: 'Qui gagne ce battle ? Vote maintenant !', 
       url 
     })
   } else {
@@ -1879,15 +1891,21 @@ function _showBattleExpiredOverlay(div, b, pctLeft, pctRight, userLeft, userRigh
       winner_user_id: winnerUserId
     }).eq('id', b.id)
 
-    // 2. Incrémenter battles_won du gagnant et battles_lost du perdant
+    // 2. Incrémenter battles_won du gagnant et battles_lost du perdant (incrément atomique)
     const loserUserId = winnerSide === 'left' ? rightUserId : winnerSide === 'right' ? leftUserId : null
     if (winnerUserId) {
-      const { data: prof } = await sb.from('profiles').select('battles_won').eq('id', winnerUserId).single()
-      await sb.from('profiles').update({ battles_won: (prof?.battles_won || 0) + 1 }).eq('id', winnerUserId)
+      await sb.rpc('increment_battles_won', { uid: winnerUserId }).catch(() =>
+        sb.from('profiles').select('battles_won').eq('id', winnerUserId).single().then(({ data: prof }) =>
+          sb.from('profiles').update({ battles_won: (prof?.battles_won || 0) + 1 }).eq('id', winnerUserId)
+        )
+      )
     }
     if (loserUserId) {
-      const { data: profL } = await sb.from('profiles').select('battles_lost').eq('id', loserUserId).single()
-      await sb.from('profiles').update({ battles_lost: (profL?.battles_lost || 0) + 1 }).eq('id', loserUserId)
+      await sb.rpc('increment_battles_lost', { uid: loserUserId }).catch(() =>
+        sb.from('profiles').select('battles_lost').eq('id', loserUserId).single().then(({ data: profL }) =>
+          sb.from('profiles').update({ battles_lost: (profL?.battles_lost || 0) + 1 }).eq('id', loserUserId)
+        )
+      )
     }
 
     // 3. Notifier les deux créateurs
