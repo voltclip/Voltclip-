@@ -1505,11 +1505,18 @@ async function loadBattles(append = false) {
   }
 }
 
-function toH264Url(url) {
-  if (!url) return ''
-  if (!url.includes('res.cloudinary.com')) return url
-  if (url.includes('vc_h264') || url.includes('f_mp4')) return url
-  return url.replace('/upload/', '/upload/f_mp4,vc_h264/')
+function toPlayableUrl(url){
+  if(!url) return '';
+  if(url.includes('cloudinary.com')&&url.includes('/video/upload/')){
+    var u=url;
+    u=u.replace('/video/upload/q_auto,f_mp4/','VUPLOAD');
+    u=u.replace('/video/upload/f_mp4,vc_h264,q_auto/','VUPLOAD');
+    u=u.replace('/video/upload/','VUPLOAD');
+    u=u.replace('VUPLOAD','/video/upload/q_auto,f_mp4/');
+    u=u.replace('.webm','.mp4').replace('.mov','.mp4').replace('.ogv','.mp4');
+    return u;
+  }
+  return url;
 }
 
 function createBattleItem(b, myVotes) {
@@ -1550,7 +1557,7 @@ function createBattleItem(b, myVotes) {
     </div>
     <div class="battle-videos">
       <div class="battle-side" id="bs-right-${b.id}" onclick="switchBattleSound('${b.id}','right')">
-        <video src="${toH264Url(b.video_right?.video_url)}" loop playsinline preload="auto" poster="${b.video_right?.thumbnail_url || ''}" id="bvid-right-${b.id}"></video>
+        <video loop playsinline preload="auto" poster="${b.video_right?.thumbnail_url || ''}" id="bvid-right-${b.id}"><source src="${toPlayableUrl(b.video_right?.video_url)}" type="video/mp4"/><source src="${b.video_right?.video_url || ''}"/></video>
         <div class="battle-side-grad-right"></div>
         <div class="battle-voted-badge" id="badge-right-${b.id}">🔴</div>
         <button onclick="event.stopPropagation();openBattleFullscreen('${b.id}','right')" style="position:absolute;top:8px;left:8px;z-index:25;background:rgba(0,0,0,0.5);border:none;color:#fff;border-radius:8px;width:32px;height:32px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center">⛶</button>
@@ -1558,7 +1565,7 @@ function createBattleItem(b, myVotes) {
       </div>
       <div class="battle-divider"></div>
       <div class="battle-side" id="bs-left-${b.id}" onclick="switchBattleSound('${b.id}','left')">
-        <video src="${toH264Url(b.video_left?.video_url)}" loop playsinline preload="auto" poster="${b.video_left?.thumbnail_url || ''}" id="bvid-left-${b.id}"></video>
+        <video loop playsinline preload="auto" poster="${b.video_left?.thumbnail_url || ''}" id="bvid-left-${b.id}"><source src="${toPlayableUrl(b.video_left?.video_url)}" type="video/mp4"/><source src="${b.video_left?.video_url || ''}"/></video>
         <div class="battle-side-grad-left"></div>
         <div class="battle-voted-badge" id="badge-left-${b.id}">🔵</div>
         <button onclick="event.stopPropagation();openBattleFullscreen('${b.id}','left')" style="position:absolute;top:8px;left:8px;z-index:25;background:rgba(0,0,0,0.5);border:none;color:#fff;border-radius:8px;width:32px;height:32px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center">⛶</button>
