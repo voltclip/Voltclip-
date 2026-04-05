@@ -1505,6 +1505,13 @@ async function loadBattles(append = false) {
   }
 }
 
+function toH264Url(url) {
+  if (!url) return ''
+  if (!url.includes('res.cloudinary.com')) return url
+  if (url.includes('vc_h264') || url.includes('f_mp4')) return url
+  return url.replace('/upload/', '/upload/f_mp4,vc_h264/')
+}
+
 function createBattleItem(b, myVotes) {
   const total = (b.votes_left || 0) + (b.votes_right || 0)
   const pctLeft = total ? Math.round(b.votes_left / total * 100) : 50
@@ -1543,7 +1550,7 @@ function createBattleItem(b, myVotes) {
     </div>
     <div class="battle-videos">
       <div class="battle-side" id="bs-right-${b.id}" onclick="switchBattleSound('${b.id}','right')">
-        <video src="${b.video_right?.video_url || ''}" loop playsinline preload="auto" poster="${b.video_right?.thumbnail_url || ''}" id="bvid-right-${b.id}"></video>
+        <video src="${toH264Url(b.video_right?.video_url)}" loop playsinline preload="auto" poster="${b.video_right?.thumbnail_url || ''}" id="bvid-right-${b.id}"></video>
         <div class="battle-side-grad-right"></div>
         <div class="battle-voted-badge" id="badge-right-${b.id}">🔴</div>
         <button onclick="event.stopPropagation();openBattleFullscreen('${b.id}','right')" style="position:absolute;top:8px;left:8px;z-index:25;background:rgba(0,0,0,0.5);border:none;color:#fff;border-radius:8px;width:32px;height:32px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center">⛶</button>
@@ -1551,7 +1558,7 @@ function createBattleItem(b, myVotes) {
       </div>
       <div class="battle-divider"></div>
       <div class="battle-side" id="bs-left-${b.id}" onclick="switchBattleSound('${b.id}','left')">
-        <video src="${b.video_left?.video_url || ''}" loop playsinline preload="auto" poster="${b.video_left?.thumbnail_url || ''}" id="bvid-left-${b.id}"></video>
+        <video src="${toH264Url(b.video_left?.video_url)}" loop playsinline preload="auto" poster="${b.video_left?.thumbnail_url || ''}" id="bvid-left-${b.id}"></video>
         <div class="battle-side-grad-left"></div>
         <div class="battle-voted-badge" id="badge-left-${b.id}">🔵</div>
         <button onclick="event.stopPropagation();openBattleFullscreen('${b.id}','left')" style="position:absolute;top:8px;left:8px;z-index:25;background:rgba(0,0,0,0.5);border:none;color:#fff;border-radius:8px;width:32px;height:32px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center">⛶</button>
