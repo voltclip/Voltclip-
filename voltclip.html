@@ -1358,7 +1358,10 @@ async function loadBattles(append = false) {
   if (battleLoading) return
   battleLoading = true
   const feed = document.getElementById('battleFeed')
-  if (!append) feed.innerHTML = '<div class="loader-dots" style="margin-top:45vh"><span></span><span></span><span></span></div>'
+  if (!append) {
+    if (window._battleObserver) { window._battleObserver.disconnect(); window._battleObserver = null; }
+    feed.innerHTML = '<div class="loader-dots" style="margin-top:45vh"><span></span><span></span><span></span></div>'
+  }
   try {
 
   // ── Étape 1 : récupérer les battles avec vidéos (sans join profiles, évite PGRST) ──
@@ -1460,16 +1463,23 @@ async function loadBattles(append = false) {
           // Reset state
           e.target._soundSide = null
           e.target._audioUnlocked = false
+          // Helper : load puis play proprement
+          const safePlay = (vid, withSound) => {
+            if (!vid) return
+            vid.muted = !withSound
+            vid.load()
+            const doPlay = () => { vid.play().catch(() => { vid.muted = true; vid.play().catch(() => {}) }) }
+            if (vid.readyState >= 2) { doPlay() }
+            else {
+              vid.addEventListener('canplay', doPlay, { once: true })
+              setTimeout(() => { if (vid.paused) doPlay() }, 2000)
+            }
+          }
           // Si l'user a déjà interagi sur la page, jouer la vidéo right avec son direct
           if (window._userInteracted) {
             vids.forEach(v => { v.muted = true; v.pause(); })
             if (vidRight) {
-              vidRight.muted = false
-              vidRight.play().catch(() => {
-                // Autoplay bloqué malgré tout → fallback muet
-                vidRight.muted = true
-                vidRight.play().catch(() => {})
-              })
+              safePlay(vidRight, true)
               e.target._soundSide = 'right'
               e.target._audioUnlocked = true
               updateBattleSoundBadge(bid, 'right')
@@ -1477,7 +1487,7 @@ async function loadBattles(append = false) {
           } else {
             // Pas encore interagi : muet, attendre le premier tap
             vids.forEach(v => { v.muted = true; })
-            if (vidRight) { vidRight.muted = true; vidRight.play().catch(() => {}) }
+            if (vidRight) { safePlay(vidRight, false) }
           }
           // Infinite scroll
           const feedEl = document.getElementById('battleFeed')
