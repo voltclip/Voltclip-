@@ -3714,9 +3714,15 @@ function checkOnboarding(){
 }
 
 init();checkAgeGate();`serviceWorker`in navigator&&window.addEventListener(`load`,()=>{
-  navigator.serviceWorker.register(`./sw.js`,{scope:`./`})
-    .then(r=>console.log(`SW registered:`,r.scope))
-    .catch(e=>console.log(`SW error:`,e));
+  if(navigator.serviceWorker.controller){
+    caches.keys().then(keys=>Promise.all(keys.map(k=>caches.delete(k))));
+  }
+  navigator.serviceWorker.getRegistrations().then(regs=>{
+    regs.forEach(r=>r.unregister());
+    navigator.serviceWorker.register(`./sw.js`,{scope:`./`})
+      .then(r=>console.log(`SW registered:`,r.scope))
+      .catch(e=>console.log(`SW error:`,e));
+  });
 });let pwaInstallPrompt=null;window.addEventListener(`beforeinstallprompt`,e=>{
 // Affiche le bouton install après 30s si pas déjà installé
 e.preventDefault(),pwaInstallPrompt=e,setTimeout(()=>{pwaInstallPrompt&&showPwaToast()},3e4)});function showPwaToast(){let el=document.createElement(`div`);el.id=`pwaToast`,el.innerHTML=`
