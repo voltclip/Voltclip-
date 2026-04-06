@@ -2456,7 +2456,45 @@ html||=`<div class="empty-state"><span class="ei">🔍</span><p>Aucun résultat 
 }catch(e){html=`<div class="empty-state"><span class="ei">⚠️</span><p>Erreur lors de la recherche</p></div>`}
 res.innerHTML=html}
 
-function searchByTag(tag){let inp=document.getElementById('searchInput');inp.value='#'+tag;document.getElementById('searchClearBtn').classList.add('show');showTab('search');doSearch(tag)}// ── Cache vidéos + event delegation (fix clic Android) ──
+async function searchByTag(tag) {
+  let inp = document.getElementById('searchInput');
+  inp.value = '#' + tag;
+  document.getElementById('searchClearBtn').classList.add('show');
+  showTab('search');
+
+  // Cacher les sections découverte
+  ['trendingTitle','trendingTags','challengesTitle','challengesList','recentGridTitle','recentGrid','recentSearchesSection'].forEach(id => {
+    let el = document.getElementById(id); if (el) el.style.display = 'none';
+  });
+
+  let res = document.getElementById('searchResults');
+  res.innerHTML = '<div class="loader-dots"><span></span><span></span><span></span></div>';
+
+  try {
+    // Chercher les vidéos qui contiennent ce hashtag dans la description
+    const { data: videos } = await sb.from('videos')
+      .select('id,title,thumbnail_url,views_count,user_id')
+      .ilike('description', '%#' + tag + '%')
+      .eq('is_banned', false)
+      .order('created_at', { ascending: false })
+      .limit(50);
+
+    let html = '';
+    if (videos?.length) {
+      html += `<div class="search-section-title"># ${tag} — ${videos.length} vidéo${videos.length > 1 ? 's' : ''}</div>`;
+      html += `<div class="search-video-grid">` + videos.map(v => `
+        <div class="search-thumb" data-vid="${v.id}">
+          <img src="${v.thumbnail_url || ''}" loading="lazy" alt="">
+          <span class="search-thumb-views">👁 ${fmtNum(v.views_count)}</span>
+        </div>`).join('') + `</div>`;
+    } else {
+      html = `<div class="empty-state"><span class="ei">#️⃣</span><p>Aucune vidéo pour #${escHtml(tag)}</p></div>`;
+    }
+    res.innerHTML = html;
+  } catch(e) {
+    res.innerHTML = `<div class="empty-state"><span class="ei">⚠️</span><p>Erreur de chargement</p></div>`;
+  }
+}// ── Cache vidéos + event delegation (fix clic Android) ──
 const _vcCache = {};
 function _vcStore(v) { if (v && v.id) _vcCache[v.id] = v; }
 
