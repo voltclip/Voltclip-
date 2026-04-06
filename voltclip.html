@@ -2880,13 +2880,13 @@ function openUpload(){if(!currentUser){openAuth();return}const _alreadyOpen=docu
 }function setUploadDuration(seconds,btn){uploadMaxDuration=seconds;document.querySelectorAll(`.upload-dur-btn`).forEach(b=>b.classList.remove(`active`));btn.classList.add(`active`)}
 // ══════════════════════════════════════════
 function openUploadStep2(){/* FX supprimés */}function openCamera(){
-  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-  if(isMobile){
-    // Recrée camInput pour forcer le déclenchement onChange sur Android
+  // Recorder in-browser sur tous les appareils (évite save galerie Android)
+  if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia){
+    openWebcamRecorder();
+  } else {
+    // Fallback : caméra native
     _recreateFileInputs();
     setTimeout(()=>{ document.getElementById(`camInput`).click(); }, 50);
-  } else {
-    openWebcamRecorder();
   }
 }
 
@@ -2924,7 +2924,8 @@ async function openWebcamRecorder(){
   document.body.appendChild(modal);
   
   let stream = null, recorder = null, chunks = [], timerInterval = null, seconds = 0;
-  let facingMode = 'user';
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  let facingMode = isMobile ? 'environment' : 'user';
   
   async function startStream(){
     try {
