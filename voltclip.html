@@ -2426,8 +2426,8 @@ function onSearch(q){clearTimeout(searchTimeout);let btn=document.getElementById
 async function doSearch(q){let res=document.getElementById(`searchResults`);
 // Hide discovery sections, show results only
 ['trendingTitle','trendingTags','challengesTitle','challengesList','recentGridTitle','recentGrid','recentSearchesSection'].forEach(id=>{let el=document.getElementById(id);if(el)el.style.display='none';});
-// En mode tags : rediriger directement vers searchByTag (affiche les vidéos)
-if(currentSearchMode==='tags'){searchByTag(q.replace(/^#+/,''));return;}
+// En mode tags OU query commençant par # : rediriger vers searchByTag
+if(currentSearchMode==='tags'||(q.startsWith('#')&&currentSearchMode==='all')){searchByTag(q.replace(/^#+/,''));return;}
 res.innerHTML=`<div class="loader-dots"><span></span><span></span><span></span></div>`;
 let html='';
 try{
@@ -2475,16 +2475,41 @@ async function searchByTag(tag) {
   res.innerHTML = '<div class="loader-dots"><span></span><span></span><span></span></div>';
 
   try {
-    // Chercher les vidéos qui contiennent ce hashtag dans la description
-    const { data: videos } = await sb.from('videos')
-      .select('id,title,thumbnail_url,views_count,user_id')
-      .ilike('description', '%#' + tag + '%')
-      .eq('is_banned', false)
-      .order('created_at', { ascending: false })
-      .limit(50);
+    // Chercher via la table video_hashtags (jointure correcte)
+    const { data: hashtagRow } = await sb.from('hashtags')
+      .select('id')
+      .eq('name', tag)
+      .maybeSingle();
+
+    let videos = [];
+    if (hashtagRow) {
+      const { data: vh } = await sb.from('video_hashtags')
+        .select('video_id')
+        .eq('hashtag_id', hashtagRow.id);
+      const videoIds = (vh || []).map(r => r.video_id);
+      if (videoIds.length) {
+        const { data: vids } = await sb.from('videos')
+          .select('id,title,thumbnail_url,views_count,user_id')
+          .in('id', videoIds)
+          .eq('is_banned', false)
+          .order('created_at', { ascending: false })
+          .limit(50);
+        videos = vids || [];
+      }
+    }
+    // Fallback : chercher aussi dans la description au cas où
+    if (!videos.length) {
+      const { data: vFallback } = await sb.from('videos')
+        .select('id,title,thumbnail_url,views_count,user_id')
+        .ilike('description', '%#' + tag + '%')
+        .eq('is_banned', false)
+        .order('created_at', { ascending: false })
+        .limit(50);
+      videos = vFallback || [];
+    }
 
     let html = '';
-    if (videos?.length) {
+    if (videos.length) {
       html += `<div class="search-section-title"># ${tag} — ${videos.length} vidéo${videos.length > 1 ? 's' : ''}</div>`;
       html += `<div class="search-video-grid">` + videos.map(v => `
         <div class="search-thumb" data-vid="${v.id}">
