@@ -1,5 +1,5 @@
-// VoltClip Service Worker — v1.2
-const CACHE = 'voltclip-v2'
+// VoltClip Service Worker — v1.3
+const CACHE = 'voltclip-v3'
 const ASSETS = [
   '/Voltclip/voltclip.html',
   '/Voltclip/manifest.json',
