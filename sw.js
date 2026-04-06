@@ -1,12 +1,12 @@
 // VoltClip Service Worker — v1.3
 const CACHE = 'voltclip-v3'
 const ASSETS = [
-  '/Voltclip/voltclip.html',
-  '/Voltclip/manifest.json',
-  '/Voltclip/mentions-legales.html',
-  '/Voltclip/politique-confidentialite.html',
-  '/Voltclip/cgu.html',
-  '/Voltclip/cookies.html',
+  '/voltclip/voltclip.html',
+  '/voltclip/manifest.json',
+  '/voltclip/mentions-legales.html',
+  '/voltclip/politique-confidentialite.html',
+  '/voltclip/cgu.html',
+  '/voltclip/cookies.html',
   'https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@400;500;700&display=swap',
   'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2'
 ]

@@ -2,8 +2,8 @@
   "name": "VoltClip",
   "short_name": "VoltClip",
   "description": "Le réseau de vidéos courtes nouvelle génération",
-  "start_url": "/Voltclip/voltclip.html",
-  "scope": "/Voltclip/",
+  "start_url": "/voltclip/voltclip.html",
+  "scope": "/voltclip/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0a0a0f",
@@ -42,7 +42,7 @@
       "name": "Feed",
       "short_name": "Feed",
       "description": "Voir le feed vidéo",
-      "url": "/Voltclip/voltclip.html",
+      "url": "/voltclip/voltclip.html",
       "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
     }
   ]
