@@ -2947,12 +2947,21 @@ async function openWebcamRecorder(){
   document.getElementById('webcamRecBtn').onclick = () => {
     if(!stream) return;
     chunks = []; seconds = 0;
-    const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm';
-    recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 1500000 });
+    let mimeType = ['video/webm;codecs=vp9','video/webm','video/mp4'].find(t=>MediaRecorder.isTypeSupported(t)) || '';
+    let recorder_;
+    try {
+      recorder_ = mimeType ? new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 1500000 }) : new MediaRecorder(stream);
+    } catch(e) {
+      try { recorder_ = new MediaRecorder(stream); mimeType = ''; } catch(e2) { toast('❌ Enregistrement non supporté sur ce navigateur'); return; }
+    }
+    recorder = recorder_;
     recorder.ondataavailable = e => { if(e.data.size) chunks.push(e.data); };
     recorder.onstop = () => {
-      const blob = new Blob(chunks, { type: mimeType });
-      const file = new File([blob], 'webcam-record.webm', { type: mimeType });
+      const blobType = mimeType || 'video/webm';
+      const blob = new Blob(chunks, { type: blobType });
+      const fname = blobType.includes('mp4') ? 'webcam-record.mp4' : 'webcam-record.webm';
+      const file = new File([blob], fname, { type: blobType });
+      _uploadOriginalFile = file;
       closeWebcamRecorder();
       // Injecter dans le flow d'upload
       uploadFile = file;
@@ -2999,8 +3008,8 @@ function closeWebcamRecorder(){
   document.getElementById('webcamModal')?.remove();
 }function handleFileSelect(input){let file=input.files[0];if(!file)return;_uploadOriginalFile=file;// Sur Android caméra, file.type peut être vide ou 'video/mp4' — on accepte si extension vidéo ou type absent
 const ext=(file.name||'').split('.').pop().toLowerCase();const validExt=['mp4','mov','webm','avi','mkv','3gp','m4v','ts',''].includes(ext);// Caméra Android : file.type souvent vide — on bloque seulement si type clairement non-vidéo
-if(file.type&&!file.type.startsWith('video/')&&!file.type.startsWith('application/octet')&&ext&&!validExt){document.getElementById('uploadErr').textContent=`Format non supporté`;return}if(file.size>200*1024*1024){document.getElementById('uploadErr').textContent=`Fichier trop lourd (max 200 MB)`;return}let goStep2=(resolvedFile)=>{uploadFile=resolvedFile||file;let blobUrl=URL.createObjectURL(file);let bg=document.getElementById(`uploadBgPreview`);bg.src=blobUrl,bg.style.display=`block`,document.getElementById(`uploadStep1`).style.display=`none`,document.getElementById(`uploadStep2`).style.display=`flex`,document.getElementById(`uploadPreviewVideo`).src=blobUrl,document.getElementById(`uploadSubmit`).style.display=`block`,document.getElementById(`uploadErr`).textContent=``,document.getElementById(`uploadProgress`).style.display=`none`,openUploadStep2()};let url=URL.createObjectURL(file),tmpVid=document.createElement(`video`);tmpVid.preload=`metadata`;let _goStep2Called=false;let _safeGoStep2=(resolvedFile)=>{if(_goStep2Called)return;_goStep2Called=true;URL.revokeObjectURL(url);goStep2(resolvedFile);};// Lire immédiatement en ArrayBuffer pour éviter la perte de référence sur Android
-file.arrayBuffer().then(buf=>{const safeBlob=new Blob([buf],{type:file.type||'video/mp4'});const safeFile=new File([safeBlob],file.name||'video.mp4',{type:file.type||'video/mp4'});tmpVid.onloadedmetadata=()=>{let dur=tmpVid.duration;if(dur&&isFinite(dur)&&dur>uploadMaxDuration){document.getElementById('uploadErr').textContent=`Vidéo trop longue — maximum 4 minutes autorisé sur VoltClip.`;return;}else{toast(`Vidéo sélectionnée ✓`)}_safeGoStep2(safeFile)};tmpVid.onerror=()=>{toast(`Vidéo sélectionnée ✓`);_safeGoStep2(safeFile)};setTimeout(()=>{if(!_goStep2Called){toast(`Vidéo sélectionnée ✓`);_safeGoStep2(safeFile)}},3000);tmpVid.src=url}).catch(()=>{tmpVid.onloadedmetadata=()=>{_safeGoStep2(file)};tmpVid.onerror=()=>{_safeGoStep2(file)};setTimeout(()=>{if(!_goStep2Called)_safeGoStep2(file)},3000);tmpVid.src=url})}
+if(file.type&&!file.type.startsWith('video/')&&!file.type.startsWith('application/octet')&&ext&&!validExt){document.getElementById('uploadErr').textContent=`Format non supporté`;return}if(file.size>200*1024*1024){document.getElementById('uploadErr').textContent=`Fichier trop lourd (max 200 MB)`;return}let goStep2=(resolvedFile)=>{uploadFile=resolvedFile||file;let blobUrl=URL.createObjectURL(file);let bg=document.getElementById(`uploadBgPreview`);bg.src=blobUrl,bg.style.display=`block`,document.getElementById(`uploadStep1`).style.display=`none`,document.getElementById(`uploadStep2`).style.display=`flex`,document.getElementById(`uploadPreviewVideo`).src=blobUrl,document.getElementById(`uploadSubmit`).style.display=`block`,document.getElementById(`uploadErr`).textContent=``,document.getElementById(`uploadProgress`).style.display=`none`,openUploadStep2()};let url=URL.createObjectURL(file),tmpVid=document.createElement(`video`);tmpVid.preload=`metadata`;let _goStep2Called=false;let _safeGoStep2=(resolvedFile)=>{if(_goStep2Called)return;_goStep2Called=true;URL.revokeObjectURL(url);goStep2(resolvedFile);};// Lire en ArrayBuffer — timeout 8s sur mobile (gros fichier caméra sinon freeze)
+const _abTimeout=new Promise(res=>setTimeout(()=>res(null),8000));Promise.race([file.arrayBuffer().catch(()=>null),_abTimeout]).then(buf=>{if(buf===null){tmpVid.onloadedmetadata=()=>{_safeGoStep2(file)};tmpVid.onerror=()=>{_safeGoStep2(file)};setTimeout(()=>{if(!_goStep2Called)_safeGoStep2(file)},3000);tmpVid.src=url;return;}const safeBlob=new Blob([buf],{type:file.type||'video/mp4'});const safeFile=new File([safeBlob],file.name||'video.mp4',{type:file.type||'video/mp4'});tmpVid.onloadedmetadata=()=>{let dur=tmpVid.duration;if(dur&&isFinite(dur)&&dur>uploadMaxDuration){document.getElementById('uploadErr').textContent=`Vidéo trop longue — maximum 4 minutes autorisé sur VoltClip.`;return;}else{toast(`Vidéo sélectionnée ✓`)}_safeGoStep2(safeFile)};tmpVid.onerror=()=>{toast(`Vidéo sélectionnée ✓`);_safeGoStep2(safeFile)};setTimeout(()=>{if(!_goStep2Called){toast(`Vidéo sélectionnée ✓`);_safeGoStep2(safeFile)}},3000);tmpVid.src=url});}
 // compressVideo() défini ci-dessous
 // ── Rate limiting upload : max 5 uploads par heure ──
 // ══════════════════════════════════════════
@@ -3260,8 +3269,8 @@ async function submitUpload() {
           const fallbackCat = document.getElementById('uploadCategory')?.value || null;
           let fbQuery = sb.from('videos').select('id').eq('user_id', currentUser.id).eq('status', 'active').order('created_at', { ascending: false }).limit(1);
           if (fallbackCat) fbQuery = fbQuery.eq('category', fallbackCat);
-          const { data: fbVid } = await fbQuery.single();
-          if (fbVid) insertedVideoId = fbVid.id;
+          const { data: fbVids } = await fbQuery;
+          if (fbVids?.[0]) insertedVideoId = fbVids[0].id;
         } catch(e) {}
       }
 
