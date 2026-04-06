@@ -2381,7 +2381,7 @@ function clearAllRecentSearches(){try{localStorage.removeItem('vc_recent_searche
 function renderRecentSearches(){let list=_getRecentSearches(),sec=document.getElementById('recentSearchesSection');if(!list.length){sec.style.display='none';return}sec.style.display='block';document.getElementById('recentChips').innerHTML=list.map(q=>`<span class="recent-chip" onclick="runRecentSearch('${escHtml(q)}')">${escHtml(q)}<button class="recent-chip-del" onclick="event.stopPropagation();removeRecentSearch('${escHtml(q)}')">✕</button></span>`).join('')}
 function runRecentSearch(q){let inp=document.getElementById('searchInput');inp.value=q;onSearch(q);document.getElementById('searchClearBtn').classList.add('show')}
 function onSearchFocus(){let q=document.getElementById('searchInput').value.trim();if(!q)renderRecentSearches()}
-function clearSearchInput(){let inp=document.getElementById('searchInput');inp.value='';document.getElementById('searchClearBtn').classList.remove('show');currentSearchMode=document.querySelector('.search-mode-tab.active')?.dataset?.mode||'all';loadSearch()}
+function clearSearchInput(){let inp=document.getElementById('searchInput');inp.value='';document.getElementById('searchClearBtn').classList.remove('show');let rc=document.getElementById('searchResultsContent');if(rc)rc.innerHTML='';currentSearchMode=document.querySelector('.search-mode-tab.active')?.dataset?.mode||'all';loadSearch()}
 
 /* ── Mode tabs ── */
 function setSearchMode(mode,btn){currentSearchMode=mode;document.querySelectorAll('.search-mode-tab').forEach(b=>b.classList.remove('active'));btn?.classList.add('active');let inp=document.getElementById('searchInput');inp.placeholder=SEARCH_PLACEHOLDERS[mode]||'Rechercher…';let q=inp.value.trim();if(q){clearTimeout(searchTimeout);doSearch(q)}else{loadSearch()}}
@@ -2389,6 +2389,8 @@ function setSearchMode(mode,btn){currentSearchMode=mode;document.querySelectorAl
 /* ── Default discovery screen ── */
 async function loadSearch(){
 let res=document.getElementById('searchResults');
+let rc=document.getElementById('searchResultsContent');
+if(rc)rc.innerHTML='';
 // Show/hide sections based on mode
 let showTrending=(currentSearchMode==='all'||currentSearchMode==='tags'),showChallenges=(currentSearchMode==='all'||currentSearchMode==='tags'),showRecent=(currentSearchMode==='all'||currentSearchMode==='videos');
 document.getElementById('trendingTitle').style.display=showTrending?'':'none';document.getElementById('trendingTags').style.display=showTrending?'':'none';document.getElementById('challengesTitle').style.display=showChallenges?'':'none';document.getElementById('challengesList').style.display=showChallenges?'flex':'none';document.getElementById('recentGridTitle').style.display=showRecent?'':'none';document.getElementById('recentGrid').style.display=showRecent?'grid':'none';
@@ -2423,7 +2425,7 @@ let{data:recent}=await sb.from('videos').select('id,thumbnail_url,views_count,vi
 
 function onSearch(q){clearTimeout(searchTimeout);let btn=document.getElementById('searchClearBtn');btn&&(q.trim()?btn.classList.add('show'):btn.classList.remove('show'));document.getElementById('recentSearchesSection').style.display='none';if(!q.trim()){loadSearch();return}searchTimeout=setTimeout(()=>{saveRecentSearch(q.trim());doSearch(q.trim())},400)}
 
-async function doSearch(q){let res=document.getElementById(`searchResults`);
+async function doSearch(q){let res=document.getElementById(`searchResultsContent`);
 // Hide discovery sections, show results only
 ['trendingTitle','trendingTags','challengesTitle','challengesList','recentGridTitle','recentGrid','recentSearchesSection'].forEach(id=>{let el=document.getElementById(id);if(el)el.style.display='none';});
 // En mode tags OU query commençant par # : rediriger vers searchByTag
@@ -2460,7 +2462,8 @@ html||=`<div class="empty-state"><span class="ei">🔍</span><p>Aucun résultat 
 res.innerHTML=html}
 
 async function searchByTag(tag) {
-  tag = tag.replace(/^#+/,'');
+  tag = tag.replace(/^#+/,'').toLowerCase().trim();
+  if (!tag) return;
   let inp = document.getElementById('searchInput');
   inp.value = '#' + tag;
   document.getElementById('searchClearBtn').classList.add('show');
@@ -2471,8 +2474,8 @@ async function searchByTag(tag) {
     let el = document.getElementById(id); if (el) el.style.display = 'none';
   });
 
-  let res = document.getElementById('searchResults');
-  res.innerHTML = '<div class="loader-dots"><span></span><span></span><span></span></div>';
+  let rc = document.getElementById('searchResultsContent');
+  rc.innerHTML = '<div class="loader-dots"><span></span><span></span><span></span></div>';
 
   try {
     // Chercher via la table video_hashtags (jointure correcte)
@@ -2519,9 +2522,9 @@ async function searchByTag(tag) {
     } else {
       html = `<div class="empty-state"><span class="ei">#️⃣</span><p>Aucune vidéo pour #${escHtml(tag)}</p></div>`;
     }
-    res.innerHTML = html;
+    rc.innerHTML = html;
   } catch(e) {
-    res.innerHTML = `<div class="empty-state"><span class="ei">⚠️</span><p>Erreur de chargement</p></div>`;
+    rc.innerHTML = `<div class="empty-state"><span class="ei">⚠️</span><p>Erreur de chargement</p></div>`;
   }
 }// ── Cache vidéos + event delegation (fix clic Android) ──
 const _vcCache = {};
