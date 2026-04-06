@@ -2426,12 +2426,15 @@ function onSearch(q){clearTimeout(searchTimeout);let btn=document.getElementById
 async function doSearch(q){let res=document.getElementById(`searchResults`);
 // Hide discovery sections, show results only
 ['trendingTitle','trendingTags','challengesTitle','challengesList','recentGridTitle','recentGrid','recentSearchesSection'].forEach(id=>{let el=document.getElementById(id);if(el)el.style.display='none';});
+// En mode tags : rediriger directement vers searchByTag (affiche les vidéos)
+if(currentSearchMode==='tags'){searchByTag(q.replace(/^#+/,''));return;}
 res.innerHTML=`<div class="loader-dots"><span></span><span></span><span></span></div>`;
 let html='';
 try{
 // Build queries based on mode
-let fetchUsers=(currentSearchMode==='all'||currentSearchMode==='users'),fetchVideos=(currentSearchMode==='all'||currentSearchMode==='videos'),fetchTags=(currentSearchMode==='all'||currentSearchMode==='tags');
-let promises=[fetchUsers?sb.from('profiles').select('id,username,avatar_url,followers_count,videos_count').ilike('username','%'+q+'%').limit(8):Promise.resolve({data:[]}),fetchVideos?sb.rpc('search_videos',{query:q}):Promise.resolve({data:[]}),fetchTags?sb.from('hashtags').select('name,videos_count').ilike('name','%'+q+'%').order('videos_count',{ascending:false}).limit(10):Promise.resolve({data:[]})];
+let fetchUsers=(currentSearchMode==='all'||currentSearchMode==='users'),fetchVideos=(currentSearchMode==='all'||currentSearchMode==='videos'),fetchTags=(currentSearchMode==='all');
+let cleanQ=q.replace(/^#+/,'');
+let promises=[fetchUsers?sb.from('profiles').select('id,username,avatar_url,followers_count,videos_count').ilike('username','%'+q+'%').limit(8):Promise.resolve({data:[]}),fetchVideos?sb.rpc('search_videos',{query:q}):Promise.resolve({data:[]}),fetchTags?sb.from('hashtags').select('name,videos_count').ilike('name','%'+cleanQ+'%').order('videos_count',{ascending:false}).limit(10):Promise.resolve({data:[]})];
 let[usersRes,videosRes,tagsRes]=await Promise.all(promises);
 if(tagsRes.data?.length){html+=`<div class="search-section-title"># HASHTAGS (${tagsRes.data.length})</div>`;html+=`<div style="padding:4px 0 8px">`+tagsRes.data.map(t=>`<button class="hashtag-chip" onclick="searchByTag('${t.name}')">#${t.name} <span style="color:var(--muted);font-size:10px">${fmtNum(t.videos_count)}</span></button>`).join('')+`</div>`}
 if(usersRes.data?.length){html+=`<div class="search-section-title" style="margin-top:${tagsRes.data?.length?'8px':'0'}">👤 CRÉATEURS (${usersRes.data.length})</div>`;html+=usersRes.data.map(u=>`
@@ -2457,6 +2460,7 @@ html||=`<div class="empty-state"><span class="ei">🔍</span><p>Aucun résultat 
 res.innerHTML=html}
 
 async function searchByTag(tag) {
+  tag = tag.replace(/^#+/,'');
   let inp = document.getElementById('searchInput');
   inp.value = '#' + tag;
   document.getElementById('searchClearBtn').classList.add('show');
