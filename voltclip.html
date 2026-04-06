@@ -1366,7 +1366,7 @@ async function loadBattles(append = false) {
 
   // ── Étape 1 : récupérer les battles avec vidéos (sans join profiles, évite PGRST) ──
   let battleQuery = sb.from('battles')
-    .select('*, video_left:video_left_id(video_url,thumbnail_url,user_id,category), video_right:video_right_id(video_url,thumbnail_url,user_id,category)')
+    .select('*, stake_coins, video_left:video_left_id(video_url,thumbnail_url,user_id,category), video_right:video_right_id(video_url,thumbnail_url,user_id,category)')
     .eq('status', 'active')
     .or('expires_at.is.null,expires_at.gt.' + new Date().toISOString())
     .order('created_at', { ascending: false })
@@ -4185,12 +4185,18 @@ async function sendChallenge() {
     video_title: challengeMyVideoTitle
   };
 
+  // Encoder stake ET category dans le content
+  const notifContent = JSON.stringify({
+    stake: challengeStakeCoins || 0,
+    category: challengeCategory || 'solo_danse'
+  });
+
   let { error } = await sb.from('notifications').insert({
     user_id: challengeTargetUserId,
     actor_id: currentUser.id,
     type: 'battle_challenge',
     related_id: challengeMyVideoId,
-    content: challengeStakeCoins > 0 ? `stake:${challengeStakeCoins}` : null,
+    content: notifContent,
     is_read: false,
   });
   
@@ -4279,6 +4285,7 @@ function closeChallengeModal() {
   challengeTargetUsername = null;
   challengeMyVideoId = null;
   challengeStakeCoins = 0;
+  challengeCategory = 'solo_danse';
 }
 
 // ── Accepter un défi via ID (safe - pas de JSON inline) ──
@@ -4297,10 +4304,20 @@ async function acceptChallengeFromNotif(notifId) {
       .select('id, video_url, thumbnail_url, title, user_id, profiles!videos_user_id_fkey(username)')
       .eq('id', notif.related_id).single();
     if (vid) {
-      // Lire la mise depuis le content de la notif
+      // Lire stake et category depuis le content JSON de la notif
       let stakeCoins = 0;
-      if (notif.content && notif.content.startsWith('stake:')) {
-        stakeCoins = parseInt(notif.content.replace('stake:', '')) || 0;
+      let challengeCat = 'solo_danse';
+      if (notif.content) {
+        try {
+          const parsed = JSON.parse(notif.content);
+          stakeCoins = parsed.stake || 0;
+          challengeCat = parsed.category || 'solo_danse';
+        } catch {
+          // ancien format "stake:N"
+          if (notif.content.startsWith('stake:')) {
+            stakeCoins = parseInt(notif.content.replace('stake:', '')) || 0;
+          }
+        }
       }
       data = {
         challenger_id: vid.user_id,
@@ -4309,7 +4326,8 @@ async function acceptChallengeFromNotif(notifId) {
         video_url: vid.video_url || '',
         video_thumb: vid.thumbnail_url || '',
         video_title: vid.title || 'Vidéo',
-        stake_coins: stakeCoins
+        stake_coins: stakeCoins,
+        category: challengeCat
       };
     }
   }
@@ -4484,7 +4502,7 @@ async function confirmAcceptChallenge() {
     video_left_id: data.video_id,
     video_right_id: acceptMyVideoId,
     title: battleTitle,
-    category: 'solo_vocal',
+    category: data.category || challengeCategory || 'solo_danse',
     created_by: data.challenger_id || currentUser.id,
     status: 'active',
     votes_left: 0,
