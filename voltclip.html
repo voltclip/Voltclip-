@@ -1958,14 +1958,13 @@ function _showBattleExpiredOverlay(div, b, pctLeft, pctRight, userLeft, userRigh
 
 async function triggerAutoRematch(oldBattleId, category, oldLeftId, oldRightId) {
   if (!currentUser) {
-    // Visiteur non connecté : recharger le feed pour afficher un nouveau battle
     battlePage = 0; battleAllLoaded = false; loadBattles()
     return
   }
   toast('⚔️ Recherche d\'un nouveau battle...')
 
   try {
-    // IDs déjà en battle ACTIF et non expiré
+    // IDs déjà en battle actif et non expiré
     const alreadyInBattle = new Set()
     const { data: activeBattles } = await sb.from('battles')
       .select('video_left_id, video_right_id')
@@ -1976,70 +1975,60 @@ async function triggerAutoRematch(oldBattleId, category, oldLeftId, oldRightId) 
       if (b.video_right_id) alreadyInBattle.add(b.video_right_id)
     })
 
-    // Chercher 2 vidéos de la même catégorie pas encore en battle actif
-    let candidates = []
-    if (category) {
-      const { data: vids } = await sb.from('videos')
-        .select('id, user_id')
-        .eq('status', 'active')
-        .eq('category', category)
-        .order('created_at', { ascending: true })
-        .limit(50)
-      candidates = (vids || []).filter(v => !alreadyInBattle.has(v.id))
-    }
-    // Fallback toutes catégories
-    if (candidates.length < 2) {
-      const { data: vids2 } = await sb.from('videos')
-        .select('id, user_id')
-        .eq('status', 'active')
-        .order('created_at', { ascending: true })
-        .limit(50)
-      const extra = (vids2 || []).filter(v => !alreadyInBattle.has(v.id) && !candidates.find(c => c.id === v.id))
-      candidates = [...candidates, ...extra]
-    }
-    // Dernier recours : réutiliser les vidéos du battle expiré (même bataille rematchée)
-    if (candidates.length < 2) {
-      if (oldLeftId && !candidates.find(c => c.id === oldLeftId)) candidates.push({ id: oldLeftId, user_id: null })
-      if (oldRightId && !candidates.find(c => c.id === oldRightId)) candidates.push({ id: oldRightId, user_id: null })
-    }
-
-    if (candidates.length < 2) {
-      toast('⚠️ Pas assez de vidéos disponibles')
-      return
-    }
-
-    // Prendre deux vidéos de users différents si possible
-    const vid1 = candidates[0]
-    const vid2 = candidates.find(v => v.id !== vid1.id && v.user_id !== vid1.user_id) || candidates.find(v => v.id !== vid1.id)
-    if (!vid2) {
-      // Ultime fallback : relancer exactement le même battle
-      if (oldLeftId && oldRightId && oldLeftId !== oldRightId) {
-        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
-        const catLabel = (BATTLE_CATEGORIES || []).find(c => c.id === category)?.label || category || 'Général'
-        await sb.from('battles').insert({ video_left_id: oldLeftId, video_right_id: oldRightId, title: `Battle ${catLabel} ⚔️ #${Math.random().toString(36).slice(2,7).toUpperCase()}`, category: category || null, created_by: currentUser.id, status: 'active', expires_at: expiresAt })
-        toast('⚔️ Revanche lancée !')
-        battlePage = 0; battleAllLoaded = false; loadBattles(); subscribeBattleRealtime()
-      } else { toast('⚠️ Impossible de lancer un nouveau battle') }
-      return
-    }
-
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
     const catLabel = (BATTLE_CATEGORIES || []).find(c => c.id === category)?.label || category || 'Général'
-    const { error } = await sb.from('battles').insert({
-      video_left_id: vid1.id,
-      video_right_id: vid2.id,
-      title: `Battle ${catLabel} ⚔️ #${Math.random().toString(36).slice(2,7).toUpperCase()}`,
-      category: category || null,
-      created_by: currentUser.id,
-      status: 'active',
-      expires_at: expiresAt
-    })
 
-    if (!error) {
-      toast('⚔️ Nouveau battle lancé !')
+    // Chercher video_left : première vidéo dispo dans la même catégorie, pas déjà en battle
+    let qLeft = sb.from('videos').select('id, user_id').eq('status', 'active').order('created_at', { ascending: true }).limit(50)
+    if (category) qLeft = qLeft.eq('category', category)
+    const { data: leftCandidates } = await qLeft
+    const vidLeft = (leftCandidates || []).find(v => !alreadyInBattle.has(v.id)) || null
+
+    if (vidLeft) {
+      // Bloquer video_left pour que video_right ne le reprenne pas
+      alreadyInBattle.add(vidLeft.id)
+
+      // Chercher video_right dans ce qui reste (même catégorie, pas déjà en battle)
+      let qRight = sb.from('videos').select('id, user_id').eq('status', 'active').neq('id', vidLeft.id).order('created_at', { ascending: true }).limit(50)
+      if (category) qRight = qRight.eq('category', category)
+      const { data: rightCandidates } = await qRight
+      const vidRight = (rightCandidates || []).find(v => !alreadyInBattle.has(v.id)) || null
+
+      if (vidRight) {
+        const { error } = await sb.from('battles').insert({
+          video_left_id: vidLeft.id,
+          video_right_id: vidRight.id,
+          title: `Battle ${catLabel} ⚔️ #${Math.random().toString(36).slice(2,7).toUpperCase()}`,
+          category: category || null,
+          created_by: currentUser.id,
+          status: 'active',
+          expires_at: expiresAt
+        })
+        if (!error) {
+          toast('⚔️ Nouveau battle lancé !')
+          battlePage = 0; battleAllLoaded = false; loadBattles(); subscribeBattleRealtime()
+        } else {
+          toast('⚠️ Erreur lors du lancement')
+        }
+        return
+      }
+    }
+
+    // Les deux recherches ont échoué → revanche exacte entre les mêmes vidéos
+    if (oldLeftId && oldRightId && oldLeftId !== oldRightId) {
+      await sb.from('battles').insert({
+        video_left_id: oldLeftId,
+        video_right_id: oldRightId,
+        title: `Battle ${catLabel} ⚔️ #${Math.random().toString(36).slice(2,7).toUpperCase()}`,
+        category: category || null,
+        created_by: currentUser.id,
+        status: 'active',
+        expires_at: expiresAt
+      })
+      toast('⚔️ Revanche lancée !')
       battlePage = 0; battleAllLoaded = false; loadBattles(); subscribeBattleRealtime()
     } else {
-      toast('⚠️ Erreur lors du lancement')
+      toast('⏳ Aucun adversaire disponible dans cette catégorie pour l\'instant.')
     }
   } catch(e) {
     console.warn('autoRematch err:', e)
@@ -2105,7 +2094,7 @@ async function init(){currentTab='battle';try{let{data:{session}}=await sb.auth.
     detectAndSaveLocation();
   }
   checkAdmin();
-}),loadSearch(),loadRank(`week`);checkAgeGate();checkAdmin();if(currentUser){setupRealtimeNotifs(currentUser.id);await refreshProfile();}else{refreshProfile();}battlePage=0;battleAllLoaded=false;loadBattles();setupRealtimeBattles();startBattleTicker();checkOnboarding();}catch(e){console.error('init error:',e);document.getElementById('battleFeed').innerHTML='<div class="empty-state" style="height:calc(100dvh - 60px)"><span class="ei">⚠️</span><p>Erreur de connexion.<br>Vérifie ta connexion et recharge.</p></div>';}
+}),loadSearch(),loadRank(`week`);checkAdmin();if(currentUser){setupRealtimeNotifs(currentUser.id);await refreshProfile();}else{refreshProfile();}battlePage=0;battleAllLoaded=false;loadBattles();setupRealtimeBattles();startBattleTicker();checkOnboarding();}catch(e){console.error('init error:',e);document.getElementById('battleFeed').innerHTML='<div class="empty-state" style="height:calc(100dvh - 60px)"><span class="ei">⚠️</span><p>Erreur de connexion.<br>Vérifie ta connexion et recharge.</p></div>';}
 }
 // ══════════════════════════════════════════
 // NOTIFICATIONS PUSH + REALTIME
@@ -3344,43 +3333,27 @@ async function submitUpload() {
             opponent = await findExternalOpponent(uploadCategory, null);
             console.debug('[matchmaking] externe même catégorie:', uploadCategory, '| adversaire:', opponent?.id || null);
           }
-          // 3e essai : adversaire externe, toutes catégories
-          if (!opponent) {
-            opponent = await findExternalOpponent(null, null);
-            console.debug('[matchmaking] externe toutes catégories | adversaire:', opponent?.id || null);
-          }
-          // 4e essai : propre vidéo, même catégorie + même sous-catégorie
+          // 3e essai : propre vidéo, même catégorie + même sous-catégorie
           if (!opponent && uploadCategory && uploadSubcategory) {
             opponent = await findSelfOpponent(uploadCategory, uploadSubcategory);
             console.debug('[matchmaking] self-battle même catégorie+sous-cat | adversaire:', opponent?.id || null);
           }
-          // 5e essai : propre vidéo, même catégorie
+          // 4e essai : propre vidéo, même catégorie
           if (!opponent && uploadCategory) {
             opponent = await findSelfOpponent(uploadCategory, null);
             console.debug('[matchmaking] self-battle même catégorie | adversaire:', opponent?.id || null);
           }
-          // 6e essai : propre vidéo, toutes catégories
-          if (!opponent) {
-            opponent = await findSelfOpponent(null, null);
-            console.debug('[matchmaking] self-battle toutes catégories | adversaire:', opponent?.id || null);
-          }
-          // 7e essai : adversaire externe déjà en battle, même catégorie + sous-cat
+          // 5e essai : adversaire externe déjà en battle, même catégorie + sous-cat
           if (!opponent && uploadCategory && uploadSubcategory) {
-            const { data: c7 } = await sb.from('videos').select('id, user_id').eq('status', 'active').neq('user_id', currentUser.id).neq('id', myVidId).eq('category', uploadCategory).eq('subcategory', uploadSubcategory).order('created_at', { ascending: true }).limit(20);
-            opponent = c7?.find(v => v.user_id !== currentUser.id) || null;
+            const { data: c5 } = await sb.from('videos').select('id, user_id').eq('status', 'active').neq('user_id', currentUser.id).neq('id', myVidId).eq('category', uploadCategory).eq('subcategory', uploadSubcategory).order('created_at', { ascending: true }).limit(20);
+            opponent = c5?.find(v => v.user_id !== currentUser.id) || null;
             console.debug('[matchmaking] externe déjà en battle même catégorie+sous-cat | adversaire:', opponent?.id || null);
           }
-          // 8e essai : adversaire externe déjà en battle, même catégorie
+          // 6e essai : adversaire externe déjà en battle, même catégorie
           if (!opponent && uploadCategory) {
-            const { data: c8 } = await sb.from('videos').select('id, user_id').eq('status', 'active').neq('user_id', currentUser.id).neq('id', myVidId).eq('category', uploadCategory).order('created_at', { ascending: true }).limit(20);
-            opponent = c8?.find(v => v.user_id !== currentUser.id) || null;
+            const { data: c6 } = await sb.from('videos').select('id, user_id').eq('status', 'active').neq('user_id', currentUser.id).neq('id', myVidId).eq('category', uploadCategory).order('created_at', { ascending: true }).limit(20);
+            opponent = c6?.find(v => v.user_id !== currentUser.id) || null;
             console.debug('[matchmaking] externe déjà en battle même catégorie | adversaire:', opponent?.id || null);
-          }
-          // 9e essai : adversaire externe déjà en battle, toutes catégories
-          if (!opponent) {
-            const { data: c9 } = await sb.from('videos').select('id, user_id').eq('status', 'active').neq('user_id', currentUser.id).neq('id', myVidId).order('created_at', { ascending: true }).limit(20);
-            opponent = c9?.find(v => v.user_id !== currentUser.id) || null;
-            console.debug('[matchmaking] externe déjà en battle toutes catégories | adversaire:', opponent?.id || null);
           }
 
           if (opponent) {
@@ -3400,7 +3373,8 @@ async function submitUpload() {
               if (currentTab === 'battle') { battlePage = 0; battleAllLoaded = false; loadBattles(); }
             } else { console.warn('[matchmaking] insert battle err:', battleErr); }
           } else {
-            console.debug('[matchmaking] aucun adversaire disponible');
+            console.debug('[matchmaking] aucun adversaire disponible dans cette catégorie');
+            toast('⏳ Battle en attente — aucun adversaire dans cette catégorie pour l\'instant.');
           }
         } catch (e) { console.warn('matchmaking err', e); }
       })();
@@ -3729,7 +3703,7 @@ function checkOnboarding(){
   if(!localStorage.getItem('vc_onboarded')) showOnboarding();
 }
 
-init(),`serviceWorker`in navigator&&window.addEventListener(`load`,()=>{
+init();checkAgeGate();`serviceWorker`in navigator&&window.addEventListener(`load`,()=>{
   // Force clear old caches and re-register SW
   if(navigator.serviceWorker.controller){
     caches.keys().then(keys=>Promise.all(keys.map(k=>caches.delete(k))));
