@@ -3010,7 +3010,99 @@ function closeWebcamRecorder(){
 const ext=(file.name||'').split('.').pop().toLowerCase();const validExt=['mp4','mov','webm','avi','mkv','3gp','m4v','ts',''].includes(ext);// Caméra Android : file.type souvent vide — on bloque seulement si type clairement non-vidéo
 if(file.type&&!file.type.startsWith('video/')&&!file.type.startsWith('application/octet')&&ext&&!validExt){document.getElementById('uploadErr').textContent=`Format non supporté`;return}if(file.size>100*1024*1024){document.getElementById('uploadErr').textContent=`Fichier trop lourd (max 100 MB)`;return}let goStep2=(resolvedFile)=>{uploadFile=resolvedFile||file;let blobUrl=URL.createObjectURL(file);let bg=document.getElementById(`uploadBgPreview`);bg.src=blobUrl,bg.style.display=`block`,document.getElementById(`uploadStep1`).style.display=`none`,document.getElementById(`uploadStep2`).style.display=`flex`,document.getElementById(`uploadPreviewVideo`).src=blobUrl,document.getElementById(`uploadSubmit`).style.display=`block`,document.getElementById(`uploadErr`).textContent=``,document.getElementById(`uploadProgress`).style.display=`none`,openUploadStep2()};let url=URL.createObjectURL(file),tmpVid=document.createElement(`video`);tmpVid.preload=`metadata`;let _goStep2Called=false;let _safeGoStep2=(resolvedFile)=>{if(_goStep2Called)return;_goStep2Called=true;URL.revokeObjectURL(url);goStep2(resolvedFile);};// Lire en ArrayBuffer — timeout 8s sur mobile (gros fichier caméra sinon freeze)
 const _abTimeout=new Promise(res=>setTimeout(()=>res(null),8000));Promise.race([file.arrayBuffer().catch(()=>null),_abTimeout]).then(buf=>{if(buf===null){tmpVid.onloadedmetadata=()=>{_safeGoStep2(file)};tmpVid.onerror=()=>{_safeGoStep2(file)};setTimeout(()=>{if(!_goStep2Called)_safeGoStep2(file)},3000);tmpVid.src=url;return;}const safeBlob=new Blob([buf],{type:file.type||'video/mp4'});const safeFile=new File([safeBlob],file.name||'video.mp4',{type:file.type||'video/mp4'});tmpVid.onloadedmetadata=()=>{let dur=tmpVid.duration;if(dur&&isFinite(dur)&&dur>uploadMaxDuration){document.getElementById('uploadErr').textContent=`Vidéo trop longue — maximum 4 minutes autorisé sur VoltClip.`;return;}else{toast(`Vidéo sélectionnée ✓`)}_safeGoStep2(safeFile)};tmpVid.onerror=()=>{toast(`Vidéo sélectionnée ✓`);_safeGoStep2(safeFile)};setTimeout(()=>{if(!_goStep2Called){toast(`Vidéo sélectionnée ✓`);_safeGoStep2(safeFile)}},3000);tmpVid.src=url});}
-// compressVideo() défini ci-dessous
+// ── FFmpeg.wasm v0.11 — compression vidéo côté client ──
+let _ffmpegLoaded = false;
+let _ffmpegLoading = false;
+let _ffmpegInstance = null;
+
+async function loadFFmpeg() {
+  if (_ffmpegLoaded && _ffmpegInstance) return _ffmpegInstance;
+  if (_ffmpegLoading) {
+    // Attendre que le chargement en cours se termine
+    await new Promise(res => {
+      const check = setInterval(() => { if (!_ffmpegLoading) { clearInterval(check); res(); } }, 100);
+    });
+    return _ffmpegInstance;
+  }
+  _ffmpegLoading = true;
+  try {
+    await new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js';
+      s.onload = resolve;
+      s.onerror = reject;
+      document.head.appendChild(s);
+    });
+    const { createFFmpeg, fetchFile } = FFmpeg;
+    const ff = createFFmpeg({
+      corePath: 'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js',
+      log: false
+    });
+    await ff.load();
+    _ffmpegInstance = { ff, fetchFile };
+    _ffmpegLoaded = true;
+    return _ffmpegInstance;
+  } catch(e) {
+    console.warn('[FFmpeg] Chargement échoué:', e);
+    return null;
+  } finally {
+    _ffmpegLoading = false;
+  }
+}
+
+async function compressVideo(file, onProgress) {
+  // Pas de compression si déjà petit (< 15 Mo)
+  if (file.size < 15 * 1024 * 1024) return file;
+
+  let ffmpegCtx = null;
+  try {
+    onProgress('🔧 Chargement compresseur…');
+    ffmpegCtx = await loadFFmpeg();
+    if (!ffmpegCtx) throw new Error('FFmpeg indisponible');
+
+    const { ff, fetchFile } = ffmpegCtx;
+    const inputName = 'input.mp4';
+    const outputName = 'output.mp4';
+
+    onProgress('🗜️ Compression… (peut prendre 30-60s)');
+    ff.FS('writeFile', inputName, await fetchFile(file));
+
+    // 720p max, CRF 28 (bon compromis qualité/taille), preset ultrafast pour mobile
+    await ff.run(
+      '-i', inputName,
+      '-vf', 'scale=\'min(1280,iw)\':\'min(720,ih)\':force_original_aspect_ratio=decrease',
+      '-c:v', 'libx264',
+      '-crf', '28',
+      '-preset', 'ultrafast',
+      '-c:a', 'aac',
+      '-b:a', '96k',
+      '-movflags', '+faststart',
+      '-y',
+      outputName
+    );
+
+    const data = ff.FS('readFile', outputName);
+    // Nettoyage mémoire
+    try { ff.FS('unlink', inputName); } catch(_) {}
+    try { ff.FS('unlink', outputName); } catch(_) {}
+
+    const compressed = new File([data.buffer], 'video.mp4', { type: 'video/mp4' });
+
+    // Si la compression a empiré les choses (rare), on garde l'original
+    if (compressed.size >= file.size) {
+      console.warn('[FFmpeg] Compression pas utile, fichier original gardé');
+      return file;
+    }
+
+    const ratio = ((1 - compressed.size / file.size) * 100).toFixed(0);
+    console.log(`[FFmpeg] ${(file.size/1024/1024).toFixed(1)}Mo → ${(compressed.size/1024/1024).toFixed(1)}Mo (-${ratio}%)`);
+    return compressed;
+
+  } catch(e) {
+    console.warn('[FFmpeg] Erreur compression, fallback original:', e);
+    return file; // fallback silencieux
+  }
+}
 // ── Rate limiting upload : max 5 uploads par heure ──
 // ══════════════════════════════════════════
 
@@ -3161,7 +3253,18 @@ async function submitUpload() {
     if (fileToUpload.size > 100 * 1024 * 1024) {
       throw new Error(`Fichier trop lourd (max 100 MB). Réduis la qualité ou raccourcis ta vidéo.`);
     }
-    prog.textContent = `☁️ Envoi (${sizeMB}MB)…`;
+
+    // 1c. Compression FFmpeg — réduit la taille avant envoi
+    try {
+      const beforeMB = (fileToUpload.size / 1024 / 1024).toFixed(1);
+      fileToUpload = await compressVideo(fileToUpload, (msg) => { prog.textContent = msg; });
+      const afterMB = (fileToUpload.size / 1024 / 1024).toFixed(1);
+      if (beforeMB !== afterMB) toast(`🗜️ Compressé : ${beforeMB}Mo → ${afterMB}Mo`);
+    } catch(compErr) {
+      console.warn('[Upload] Compression échouée, on continue:', compErr);
+    }
+
+    prog.textContent = `☁️ Envoi (${(fileToUpload.size/1024/1024).toFixed(1)}MB)…`;
 
     // 2. Upload Cloudinary via XHR
     const formData = new FormData();
