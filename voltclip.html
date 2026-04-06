@@ -2857,14 +2857,19 @@ async function loadPersonalRank() {
   } catch(_) {}
 }function shareProfile(){let url=window.location.origin+window.location.pathname+`?u=`+currentUser?.id;navigator.share?navigator.share({title:`Mon profil VoltClip`,url}):(navigator.clipboard.writeText(url),toast(`Lien profil copié ! 🔗`))}async function deleteVideo(videoId,e){
   e.stopPropagation();
+  // Vérif auth stricte
+  if(!currentUser){ openAuth(); return; }
   if(!confirm(`Supprimer cette vidéo ?`)) return;
+  // Vérifier que la vidéo appartient bien à l'utilisateur connecté
+  const {data:vid} = await sb.from('videos').select('user_id').eq('id',videoId).single();
+  if(!vid || vid.user_id !== currentUser.id){ toast('Action non autorisée ⛔'); return; }
   // Supprimer le thumbnail immédiatement du DOM
   const thumb = document.querySelector(`[data-vid="${videoId}"]`);
   if(thumb) thumb.remove();
   // Marquer les battles qui utilisent cette vidéo comme inactifs
   await sb.from('battles').update({status:'inactive'})
     .or(`video_left_id.eq.${videoId},video_right_id.eq.${videoId}`);
-  const {error} = await sb.from(`videos`).delete().eq(`id`,videoId);
+  const {error} = await sb.from(`videos`).delete().eq(`id`,videoId).eq('user_id',currentUser.id);
   if(error){ toast(`Erreur : ${error.message}`); refreshProfile(); return; }
   toast(`Vidéo supprimée ✅`);
   refreshProfile();
