@@ -3237,7 +3237,7 @@ async function submitUpload() {
       let insertedVideoId = null;
       try {
         const _insertCtrl = new AbortController();
-        const _insertTimeout = setTimeout(() => _insertCtrl.abort(), 12000);
+        const _insertTimeout = setTimeout(() => _insertCtrl.abort(), 25000);
         const insertResp = await fetch(`${SUPABASE_URL}/rest/v1/videos`, {
           method: 'POST',
           headers: {
@@ -3445,6 +3445,7 @@ async function submitUpload() {
     loadFeed();
     loadStories();
     setTimeout(() => refreshProfile(), 600);
+    setTimeout(() => refreshProfile(), 3500);
     // Refresh battle feed (le matchmaking peut avoir créé un battle)
     setTimeout(() => { battlePage = 0; battleAllLoaded = false; loadBattles(); }, 1500);
 
