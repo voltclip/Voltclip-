@@ -3440,11 +3440,11 @@ async function submitUpload() {
     _uploadLog.push(Date.now());
     toast('Publié avec succès ⚡');
     closeUpload();
-    // Reset feed depuis le début pour voir sa vidéo
+    showTab('profile');
     feedPage = 0; feedAllLoaded = false;
     loadFeed();
     loadStories();
-    refreshProfile();
+    setTimeout(() => refreshProfile(), 600);
     // Refresh battle feed (le matchmaking peut avoir créé un battle)
     setTimeout(() => { battlePage = 0; battleAllLoaded = false; loadBattles(); }, 1500);
 
