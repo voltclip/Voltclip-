@@ -1699,7 +1699,7 @@ function showWinnerAnimation(battleId, side, username) {
   // Badge WINNER
   const badge = document.createElement('div')
   badge.className = 'winner-badge show'
-  badge.innerHTML = '🏆 WINNER<br><span style="font-size:14px;opacity:.8">@' + username + '</span>'
+  badge.innerHTML = '🏆 WINNER<br><span style="font-size:14px;opacity:.8">@' + escHtml(username) + '</span>'
   
   const overlay = document.createElement('div')
   overlay.className = 'winner-overlay'
@@ -2881,7 +2881,7 @@ async function loadPersonalRank() {
   const url='https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business='+encodeURIComponent(_d)+'&currency_code=EUR&item_name=Soutenir+VoltClip'
   window.open(url,'_blank')
 }
-async function editProfile(){let bio=prompt(`Ta bio (max 100 caractères) :`);bio!==null&&(await sb.from(`profiles`).update({bio:bio.slice(0,100)}).eq(`id`,currentUser.id),toast(`Profil mis à jour ✓`),refreshProfile())}async function changeAvatar(){if(!currentUser){openAuth();return}let input=document.createElement(`input`);input.type=`file`,input.accept=`image/*`,input.onchange=async()=>{let file=input.files[0];if(!file)return;let path=`${currentUser.id}/avatar.jpg`,{error}=await sb.storage.from(`avatars`).upload(path,file,{upsert:!0});if(error){toast(`Erreur upload avatar`);return}let{data:{publicUrl}}=sb.storage.from(`avatars`).getPublicUrl(path);await sb.from(`profiles`).update({avatar_url:publicUrl}).eq(`id`,currentUser.id),toast(`Avatar mis à jour ✓`),refreshProfile()},input.click()}
+async function editProfile(){if(!currentUser){openAuth();return}let bio=prompt(`Ta bio (max 100 caractères) :`);bio!==null&&(await sb.from(`profiles`).update({bio:bio.slice(0,100)}).eq(`id`,currentUser.id),toast(`Profil mis à jour ✓`),refreshProfile())}async function changeAvatar(){if(!currentUser){openAuth();return}let input=document.createElement(`input`);input.type=`file`,input.accept=`image/*`,input.onchange=async()=>{let file=input.files[0];if(!file)return;let path=`${currentUser.id}/avatar.jpg`,{error}=await sb.storage.from(`avatars`).upload(path,file,{upsert:!0});if(error){toast(`Erreur upload avatar`);return}let{data:{publicUrl}}=sb.storage.from(`avatars`).getPublicUrl(path);await sb.from(`profiles`).update({avatar_url:publicUrl}).eq(`id`,currentUser.id),toast(`Avatar mis à jour ✓`),refreshProfile()},input.click()}
 // ══════════════════════════════════════════
 // PROFIL PUBLIC
 // ══════════════════════════════════════════
@@ -3661,7 +3661,7 @@ let sorted=[...data];currentCommentSort===`top`?sorted.sort((a,b)=>(b.likes_coun
       <div class="comment-item" style="margin-left:38px;margin-top:8px">
         <div class="comment-avatar" style="width:26px;height:26px;font-size:11px;flex-shrink:0">${(r.profiles?.username||`?`)[0].toUpperCase()}</div>
         <div class="comment-body">
-          <div class="comment-user">@${r.profiles?.username||`user`}</div>
+          <div class="comment-user">@${escHtml(r.profiles?.username||"user")}</div>
           <div class="comment-text">${escHtml(r.content)}</div>
           <div class="comment-actions"><span class="comment-time">${timeAgo(r.created_at)}</span></div>
         </div>
@@ -3670,14 +3670,14 @@ let sorted=[...data];currentCommentSort===`top`?sorted.sort((a,b)=>(b.likes_coun
         <div class="comment-avatar">${(c.profiles?.username||`?`)[0].toUpperCase()}</div>
         <div class="comment-body">
           ${c.is_pinned?`<div class="comment-pin-badge">📌 Épinglé par le créateur</div>`:``}
-          <div class="comment-user">@${c.profiles?.username||`user`}</div>
+          <div class="comment-user">@${escHtml(c.profiles?.username||"user")}</div>
           <div class="comment-text">${escHtml(c.content)}</div>
           <div class="comment-actions">
             <span class="comment-time">${timeAgo(c.created_at)}</span>
             <button class="comment-like-btn ${isLiked?`liked`:``}" id="clike-${c.id}" onclick="toggleCommentLike('${c.id}',${isLiked})">
               ${isLiked?`❤️`:`🤍`} <span id="clc-${c.id}">${c.likes_count||0}</span>
             </button>
-            <button class="comment-reply-btn" onclick="setReply('${c.id}','${c.profiles?.username||`user`}')">↩ Répondre</button>
+            <button class="comment-reply-btn" onclick="setReply('${c.id}','${escHtml(c.profiles?.username||'user')}')">↩ Répondre</button>
             ${currentUser?.id===commentsVideoOwnerId?`<button onclick="pinComment('${c.id}','${commentsVideoId}')" style="background:none;border:none;color:${c.is_pinned?`#ffd700`:`var(--muted)`};font-size:11px;cursor:pointer;font-family:var(--font-mono)">📌</button>`:``}
             ${reps.length?`<span style="font-size:10px;color:var(--muted)">${reps.length} rép.</span>`:``}
           </div>
@@ -3734,7 +3734,11 @@ av.innerHTML=avatarUrl?`<img src="${avatarUrl}" alt="" style="width:100%;height:
       <div class="msg-bubble">${escHtml(m.content)}</div>
       <div class="msg-time">${timeAgo(m.created_at)}</div>
     </div>
-  `).join(``),msgs.scrollTop=msgs.scrollHeight}async function sendDm(){if(!currentUser){openAuth();return}let input=document.getElementById(`convInput`),text=input.value.trim();!text||!currentConvUserId||(input.value=``,playUISound(`comment`),await sb.from(`messages`).insert({sender_id:currentUser.id,receiver_id:currentConvUserId,content:text}),loadMessages())}function closeDmConv(){document.getElementById(`dmConvPage`).classList.remove(`open`),dmRealtimeChannel&&=(sb.removeChannel(dmRealtimeChannel),null),currentConvUserId=null}function openNewDm(){document.getElementById(`newDmModal`).style.display=`flex`}function closeNewDm(){document.getElementById(`newDmModal`).style.display=`none`}async function searchDmUser(q){if(!q.trim()){document.getElementById(`dmUserResults`).innerHTML=``;return}let{data}=await sb.from(`profiles`).select(`id,username,avatar_url`).ilike(`username`,`%${q}%`).neq(`id`,currentUser?.id).limit(8);document.getElementById(`dmUserResults`).innerHTML=(data||[]).map(u=>`
+  `).join(``),msgs.scrollTop=msgs.scrollHeight}async function sendDm(){if(!currentUser){openAuth();return}let input=document.getElementById(`convInput`),text=input.value.trim();if(!text||!currentConvUserId)return;
+// Anti-spam DM : max 5 messages par 10s
+const _dmNow=Date.now();if(!window._dmSpam)window._dmSpam={count:0,last:0};if(_dmNow-window._dmSpam.last<1e4){window._dmSpam.count++;if(window._dmSpam.count>5){toast('⚠️ Ralentis ! Trop de messages.');return;}}else{window._dmSpam.count=1;window._dmSpam.last=_dmNow;}
+if(text.length>1000){toast('Message trop long (max 1000 car.)');return;}
+input.value=``;playUISound(`comment`);await sb.from(`messages`).insert({sender_id:currentUser.id,receiver_id:currentConvUserId,content:text});loadMessages()}function closeDmConv(){document.getElementById(`dmConvPage`).classList.remove(`open`),dmRealtimeChannel&&=(sb.removeChannel(dmRealtimeChannel),null),currentConvUserId=null}function openNewDm(){document.getElementById(`newDmModal`).style.display=`flex`}function closeNewDm(){document.getElementById(`newDmModal`).style.display=`none`}async function searchDmUser(q){if(!q.trim()){document.getElementById(`dmUserResults`).innerHTML=``;return}let{data}=await sb.from(`profiles`).select(`id,username,avatar_url`).ilike(`username`,`%${q}%`).neq(`id`,currentUser?.id).limit(8);document.getElementById(`dmUserResults`).innerHTML=(data||[]).map(u=>`
     <div class="dm-item" onclick="startDmWithUser('${u.id}','${escHtml(u.username)}','${u.avatar_url||``}')">
       <div class="dm-avatar">${u.avatar_url?`<img src="${u.avatar_url}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:escHtml(u.username[0].toUpperCase())}</div>
       <div class="dm-info"><div class="dm-username">@${escHtml(u.username)}</div></div>
