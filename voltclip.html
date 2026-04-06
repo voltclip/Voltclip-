@@ -2500,16 +2500,7 @@ async function searchByTag(tag) {
         videos = vids || [];
       }
     }
-    // Fallback : chercher aussi dans la description au cas où
-    if (!videos.length) {
-      const { data: vFallback } = await sb.from('videos')
-        .select('id,title,thumbnail_url,views_count,user_id')
-        .ilike('description', '%#' + tag + '%')
-        .eq('is_banned', false)
-        .order('created_at', { ascending: false })
-        .limit(50);
-      videos = vFallback || [];
-    }
+
 
     let html = '';
     if (videos.length) {
