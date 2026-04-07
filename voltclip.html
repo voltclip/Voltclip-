@@ -3247,7 +3247,9 @@ async function compressVideo(file, onProgress) {
     try { ff.FS('unlink', inputName); } catch(_) {}
     try { ff.FS('unlink', outputName); } catch(_) {}
 
-    const compressed = new File([data.buffer], 'video.mp4', { type: 'video/mp4' });
+    // data est un Uint8Array avec byteOffset potentiellement > 0 dans un SharedArrayBuffer
+    // → passer data directement (pas data.buffer qui donne tout le buffer depuis 0)
+    const compressed = new File([data], 'video.mp4', { type: 'video/mp4' });
 
     // Si la compression a empiré les choses (rare), on garde l'original
     if (compressed.size >= file.size) {
@@ -5092,16 +5094,18 @@ async function trackMission(missionId) {
       p_target:     mis.target,
       p_coins:      mis.coins
     });
-    if (data) {
-      _vcMissionsCache[missionId] = { progress: data.progress, claimed: data.claimed };
+    // Supabase retourne parfois un tableau [{...}] au lieu d'un objet {...}
+    const result = Array.isArray(data) ? data[0] : data;
+    if (result) {
+      _vcMissionsCache[missionId] = { progress: result.progress, claimed: result.claimed };
       // Mettre à jour affichage coins si mission claimée
-      if (data.coins_earned) {
+      if (result.coins_earned) {
         const el = document.getElementById('pCoins');
-        if (el) el.textContent = fmtNum(data.new_balance);
+        if (el) el.textContent = fmtNum(result.new_balance);
         const hel = document.getElementById('headerCoins');
-        if (hel) hel.textContent = '💰 ' + fmtNum(data.new_balance);
-        if (_cachedProfile) _cachedProfile.coins = data.new_balance;
-        toast(`🎯 Mission accomplie — +${data.coins_earned} coins !`);
+        if (hel) hel.textContent = '💰 ' + fmtNum(result.new_balance);
+        if (_cachedProfile) _cachedProfile.coins = result.new_balance;
+        toast(`🎯 Mission accomplie — +${result.coins_earned} coins !`);
       }
       // Refresh le modal si ouvert
       if (document.getElementById('missionsModal').style.display !== 'none') _renderMissionsModal();
@@ -5155,13 +5159,15 @@ async function awardCoins(userId, amount, reason) {
   if (!currentUser || userId !== currentUser.id) return false;
   try {
     const { data } = await sb.rpc('award_coins_secure', { p_amount: amount, p_reason: reason });
-    if (data?.ok) {
-      const el  = document.getElementById('pCoins');    if(el)  el.textContent  = fmtNum(data.new_coins);
-      const hel = document.getElementById('headerCoins'); if(hel) hel.textContent = '💰 ' + fmtNum(data.new_coins);
-      if (_cachedProfile) _cachedProfile.coins = data.new_coins;
+    // Supabase retourne parfois un tableau [{...}] au lieu d'un objet {...}
+    const result = Array.isArray(data) ? data[0] : data;
+    if (result?.ok) {
+      const el  = document.getElementById('pCoins');    if(el)  el.textContent  = fmtNum(result.new_coins);
+      const hel = document.getElementById('headerCoins'); if(hel) hel.textContent = '💰 ' + fmtNum(result.new_coins);
+      if (_cachedProfile) _cachedProfile.coins = result.new_coins;
       return true;
-    } else if (data?.error) {
-      console.warn('awardCoins RPC:', data.error, reason, amount);
+    } else if (result?.error) {
+      console.warn('awardCoins RPC:', result.error, reason, amount);
     }
   } catch(e) { console.warn('awardCoins error', e); }
   return false;
