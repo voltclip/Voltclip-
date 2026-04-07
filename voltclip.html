@@ -1032,9 +1032,6 @@
 function getVideoDuration(file){return new Promise(resolve=>{const v=document.createElement('video');v.preload='metadata';const url=URL.createObjectURL(file);v.onloadedmetadata=()=>{URL.revokeObjectURL(url);resolve(v.duration)};v.onerror=()=>{URL.revokeObjectURL(url);resolve(null)};setTimeout(()=>resolve(null),5000);v.src=url})}
 const SUPABASE_URL=`https://czdfoqgcjbsoupekpxpg.supabase.co`,SUPABASE_ANON=`eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6ZGZvcWdjamJzb3VwZWtweHBnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0MzQ3MzgsImV4cCI6MjA4OTAxMDczOH0.ANivcmm64cYQCZZiFrCpduigWytloZSzwJ1vi1BbOy0`,CLOUDINARY_CLOUD=`dtdkrbdoo`,CLOUDINARY_PRESET=`voltclip_raw`,CLOUDINARY_URL=`https://api.cloudinary.com/v1_1/dtdkrbdoo`,{createClient}=supabase,sb=createClient(SUPABASE_URL,SUPABASE_ANON);
 // ══════════════════════════════════════════
-// STATE
-// ══════════════════════════════════════════
-// ══════════════════════════════════════════
 // STATE GLOBAL
 // ══════════════════════════════════════════
 let currentUser=null,currentTab='feed',uploadType='video',uploadFile=null,_uploadOriginalFile=null,uploadMaxDuration=240,activeVideoEl=null,commentsVideoId=null,storyInterval=null,audioCtx=null,_cachedProfile=null;function getAudioCtx(){return audioCtx||=new(window.AudioContext||window.webkitAudioContext),audioCtx}function playUISound(type){try{let ctx=getAudioCtx(),osc=ctx.createOscillator(),gain=ctx.createGain();osc.connect(gain),gain.connect(ctx.destination);let now=ctx.currentTime;type===`like`?(osc.frequency.setValueAtTime(600,now),osc.frequency.exponentialRampToValueAtTime(900,now+.08),gain.gain.setValueAtTime(.15,now),gain.gain.exponentialRampToValueAtTime(.001,now+.15),osc.start(now),osc.stop(now+.15)):type===`follow`?(osc.frequency.setValueAtTime(400,now),osc.frequency.exponentialRampToValueAtTime(700,now+.12),osc.frequency.exponentialRampToValueAtTime(900,now+.2),gain.gain.setValueAtTime(.12,now),gain.gain.exponentialRampToValueAtTime(.001,now+.25),osc.start(now),osc.stop(now+.25)):type===`bookmark`?(osc.type=`sine`,osc.frequency.setValueAtTime(500,now),osc.frequency.setValueAtTime(700,now+.06),gain.gain.setValueAtTime(.1,now),gain.gain.exponentialRampToValueAtTime(.001,now+.18),osc.start(now),osc.stop(now+.18)):type===`comment`&&(osc.type=`sine`,osc.frequency.setValueAtTime(450,now),osc.frequency.exponentialRampToValueAtTime(550,now+.1),gain.gain.setValueAtTime(.08,now),gain.gain.exponentialRampToValueAtTime(.001,now+.15),osc.start(now),osc.stop(now+.15))}catch{}}function haptic(pattern){navigator.vibrate&&navigator.vibrate(pattern)}
@@ -1167,7 +1164,7 @@ async function _loadLbVideos(list) {
     const rankColor = i < 3 ? ['#ffd700','#c0c0c0','#cd7f32'][i] : 'var(--muted)'
     const rankLabel = i < 3 ? medals[i] : (i + 1)
     const flag = v.profiles?.country ? (_COUNTRY_FLAGS[v.profiles.country] || '') : ''
-    return `<div class="lb-item" onclick="_vcPlay('${v.id}')">
+    return `<div class="lb-item" onclick="playFromSearch('${v.id}')">
       <div class="lb-rank" style="color:${rankColor};font-size:${i<3?'20':'14'}px">${rankLabel}</div>
       <img src="${v.thumbnail_url||''}" style="width:42px;height:58px;object-fit:cover;border-radius:8px;flex-shrink:0;background:var(--surface2)">
       <div class="lb-info">
@@ -1627,16 +1624,14 @@ async function superVoteBattle(battleId, side) {
     toast('❌ ' + SUPER_VOTE_COST + ' coins requis pour le Super Vote (solde : ' + coins + ')')
     return
   }
-  // Débiter les coins
-  const { error: debitErr } = await sb.from('profiles')
-    .update({ coins: coins - SUPER_VOTE_COST })
-    .eq('id', currentUser.id)
-  if (debitErr) { toast('❌ Erreur paiement'); return }
+  // Débiter les coins via RPC sécurisée
+  const paid = await debitCoins(currentUser.id, SUPER_VOTE_COST)
+  if (!paid) return
   // Appel RPC super_vote_battle (+5)
   const { error: voteErr } = await sb.rpc('super_vote_battle', { p_battle_id: battleId, p_side: side })
   if (voteErr) {
     // Rembourser en cas d'erreur
-    await sb.from('profiles').update({ coins: coins }).eq('id', currentUser.id)
+    await awardCoins(currentUser.id, SUPER_VOTE_COST, 'supervote_refund')
     toast('❌ Erreur Super Vote')
     return
   }
@@ -1757,8 +1752,8 @@ async function voteBattle(battleId, side, el) {
 
   // Animation badge
   const badge = document.getElementById('badge-' + side + '-' + battleId)
-  badge.classList.add('pop')
-  setTimeout(() => badge.classList.remove('pop'), 700)
+  badge?.classList.add('pop')
+  setTimeout(() => badge?.classList.remove('pop'), 700)
 
   haptic([20, 10, 30])
   playUISound('like')
@@ -2939,7 +2934,8 @@ async function loadPersonalRank() {
     const weekAgo = new Date(Date.now() - 7*24*60*60*1000).toISOString();
     const { data: votes } = await sb.from('battle_votes')
       .select('user_id')
-      .gt('created_at', weekAgo);
+      .gt('created_at', weekAgo)
+      .limit(5000);
     if(!votes?.length) return;
 
     // Comptage par user
@@ -4265,7 +4261,7 @@ async function sendChallenge() {
   if (!error) {
     await sb.from('battles').insert({
       video_left_id: challengeMyVideoId,
-      video_right_id: challengeMyVideoId,
+      video_right_id: null,
       title: '⚔️ Défi de @' + myUsername + ' → @' + challengeTargetUsername,
       category: challengeCategory || 'solo_danse',
       created_by: currentUser.id,
@@ -4927,7 +4923,7 @@ function confirmBoost() {
     <div style="margin:0 16px 8px;background:rgba(255,255,255,.04);border-radius:14px;padding:14px 16px">
       <div style="font-family:'Space Mono',monospace;font-size:11px;font-weight:700;margin-bottom:10px">🎁 GAGNER DES COINS GRATUITEMENT</div>
       <div style="display:flex;flex-direction:column;gap:8px;font-size:12px;color:rgba(255,255,255,.7)">
-        <div style="display:flex;justify-content:space-between"><span>🎬 Publier une vidéo</span><span style="color:#ffd700;font-family:'Space Mono',monospace;font-size:11px">+10</span></div>
+        <div style="display:flex;justify-content:space-between"><span>🎬 Publier une vidéo</span><span style="color:#ffd700;font-family:'Space Mono',monospace;font-size:11px">+5</span></div>
         <div style="display:flex;justify-content:space-between"><span>🔥 Connexion quotidienne</span><span style="color:#ffd700;font-family:'Space Mono',monospace;font-size:11px">+5 à +50</span></div>
         <div style="display:flex;justify-content:space-between"><span>🏆 Gagner une battle</span><span style="color:#ffd700;font-family:'Space Mono',monospace;font-size:11px">+25</span></div>
         <div style="display:flex;justify-content:space-between"><span>🎯 Missions daily</span><span style="color:#ffd700;font-family:'Space Mono',monospace;font-size:11px">+10 à +30</span></div>
@@ -5140,9 +5136,9 @@ async function awardCoins(userId, amount, reason) {
   try {
     const { data } = await sb.rpc('award_coins_secure', { p_amount: amount, p_reason: reason });
     if (data?.ok) {
-      const el  = document.getElementById('pCoins');    if(el)  el.textContent  = fmtNum(data.coins);
-      const hel = document.getElementById('headerCoins'); if(hel) hel.textContent = '💰 ' + fmtNum(data.coins);
-      if (_cachedProfile) _cachedProfile.coins = data.coins;
+      const el  = document.getElementById('pCoins');    if(el)  el.textContent  = fmtNum(data.new_coins);
+      const hel = document.getElementById('headerCoins'); if(hel) hel.textContent = '💰 ' + fmtNum(data.new_coins);
+      if (_cachedProfile) _cachedProfile.coins = data.new_coins;
     } else if (data?.error) {
       console.warn('awardCoins RPC:', data.error, reason, amount);
     }
@@ -5154,9 +5150,9 @@ async function debitCoins(userId, amount) {
   try {
     const { data } = await sb.rpc('spend_coins_secure', { p_amount: amount, p_reason: 'stake_debit' });
     if (data?.ok) {
-      const el  = document.getElementById('pCoins');    if(el)  el.textContent  = fmtNum(data.coins);
-      const hel = document.getElementById('headerCoins'); if(hel) hel.textContent = '💰 ' + fmtNum(data.coins);
-      if (_cachedProfile) _cachedProfile.coins = data.coins;
+      const el  = document.getElementById('pCoins');    if(el)  el.textContent  = fmtNum(data.new_coins);
+      const hel = document.getElementById('headerCoins'); if(hel) hel.textContent = '💰 ' + fmtNum(data.new_coins);
+      if (_cachedProfile) _cachedProfile.coins = data.new_coins;
       return true;
     }
     if (data?.error === 'insufficient_coins') toast('❌ Coins insuffisants');
