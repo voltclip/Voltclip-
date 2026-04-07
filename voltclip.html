@@ -4020,9 +4020,13 @@ init();checkAgeGate();`serviceWorker`in navigator&&window.addEventListener(`load
   navigator.serviceWorker.register(`./sw.js`,{scope:`./`})
     .then(reg=>{
       console.log(`SW registered:`,reg.scope);
-      // Premier enregistrement : recharger pour activer CrossOriginIsolation (FFmpeg)
-      if(!navigator.serviceWorker.controller){
-        reg.addEventListener('activate',()=>{ if(!crossOriginIsolated) location.reload(); });
+      // Recharger une seule fois si la page n'est pas encore cross-origin isolated
+      // (nécessaire pour SharedArrayBuffer / FFmpeg.wasm)
+      if(!crossOriginIsolated&&!sessionStorage.getItem('_vc_coi_reload')){
+        sessionStorage.setItem('_vc_coi_reload','1');
+        location.reload();
+      }else{
+        sessionStorage.removeItem('_vc_coi_reload');
       }
     })
     .catch(e=>console.log(`SW error:`,e));
