@@ -1366,7 +1366,7 @@ async function loadBattles(append = false) {
 
   // ── Étape 1 : récupérer les battles avec vidéos (sans join profiles, évite PGRST) ──
   let battleQuery = sb.from('battles')
-    .select('*, stake_coins, video_left:video_left_id(video_url,thumbnail_url,user_id,category), video_right:video_right_id(video_url,thumbnail_url,user_id,category)')
+    .select('*, stake_coins, video_left:video_left_id(video_url,thumbnail_url,user_id,category,is_boosted,boost_until), video_right:video_right_id(video_url,thumbnail_url,user_id,category,is_boosted,boost_until)')
     .eq('status', 'active')
     .or('expires_at.is.null,expires_at.gt.' + new Date().toISOString())
     .order('created_at', { ascending: false })
@@ -1395,6 +1395,16 @@ async function loadBattles(append = false) {
   })
 
   if (battles.length < 20) battleAllLoaded = true
+
+  // ── Boosted en premier ──
+  const _nowSort = new Date()
+  battles.sort((a, b) => {
+    const aB = (a.video_left?.is_boosted && (!a.video_left?.boost_until || new Date(a.video_left.boost_until) > _nowSort))
+            || (a.video_right?.is_boosted && (!a.video_right?.boost_until || new Date(a.video_right.boost_until) > _nowSort))
+    const bB = (b.video_left?.is_boosted && (!b.video_left?.boost_until || new Date(b.video_left.boost_until) > _nowSort))
+            || (b.video_right?.is_boosted && (!b.video_right?.boost_until || new Date(b.video_right.boost_until) > _nowSort))
+    return (bB ? 1 : 0) - (aB ? 1 : 0)
+  })
 
   // Récupère les votes de l'user courant
   let myVotes = new Set()
@@ -1562,6 +1572,7 @@ function createBattleItem(b, myVotes) {
     <div class="battle-header">
       <span class="battle-category-chip">${BATTLE_CATEGORIES.find(c=>c.id===b.category)?.label || '⚔️ Battle'}</span>
       ${b.is_sponsored ? '<span style="background:linear-gradient(135deg,#7c5cfc,#fc5c7d);color:#fff;font-family:var(--font-mono);font-size:9px;font-weight:700;letter-spacing:.06em;border-radius:20px;padding:3px 10px">🏆 SPONSORISÉ</span>' : ''}
+      ${((b.video_left?.is_boosted && (!b.video_left?.boost_until || new Date(b.video_left.boost_until) > new Date())) || (b.video_right?.is_boosted && (!b.video_right?.boost_until || new Date(b.video_right.boost_until) > new Date()))) ? '<span style="background:linear-gradient(135deg,#ffd700,#ff9900);color:#000;font-family:var(--font-mono);font-size:9px;font-weight:700;letter-spacing:.06em;border-radius:20px;padding:3px 10px">⚡ BOOST</span>' : ''}
       <span class="battle-countdown${msLeft < 3600000 ? ' urgent' : ''}" id="cd-${b.id}">${formatBattleCountdown(msLeft)}</span>
       <button class="battle-share-duel" onclick="event.stopPropagation();shareBattle('${b.id}')">📤 Partager</button>
     </div>
@@ -1591,6 +1602,8 @@ function createBattleItem(b, myVotes) {
         <span style="font-size:13px;font-family:var(--font-mono);font-weight:700;letter-spacing:.04em">VOTE</span>
         <span class="battle-vote-btn-float-pct" id="pct-right-${b.id}">${hasVoted ? pctRight + '%' : '👍'}</span>
       </button>
+      <button onclick="event.stopPropagation();superVoteBattle('${b.id}','left')" style="position:absolute;bottom:58px;left:8px;z-index:26;background:linear-gradient(135deg,#ffd700,#ff9900);border:none;color:#000;border-radius:20px;padding:4px 10px;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;cursor:pointer">⚡ SUPER VOTE</button>
+      <button onclick="event.stopPropagation();superVoteBattle('${b.id}','right')" style="position:absolute;bottom:58px;right:8px;z-index:26;background:linear-gradient(135deg,#ffd700,#ff9900);border:none;color:#000;border-radius:20px;padding:4px 10px;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;cursor:pointer">⚡ SUPER VOTE</button>
     </div>
   `
 
@@ -1603,6 +1616,100 @@ function createBattleItem(b, myVotes) {
 }
 
 
+
+// ── Super Vote (×5 coins) ──────────────────────────────────────────────────
+async function superVoteBattle(battleId, side) {
+  if (!currentUser) { openAuth(); return }
+  const SUPER_VOTE_COST = 10
+  const { data: prof } = await sb.from('profiles').select('coins').eq('id', currentUser.id).single()
+  const coins = prof?.coins || 0
+  if (coins < SUPER_VOTE_COST) {
+    toast('❌ ' + SUPER_VOTE_COST + ' coins requis pour le Super Vote (solde : ' + coins + ')')
+    return
+  }
+  // Débiter les coins
+  const { error: debitErr } = await sb.from('profiles')
+    .update({ coins: coins - SUPER_VOTE_COST })
+    .eq('id', currentUser.id)
+  if (debitErr) { toast('❌ Erreur paiement'); return }
+  // Appel RPC super_vote_battle (+5)
+  const { error: voteErr } = await sb.rpc('super_vote_battle', { p_battle_id: battleId, p_side: side })
+  if (voteErr) {
+    // Rembourser en cas d'erreur
+    await sb.from('profiles').update({ coins: coins }).eq('id', currentUser.id)
+    toast('❌ Erreur Super Vote')
+    return
+  }
+  // Refresh affichage compteurs
+  const { data: b } = await sb.from('battles').select('votes_left,votes_right').eq('id', battleId).single()
+  if (b) {
+    const total = (b.votes_left || 0) + (b.votes_right || 0)
+    const pL = total ? Math.round(b.votes_left / total * 100) : 50
+    const pR = 100 - pL
+    const pctL = document.getElementById('pct-left-' + battleId)
+    const pctR = document.getElementById('pct-right-' + battleId)
+    const fillL = document.getElementById('fill-left-' + battleId)
+    const fillR = document.getElementById('fill-right-' + battleId)
+    if (pctL) pctL.textContent = pL + '%'
+    if (pctR) pctR.textContent = pR + '%'
+    if (fillL) fillL.style.background = 'rgba(124,92,252,' + (pL/100*0.4) + ')'
+    if (fillR) fillR.style.background = 'rgba(252,92,125,' + (pR/100*0.4) + ')'
+  }
+  haptic([30, 10, 50])
+  playUISound('like')
+  toast('⚡ Super Vote ×5 envoyé ! (-' + SUPER_VOTE_COST + ' coins)')
+  // Mettre à jour le solde affiché
+  const _hc = document.getElementById('headerCoins')
+  if (_hc) _hc.textContent = '💰 ' + fmtNum(coins - SUPER_VOTE_COST)
+  const _pc = document.getElementById('pCoins')
+  if (_pc) _pc.textContent = fmtNum(coins - SUPER_VOTE_COST)
+}
+
+// ── Boost clip avec coins ──────────────────────────────────────────────────
+async function boostClipCoins(videoId) {
+  if (!currentUser) { openAuth(); return }
+  const BOOST_COST = 50
+  const BOOST_HOURS = 24
+  const { data: prof } = await sb.from('profiles').select('coins').eq('id', currentUser.id).single()
+  const coins = prof?.coins || 0
+  if (coins < BOOST_COST) {
+    toast('❌ ' + BOOST_COST + ' coins requis pour booster (solde : ' + coins + ')')
+    return
+  }
+  // Mini-confirmation via toast inline (confirm() bloqué sur certains mobiles)
+  const _confirmed = await new Promise(resolve => {
+    const _el = document.createElement('div')
+    _el.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:#1c1c27;border:1.5px solid #ffd700;border-radius:16px;padding:14px 18px;display:flex;flex-direction:column;align-items:center;gap:10px;min-width:240px;font-family:Space Mono,monospace'
+    _el.innerHTML = '<div style="color:#ffd700;font-size:13px;font-weight:700">⚡ Booster ce clip ?</div><div style="color:#fff;font-size:11px;text-align:center">'+BOOST_HOURS+'h de visibilité — '+BOOST_COST+' coins</div><div style="display:flex;gap:10px"><button id="_boostNo" style="background:#ffffff18;border:none;color:#fff;border-radius:10px;padding:8px 18px;font-family:Space Mono,monospace;font-size:11px;cursor:pointer">Annuler</button><button id="_boostYes" style="background:linear-gradient(135deg,#ffd700,#ff9900);border:none;color:#000;border-radius:10px;padding:8px 18px;font-family:Space Mono,monospace;font-size:11px;font-weight:700;cursor:pointer">Booster !</button></div>'
+    document.body.appendChild(_el)
+    _el.querySelector('#_boostYes').onclick = () => { _el.remove(); resolve(true) }
+    _el.querySelector('#_boostNo').onclick = () => { _el.remove(); resolve(false) }
+    setTimeout(() => { _el.remove(); resolve(false) }, 10000)
+  })
+  if (!_confirmed) return
+  // Débiter
+  const { error: debitErr } = await sb.from('profiles')
+    .update({ coins: coins - BOOST_COST })
+    .eq('id', currentUser.id)
+  if (debitErr) { toast('❌ Erreur paiement'); return }
+  // Activer le boost sur la vidéo
+  const boostUntil = new Date(Date.now() + BOOST_HOURS * 3600 * 1000).toISOString()
+  const { error: boostErr } = await sb.from('videos')
+    .update({ is_boosted: true, boost_until: boostUntil })
+    .eq('id', videoId)
+    .eq('user_id', currentUser.id)
+  if (boostErr) {
+    await sb.from('profiles').update({ coins: coins }).eq('id', currentUser.id)
+    toast('❌ Erreur boost')
+    return
+  }
+  haptic([20, 10, 40])
+  toast('⚡ Clip boosté pendant ' + BOOST_HOURS + 'h ! (-' + BOOST_COST + ' coins)')
+  const _hc = document.getElementById('headerCoins')
+  if (_hc) _hc.textContent = '💰 ' + fmtNum(coins - BOOST_COST)
+  const _pc = document.getElementById('pCoins')
+  if (_pc) _pc.textContent = fmtNum(coins - BOOST_COST)
+}
 
 async function voteBattle(battleId, side, el) {
   if (!currentUser) { openAuth(); return }
@@ -2756,13 +2863,13 @@ let{data:videos}=await sb.from(`videos`).select(`id, title, views_count, likes_c
     ${statBox(`💨`,`Taux de skip rapide`,skipRate+`%`,skipRate>50?`#ff4444`:`#39ff14`)}
     <div style="font-family:'Space Mono',monospace;font-size:11px;color:rgba(255,255,255,0.4);letter-spacing:.08em;padding:4px 4px 0">TOP VIDÉOS</div>
     ${topVideos||`<div style="color:rgba(255,255,255,0.3);font-size:12px;text-align:center;padding:16px">Aucune vidéo</div>`}
-  `}async function loadProfileGrid(){if(!currentUser)return;let grid=document.getElementById(`profileGrid`);grid.innerHTML=`<div class="loader-dots" style="padding:30px"><span></span><span></span><span></span></div>`;let videos=[];if(currentProfileTab===`videos`){let{data}=await sb.from(`videos`).select(`id,thumbnail_url,views_count,is_pinned,title`).eq(`user_id`,currentUser.id).order(`created_at`,{ascending:!1}).limit(100);videos=data||[]}else if(currentProfileTab===`likes`){let{data}=await sb.from(`likes`).select(`video_id, videos(id,thumbnail_url,views_count)`).eq(`user_id`,currentUser.id).order(`created_at`,{ascending:!1}).limit(30);videos=(data||[]).map(l=>l.videos).filter(Boolean)}else if(currentProfileTab===`bookmarks`){let{data}=await sb.from(`bookmarks`).select(`video_id, videos(id,thumbnail_url,views_count)`).eq(`user_id`,currentUser.id).order(`created_at`,{ascending:!1}).limit(30);videos=(data||[]).map(b=>b.videos).filter(Boolean)}if(!videos.length){grid.innerHTML=`<div class="empty-state" style="padding:40px"><span class="ei">`+(currentProfileTab===`videos`?`🎬`:currentProfileTab===`likes`?`❤️`:`🔖`)+`</span><p>Rien ici pour l\'instant</p></div>`;return}grid.innerHTML=videos.map(v=>`
+  `}async function loadProfileGrid(){if(!currentUser)return;let grid=document.getElementById(`profileGrid`);grid.innerHTML=`<div class="loader-dots" style="padding:30px"><span></span><span></span><span></span></div>`;let videos=[];if(currentProfileTab===`videos`){let{data}=await sb.from(`videos`).select(`id,thumbnail_url,views_count,is_pinned,title,is_boosted,boost_until`).eq(`user_id`,currentUser.id).order(`created_at`,{ascending:!1}).limit(100);videos=data||[]}else if(currentProfileTab===`likes`){let{data}=await sb.from(`likes`).select(`video_id, videos(id,thumbnail_url,views_count)`).eq(`user_id`,currentUser.id).order(`created_at`,{ascending:!1}).limit(30);videos=(data||[]).map(l=>l.videos).filter(Boolean)}else if(currentProfileTab===`bookmarks`){let{data}=await sb.from(`bookmarks`).select(`video_id, videos(id,thumbnail_url,views_count)`).eq(`user_id`,currentUser.id).order(`created_at`,{ascending:!1}).limit(30);videos=(data||[]).map(b=>b.videos).filter(Boolean)}if(!videos.length){grid.innerHTML=`<div class="empty-state" style="padding:40px"><span class="ei">`+(currentProfileTab===`videos`?`🎬`:currentProfileTab===`likes`?`❤️`:`🔖`)+`</span><p>Rien ici pour l\'instant</p></div>`;return}grid.innerHTML=videos.map(v=>`
     <div class="profile-thumb" data-vid="${v.id}">
       <img src="${v.thumbnail_url||``}" loading="lazy" alt="">
       ${currentProfileTab===`videos`?`
         <button class="profile-thumb-del" onclick="deleteVideo('${v.id}',event)">✕</button>
         <button onclick="event.stopPropagation();pinVideo('${v.id}')" style="position:absolute;top:4px;left:4px;background:rgba(0,0,0,.6);border:none;color:${v.is_pinned?`#ffd700`:`#fff`};width:22px;height:22px;border-radius:50%;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center">📌</button>
-        <!-- BOOST_BTN_DISABLED <button onclick="event.stopPropagation();openBoostModal('${v.id}')" style="position:absolute;bottom:24px;left:50%;transform:translateX(-50%);white-space:nowrap;background:linear-gradient(135deg,#7c5cfc,#fc5c7d);border:none;color:#fff;border-radius:20px;padding:3px 8px;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;cursor:pointer;z-index:5">⚡ Boost</button> -->
+        ${(()=>{const _nb=v.is_boosted&&v.boost_until&&new Date(v.boost_until)>new Date();const _ms=_nb?new Date(v.boost_until)-new Date():0;const _hLeft=Math.ceil(_ms/3600000);return _nb?`<span style="position:absolute;bottom:24px;left:50%;transform:translateX(-50%);white-space:nowrap;background:linear-gradient(135deg,#ffd700,#ff9900);border:none;color:#000;border-radius:20px;padding:3px 8px;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;z-index:5;pointer-events:none">⚡ BOOSTED ${_hLeft}h</span>`:`<button onclick="event.stopPropagation();boostClipCoins('${v.id}')" style="position:absolute;bottom:24px;left:50%;transform:translateX(-50%);white-space:nowrap;background:linear-gradient(135deg,#ffd700,#ff9900);border:none;color:#000;border-radius:20px;padding:3px 8px;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;cursor:pointer;z-index:5">⚡ Boost</button>`})()}
       `:``}
       <span style="position:absolute;bottom:4px;left:4px;font-size:10px;font-weight:700;color:#fff;font-family:'Space Mono',monospace;text-shadow:0 1px 3px rgba(0,0,0,.8)">👁 ${fmtNum(v.views_count)}</span>
     </div>
