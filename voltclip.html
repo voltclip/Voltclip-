@@ -2787,6 +2787,7 @@ let{data:likesSum}=await sb.from(`videos`).select(`likes_count`).eq(`user_id`,cu
   }
   if(newStreak>=2){badge.style.display=`block`;badge.textContent=`${newStreak>=30?`👑`:newStreak>=7?`🏆`:`🔥`} ${newStreak} jour${newStreak>1?`s`:``} de suite`;}
 }
+} // close refreshProfile
 
 // ── Welcome back banner ──
 async function showWelcomeBack(streak, lastLoginISO, streakCoins) {
