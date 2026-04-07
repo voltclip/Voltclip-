@@ -3714,24 +3714,14 @@ async function submitUpload() {
 
     _uploadLog.push(Date.now());
     toast('Publié avec succès ⚡');
-    // 💰 +10 coins pour la publication
+    // 💰 +5 coins directs (RPC award_coins_secure) + +10 via mission post1 = +15 si mission active
     if (currentUser) {
-      const coinOk = await awardCoins(currentUser.id, 10, 'video_upload');
-      document.dispatchEvent(new Event('voltclip:posted'));
+      const coinOk = await awardCoins(currentUser.id, 5, 'video_upload');
+      document.dispatchEvent(new Event('voltclip:posted')); // → trackMission('post1')
       if (coinOk) {
-        setTimeout(() => toast('💰 +10 coins pour ta publication !'), 800);
-      } else {
-        // Fallback : incrément direct si la RPC a refusé la raison
-        try {
-          const { data: _pf } = await sb.from('profiles').select('coins').eq('id', currentUser.id).single();
-          const newCoins = (_pf?.coins || 0) + 10;
-          await sb.from('profiles').update({ coins: newCoins }).eq('id', currentUser.id);
-          const el  = document.getElementById('pCoins');    if (el)  el.textContent  = fmtNum(newCoins);
-          const hel = document.getElementById('headerCoins'); if (hel) hel.textContent = '💰 ' + fmtNum(newCoins);
-          if (_cachedProfile) _cachedProfile.coins = newCoins;
-          setTimeout(() => toast('💰 +10 coins pour ta publication !'), 800);
-        } catch (e) { console.warn('awardCoins fallback error', e); }
+        setTimeout(() => toast('💰 +5 coins pour ta publication !'), 800);
       }
+      // Pas de fallback direct : UPDATE bloqué par RLS — award_coins_secure est requis
     }
     closeUpload();
     showTab('profile');
@@ -4027,15 +4017,15 @@ function checkOnboarding(){
 }
 
 init();checkAgeGate();`serviceWorker`in navigator&&window.addEventListener(`load`,()=>{
-  if(navigator.serviceWorker.controller){
-    caches.keys().then(keys=>Promise.all(keys.map(k=>caches.delete(k))));
-  }
-  navigator.serviceWorker.getRegistrations().then(regs=>{
-    regs.forEach(r=>r.unregister());
-    navigator.serviceWorker.register(`./sw.js`,{scope:`./`})
-      .then(r=>console.log(`SW registered:`,r.scope))
-      .catch(e=>console.log(`SW error:`,e));
-  });
+  navigator.serviceWorker.register(`./sw.js`,{scope:`./`})
+    .then(reg=>{
+      console.log(`SW registered:`,reg.scope);
+      // Premier enregistrement : recharger pour activer CrossOriginIsolation (FFmpeg)
+      if(!navigator.serviceWorker.controller){
+        reg.addEventListener('activate',()=>{ if(!crossOriginIsolated) location.reload(); });
+      }
+    })
+    .catch(e=>console.log(`SW error:`,e));
 });let pwaInstallPrompt=null;window.addEventListener(`beforeinstallprompt`,e=>{
 // Affiche le bouton install après 30s si pas déjà installé
 e.preventDefault(),pwaInstallPrompt=e,setTimeout(()=>{pwaInstallPrompt&&showPwaToast()},3e4)});function showPwaToast(){let el=document.createElement(`div`);el.id=`pwaToast`,el.innerHTML=`
