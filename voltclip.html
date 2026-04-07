@@ -2769,24 +2769,7 @@ let{data:videos}=await sb.from(`videos`).select(`id, title, views_count, likes_c
   `).join(``)}async function refreshProfile(){let notLogged=document.getElementById(`profileNotLoggedIn`),grid=document.getElementById(`profileGrid`);if(!currentUser){notLogged.style.display=`block`,grid.style.display=`none`;const _hc=document.getElementById('headerCoins');if(_hc)_hc.style.display='none';return}notLogged.style.display=`none`,grid.style.display=`grid`;const _hcShow=document.getElementById('headerCoins');if(_hcShow)_hcShow.style.display='inline-flex';let{data:profile}=await sb.from(`profiles`).select(`*`).eq(`id`,currentUser.id).single();if(!profile)return;_cachedProfile=profile;document.getElementById(`profileUsername`).textContent=`@`+profile.username,document.getElementById(`profileBio`).innerHTML=renderBio(profile.bio),document.getElementById(`pVideos`).textContent=fmtNum(profile.videos_count),document.getElementById(`pFollowers`).textContent=fmtNum(profile.followers_count),document.getElementById(`pFollowing`).textContent=fmtNum(profile.following_count);const _ppBtn=document.getElementById(`profilePaypalBtn`);if(_ppBtn)_ppBtn.textContent=profile.paypal_link?`💜 PayPal ✓`:`💜 PayPal`;
 // Total likes cumulés
 let{data:likesSum}=await sb.from(`videos`).select(`likes_count`).eq(`user_id`,currentUser.id).eq(`status`,`active`),totalLikes=(likesSum||[]).reduce((s,v)=>s+(v.likes_count||0),0);document.getElementById(`pTotalLikes`).textContent=fmtNum(totalLikes),document.getElementById(`pBattlesWon`).textContent=fmtNum(profile.battles_won||0),document.getElementById(`pBattlesLost`).textContent=fmtNum(profile.battles_lost||0);const _pCoinsEl=document.getElementById('pCoins');if(_pCoinsEl)_pCoinsEl.textContent=fmtNum(profile.coins||0);const _hCoinsEl=document.getElementById('headerCoins');if(_hCoinsEl)_hCoinsEl.textContent='💰 '+fmtNum(profile.coins||0);profile.avatar_url?document.getElementById(`profileAvatarWrap`).innerHTML=`<img src="${profile.avatar_url}" alt=""><div class="profile-avatar-edit">✏️</div>`:document.getElementById(`profileAvatarInitial`).textContent=profile.username[0].toUpperCase(),await updateStreak(profile);renderLevelBadge(profile);loadPersonalRank();loadProfileGrid();
-  document.dispatchEvent(new CustomEvent('voltclip:profile_loaded', { detail: { profile } }));async function updateStreak(profile){
-  if(!currentUser)return;
-  const badge=document.getElementById(`profileStreakBadge`);
-  const todayISO=new Date().toISOString().slice(0,10);
-  const yesterdayISO=new Date(Date.now()-864e5).toISOString().slice(0,10);
-  const lastLogin=profile.last_login||null;
-  const streak=parseInt(profile.login_streak||0);
-  let newStreak=streak;
-  if(lastLogin!==todayISO){
-    newStreak=lastLogin===yesterdayISO?streak+1:1;
-    await sb.from(`profiles`).update({last_login:todayISO,login_streak:newStreak}).eq(`id`,currentUser.id);
-    // 💰 Coins streak
-    const streakCoins = newStreak>=30?50:newStreak>=7?20:newStreak>=3?10:5;
-    await awardCoins(currentUser.id, streakCoins, 'daily_streak');
-    showWelcomeBack(newStreak, lastLogin, streakCoins);
-  }
-  if(newStreak>=2){badge.style.display=`block`;badge.textContent=`${newStreak>=30?`👑`:newStreak>=7?`🏆`:`🔥`} ${newStreak} jour${newStreak>1?`s`:``} de suite`;}
-}
+  document.dispatchEvent(new CustomEvent('voltclip:profile_loaded', { detail: { profile } }));
 } // close refreshProfile
 
 // ── Welcome back banner ──
@@ -3964,43 +3947,7 @@ let challengeTargetUserId = null;
 let challengeCategory = 'solo_danse';
 let challengeStakeCoins = 0;
 
-// ── Coins helper ──────────────────────────────────────────────
-async function awardCoins(userId, amount, reason) {
-  if (!userId || !amount) return;
-  try {
-    // Incrément atomique
-    const { data: prof } = await sb.from('profiles').select('coins').eq('id', userId).single();
-    const newTotal = (prof?.coins || 0) + amount;
-    await sb.from('profiles').update({ coins: newTotal }).eq('id', userId);
-    // Log transaction
-    await sb.from('coin_transactions').insert({ user_id: userId, amount, reason }).catch(() => {});
-    // Mettre à jour l'affichage si c'est l'utilisateur courant
-    if (currentUser && userId === currentUser.id) {
-      const el = document.getElementById('pCoins');
-      if (el) el.textContent = fmtNum(newTotal);
-      const hel = document.getElementById('headerCoins');
-      if (hel) hel.textContent = '💰 ' + fmtNum(newTotal);
-    }
-  } catch(e) { console.warn('awardCoins error:', e); }
-}
 
-async function debitCoins(userId, amount) {
-  // Retourne true si succès, false si solde insuffisant
-  try {
-    const { data: prof } = await sb.from('profiles').select('coins').eq('id', userId).single();
-    const current = prof?.coins || 0;
-    if (current < amount) return false;
-    await sb.from('profiles').update({ coins: current - amount }).eq('id', userId);
-    await sb.from('coin_transactions').insert({ user_id: userId, amount: -amount, reason: 'stake_debit' }).catch(() => {});
-    if (currentUser && userId === currentUser.id) {
-      const el = document.getElementById('pCoins');
-      if (el) el.textContent = fmtNum(current - amount);
-      const hel = document.getElementById('headerCoins');
-      if (hel) hel.textContent = '💰 ' + fmtNum(current - amount);
-    }
-    return true;
-  } catch(e) { return false; }
-}
 let challengeTargetUsername = null;
 let challengeMyVideoId = null;
 let challengeMyVideoUrl = null;
