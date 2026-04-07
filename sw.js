@@ -39,6 +39,10 @@ self.addEventListener('fetch', event => {
   // Ne pas intercepter les requêtes non-GET
   if (request.method !== 'GET') return;
 
+  // Ne pas intercepter les range requests (streaming vidéo — 206 Partial Content)
+  // → cloner un ReadableStream partiel est impossible → ERR_CACHE_OPERATION_NOT_SUPPORTED
+  if (request.headers.has('Range')) return;
+
   // Ignorer les endpoints Supabase REST / Auth / Realtime (non-storage)
   // mais laisser passer /storage/ (avatars, etc.) pour y injecter les headers COI
   if (url.hostname.includes('supabase.co') && !url.pathname.startsWith('/storage/')) return;

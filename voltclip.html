@@ -4024,7 +4024,14 @@ init();checkAgeGate();`serviceWorker`in navigator&&window.addEventListener(`load
       // (nécessaire pour SharedArrayBuffer / FFmpeg.wasm)
       if(!crossOriginIsolated&&!sessionStorage.getItem('_vc_coi_reload')){
         sessionStorage.setItem('_vc_coi_reload','1');
-        location.reload();
+        // Attendre que le SW prenne réellement le contrôle (clients.claim)
+        // avant de recharger — sinon le reload se fait sans interception SW
+        // → pas de COOP/COEP → crossOriginIsolated reste false (race condition)
+        if(navigator.serviceWorker.controller){
+          location.reload();
+        }else{
+          navigator.serviceWorker.addEventListener('controllerchange',()=>location.reload(),{once:true});
+        }
       }else{
         sessionStorage.removeItem('_vc_coi_reload');
       }
