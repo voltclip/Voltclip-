@@ -1016,7 +1016,7 @@
     </div>
   </div>
   <div id=battleFeed></div>
-</div><div class=screen id=rankScreen><div class=rank-header><div class=rank-title>🏆 CLASSEMENT MONDIAL</div><div style="color:var(--muted);font-family:var(--font-mono);font-size:10px;margin-bottom:8px">Meilleures vidéos de la communauté VoltClip</div><div class=period-tabs><button class="period-tab active" onclick="loadRank('week',this)">SEMAINE</button><button onclick="loadRank('month',this)" class=period-tab>MOIS</button><button onclick="loadRank('all',this)" class=period-tab>ALL TIME</button></div></div><div id=rankList><div class=loader-dots><span></span><span></span><span></span></div></div></div><div class=screen id=notifScreen><div class=notif-header>🔔 NOTIFICATIONS</div><div id=notifList></div></div><div class=screen id=profileScreen><div class=profile-top><div class=profile-avatar id=profileAvatarWrap onclick=changeAvatar()><span id=profileAvatarInitial>👤</span><div class=profile-avatar-edit>✏️</div></div><div class=profile-username id=profileUsername>—</div><div style="color:gold;margin-top:-4px;font-family:Space Mono,monospace;font-size:12px;display:none" id=profileStreakBadge></div><div id=profilePersonalRank></div><div class=profile-bio id=profileBio>Aucune bio</div><div class=profile-stats><div class=pstat><span class=pstat-val id=pVideos>0</span><span class=pstat-lbl>VIDÉOS</span></div><div class=pstat><span class=pstat-val id=pFollowers>0</span><span class=pstat-lbl>ABONNÉS</span></div><div class=pstat><span class=pstat-val id=pFollowing>0</span><span class=pstat-lbl>ABONNEMENTS</span></div><div class=pstat><span class=pstat-val id=pTotalLikes>0</span><span class=pstat-lbl>❤️ LIKES</span></div><div class=pstat><span class=pstat-val id=pBattlesWon style="color:#ffd700;font-size:13px">0</span><span class=pstat-lbl style=font-size:8px>⚔️ GAGNÉS</span></div><div class=pstat><span class=pstat-val id=pBattlesLost style="color:#fc5c7d;font-size:13px">0</span><span class=pstat-lbl style=font-size:8px>💀 PERDUS</span></div><div class=pstat onclick="showCoinsInfo()" style="cursor:pointer"><span class=pstat-val id=pCoins style="color:#ffd700;font-size:13px">0</span><span class=pstat-lbl style=font-size:8px>💰 COINS</span></div></div><div class=profile-actions><button class="profile-btn primary" onclick=editProfile()>✏️ Modifier</button><button class=profile-btn onclick=donateToUser()>💜 Soutenir</button><button class=profile-btn onclick=shareProfile()>🔗 Partager</button><button class=profile-btn onclick=signOut() style=width:100%>Déconnexion</button></div><div id=adminPanelBtn style=text-align:center;margin-top:10px;display:none><button style="color:#fff;cursor:pointer;letter-spacing:.04em;background:linear-gradient(135deg,#f44,#fc5c7d);border:none;border-radius:20px;width:100%;padding:10px 22px;font-family:Space Mono,monospace;font-size:11px;font-weight:700" onclick=openAdminPanel()>🛡 Panneau Administrateur</button></div><div style=text-align:center;flex-wrap:wrap;justify-content:center;gap:16px;margin-top:16px;display:flex><a style="color:#ffffff59;font-family:Space Mono,monospace;font-size:10px;text-decoration:none" href=mentions-legales.html>Mentions légales</a><a style="color:#ffffff59;font-family:Space Mono,monospace;font-size:10px;text-decoration:none" href=politique-confidentialite.html>Confidentialité</a><a style="color:#ffffff59;font-family:Space Mono,monospace;font-size:10px;text-decoration:none" href=cgu.html>CGU</a><a style="color:#ffffff59;font-family:Space Mono,monospace;font-size:10px;text-decoration:none" href=cookies.html>Cookies</a><a style="color:#ffffff59;font-family:Space Mono,monospace;font-size:10px;text-decoration:none" href="contact.html">✉️ Contact</a></div></div><div style="background:var(--bg);z-index:10;border-bottom:1px solid #ffffff12;display:flex;position:sticky;top:0"><button class="profile-tab-btn active" onclick="switchProfileTab('videos',this)" style="color:#fff;cursor:pointer;background:0 0;border:none;border-bottom:2px solid #7c5cfc;flex:1;padding:12px;font-family:Space Mono,monospace;font-size:11px" id=ptab-videos>🎬 VIDÉOS</button><button onclick="switchProfileTab('likes',this)" style="color:#fff6;cursor:pointer;background:0 0;border:none;border-bottom:2px solid #0000;flex:1;padding:12px;font-family:Space Mono,monospace;font-size:11px" class=profile-tab-btn id=ptab-likes>❤️ LIKES</button><button onclick="switchProfileTab('bookmarks',this)" style="color:#fff6;cursor:pointer;background:0 0;border:none;border-bottom:2px solid #0000;flex:1;padding:12px;font-family:Space Mono,monospace;font-size:11px" class=profile-tab-btn id=ptab-bookmarks>🔖 FAVORIS</button><button onclick="switchProfileTab('stats',this)" style="color:#fff6;cursor:pointer;background:0 0;border:none;border-bottom:2px solid #0000;flex:1;padding:12px;font-family:Space Mono,monospace;font-size:11px" class=profile-tab-btn id=ptab-stats>📊 STATS</button></div><div class=profile-videos-grid id=profileGrid></div><div id=profileStatsPanel style=flex-direction:column;gap:14px;padding:16px;display:none></div><div id=profileNotLoggedIn style=display:none><div class=empty-state><span class=ei>👤</span><p>Connecte-toi pour voir ton profil</p><button style="width:auto;margin-top:12px;padding:10px 28px" class=auth-btn onclick=openAuth()>Se connecter</button><button style="width:auto;margin-top:12px;padding:10px 28px;background:transparent;border:1.5px solid var(--accent);color:var(--accent)" class=auth-btn onclick="openAuth();if(authMode!=='signup')toggleAuthMode()">S'inscrire</button></div></div></div><div id=leaderboardScreen class=screen><div class=leaderboard-header><div class=leaderboard-title>👑 PALMARÈS VoltClip</div><div class=leaderboard-sub id=lbSub>Les votants les plus actifs de la communauté</div></div><div class=lb-tabs><button class="lb-tab active" onclick="switchLbTab('voters',this)">👑 VOTANTS</button><button class=lb-tab onclick="switchLbTab('videos',this)">🎬 VIDÉOS</button><button class=lb-tab onclick="switchLbTab('creators',this)">🌟 CRÉATEURS</button><button class=lb-tab onclick="switchLbTab('countries',this)">🌍 PAYS</button></div><div id=leaderboardList><div class="loader-dots"><span></span><span></span><span></span></div></div></div><div id=adminPanel><div class=admin-header><button class=admin-back onclick=closeAdminPanel()>←</button><span class=admin-title>🛡 Administration</span><span class=admin-badge>ADMIN</span></div><div class=admin-tabs><button class="admin-tab active" onclick="switchAdminTab('stats',this)">📊 Stats</button><button onclick="switchAdminTab('users',this)" class=admin-tab>👥 Users</button><button onclick="switchAdminTab('videos',this)" class=admin-tab>🎬 Vidéos</button><button onclick="switchAdminTab('battles',this)" class=admin-tab>⚔️ Battles</button><button onclick="switchAdminTab('reports',this)" class=admin-tab>🚨 Signalements</button></div><div class=admin-body id=adminBody><div class=admin-empty>Chargement...</div></div></div><div id=dmPage><div class=dm-header><button class=dm-back onclick=closeDmPage()>←</button><span class=dm-title>💬 Messages</span><button class=dm-new onclick=openNewDm()>+ Nouveau</button></div><div class=dm-list id=dmList><div class=empty-state><span class=ei>💬</span><p>Aucun message pour l'instant.<br>Envoie un DM à quelqu'un !</div></div></div><div id=dmConvPage><div class=dm-header><button class=dm-back onclick=closeDmConv()>←</button><div class=dm-avatar id=convAvatar style=width:34px;height:34px;font-size:14px></div><span class=dm-title id=convUsername>@user</span></div><div class=conv-messages id=convMessages></div><div class=conv-input-row><input onkeydown="if(event.key==='Enter')sendDm()" class=conv-input id=convInput placeholder=Message…><button class=conv-send onclick=sendDm()>➤</button></div></div><div id=newDmModal style=z-index:870;background:#000c;align-items:flex-end;display:none;position:fixed;inset:0><div style="background:var(--surface);border-radius:20px 20px 0 0;flex-direction:column;gap:12px;width:100%;max-height:70vh;padding:20px;display:flex"><div style=font-family:var(--font-mono);font-size:15px;font-weight:700>Nouveau message</div><input placeholder="🔍 Rechercher un utilisateur…" class=conv-input id=dmSearchInput oninput=searchDmUser(this.value) style=border-radius:12px><div id=dmUserResults style=flex-direction:column;flex:1;gap:4px;display:flex;overflow-y:auto></div><button style="color:var(--muted);font-family:var(--font-mono);cursor:pointer;background:0 0;border:none;padding:8px;font-size:13px" onclick=closeNewDm()>Annuler</button></div></div><div id=publicProfilePage><div class=pub-header><button class=pub-back onclick=closePublicProfile()>←</button><button onclick="openReportModal('user', currentPublicUserId)" style="color:var(--muted);cursor:pointer;background:0 0;border:none;margin-left:auto;font-size:20px">⋯</button></div><div class=pub-top><div class=pub-avatar id=pubAvatar></div><div class=pub-username id=pubUsername>@user</div><div class=pub-bio id=pubBio></div><div class=pub-stats><div class=pstat><span class=pstat-val id=pubVideos>0</span><span class=pstat-lbl>VIDÉOS</span></div><div class=pstat><span class=pstat-val id=pubFollowers>0</span><span class=pstat-lbl>ABONNÉS</span></div><div class=pstat><span class=pstat-val id=pubFollowing>0</span><span class=pstat-lbl>ABONNEMENTS</span></div><div class=pstat><span class=pstat-val id=pubBattlesWon style="color:#ffd700;font-size:13px">0</span><span class=pstat-lbl style=font-size:8px>⚔️ GAGNÉS</span></div><div class=pstat><span class=pstat-val id=pubBattlesLost style="color:#fc5c7d;font-size:13px">0</span><span class=pstat-lbl style=font-size:8px>💀 PERDUS</span></div></div><div class=pub-actions><button class="pub-follow-btn follow" id=pubFollowBtn onclick=togglePublicFollow()>S'abonner</button><button onclick="startDmWithUser(currentPublicUserId, currentPublicUsername)" class=pub-dm-btn>💬 Message</button>
+</div><div class=screen id=rankScreen><div class=rank-header><div class=rank-title>🏆 CLASSEMENT MONDIAL</div><div style="color:var(--muted);font-family:var(--font-mono);font-size:10px;margin-bottom:8px">Meilleures vidéos de la communauté VoltClip</div><div class=period-tabs><button class="period-tab active" onclick="loadRank('week',this)">SEMAINE</button><button onclick="loadRank('month',this)" class=period-tab>MOIS</button><button onclick="loadRank('all',this)" class=period-tab>ALL TIME</button></div></div><div id=rankList><div class=loader-dots><span></span><span></span><span></span></div></div></div><div class=screen id=notifScreen><div class=notif-header>🔔 NOTIFICATIONS</div><div id=notifList></div></div><div class=screen id=profileScreen><div class=profile-top><div class=profile-avatar id=profileAvatarWrap onclick=changeAvatar()><span id=profileAvatarInitial>👤</span><div class=profile-avatar-edit>✏️</div></div><div class=profile-username id=profileUsername>—</div><div style="color:gold;margin-top:-4px;font-family:Space Mono,monospace;font-size:12px;display:none" id=profileStreakBadge></div><div id=profileLevelBadge style="display:none;margin-top:2px"></div><div id=profilePersonalRank></div><div class=profile-bio id=profileBio>Aucune bio</div><div class=profile-stats><div class=pstat><span class=pstat-val id=pVideos>0</span><span class=pstat-lbl>VIDÉOS</span></div><div class=pstat><span class=pstat-val id=pFollowers>0</span><span class=pstat-lbl>ABONNÉS</span></div><div class=pstat><span class=pstat-val id=pFollowing>0</span><span class=pstat-lbl>ABONNEMENTS</span></div><div class=pstat><span class=pstat-val id=pTotalLikes>0</span><span class=pstat-lbl>❤️ LIKES</span></div><div class=pstat><span class=pstat-val id=pBattlesWon style="color:#ffd700;font-size:13px">0</span><span class=pstat-lbl style=font-size:8px>⚔️ GAGNÉS</span></div><div class=pstat><span class=pstat-val id=pBattlesLost style="color:#fc5c7d;font-size:13px">0</span><span class=pstat-lbl style=font-size:8px>💀 PERDUS</span></div><div class=pstat onclick="showCoinsInfo()" style="cursor:pointer"><span class=pstat-val id=pCoins style="color:#ffd700;font-size:13px">0</span><span class=pstat-lbl style=font-size:8px>💰 COINS</span></div></div><div class=profile-actions><button class="profile-btn primary" onclick=editProfile()>✏️ Modifier</button><button class=profile-btn onclick=openMissionsModal()>🎯 Missions</button><button class=profile-btn onclick=openShopModal()>💰 Shop</button><button class=profile-btn onclick=donateToUser()>💜 Soutenir</button><button class=profile-btn onclick=shareProfile()>🔗 Partager</button><button class=profile-btn onclick=signOut() style=width:100%>Déconnexion</button></div><div id=adminPanelBtn style=text-align:center;margin-top:10px;display:none><button style="color:#fff;cursor:pointer;letter-spacing:.04em;background:linear-gradient(135deg,#f44,#fc5c7d);border:none;border-radius:20px;width:100%;padding:10px 22px;font-family:Space Mono,monospace;font-size:11px;font-weight:700" onclick=openAdminPanel()>🛡 Panneau Administrateur</button></div><div style=text-align:center;flex-wrap:wrap;justify-content:center;gap:16px;margin-top:16px;display:flex><a style="color:#ffffff59;font-family:Space Mono,monospace;font-size:10px;text-decoration:none" href=mentions-legales.html>Mentions légales</a><a style="color:#ffffff59;font-family:Space Mono,monospace;font-size:10px;text-decoration:none" href=politique-confidentialite.html>Confidentialité</a><a style="color:#ffffff59;font-family:Space Mono,monospace;font-size:10px;text-decoration:none" href=cgu.html>CGU</a><a style="color:#ffffff59;font-family:Space Mono,monospace;font-size:10px;text-decoration:none" href=cookies.html>Cookies</a><a style="color:#ffffff59;font-family:Space Mono,monospace;font-size:10px;text-decoration:none" href="contact.html">✉️ Contact</a></div></div><div style="background:var(--bg);z-index:10;border-bottom:1px solid #ffffff12;display:flex;position:sticky;top:0"><button class="profile-tab-btn active" onclick="switchProfileTab('videos',this)" style="color:#fff;cursor:pointer;background:0 0;border:none;border-bottom:2px solid #7c5cfc;flex:1;padding:12px;font-family:Space Mono,monospace;font-size:11px" id=ptab-videos>🎬 VIDÉOS</button><button onclick="switchProfileTab('likes',this)" style="color:#fff6;cursor:pointer;background:0 0;border:none;border-bottom:2px solid #0000;flex:1;padding:12px;font-family:Space Mono,monospace;font-size:11px" class=profile-tab-btn id=ptab-likes>❤️ LIKES</button><button onclick="switchProfileTab('bookmarks',this)" style="color:#fff6;cursor:pointer;background:0 0;border:none;border-bottom:2px solid #0000;flex:1;padding:12px;font-family:Space Mono,monospace;font-size:11px" class=profile-tab-btn id=ptab-bookmarks>🔖 FAVORIS</button><button onclick="switchProfileTab('stats',this)" style="color:#fff6;cursor:pointer;background:0 0;border:none;border-bottom:2px solid #0000;flex:1;padding:12px;font-family:Space Mono,monospace;font-size:11px" class=profile-tab-btn id=ptab-stats>📊 STATS</button></div><div class=profile-videos-grid id=profileGrid></div><div id=profileStatsPanel style=flex-direction:column;gap:14px;padding:16px;display:none></div><div id=profileNotLoggedIn style=display:none><div class=empty-state><span class=ei>👤</span><p>Connecte-toi pour voir ton profil</p><button style="width:auto;margin-top:12px;padding:10px 28px" class=auth-btn onclick=openAuth()>Se connecter</button><button style="width:auto;margin-top:12px;padding:10px 28px;background:transparent;border:1.5px solid var(--accent);color:var(--accent)" class=auth-btn onclick="openAuth();if(authMode!=='signup')toggleAuthMode()">S'inscrire</button></div></div></div><div id=leaderboardScreen class=screen><div class=leaderboard-header><div class=leaderboard-title>👑 PALMARÈS VoltClip</div><div class=leaderboard-sub id=lbSub>Les votants les plus actifs de la communauté</div></div><div class=lb-tabs><button class="lb-tab active" onclick="switchLbTab('voters',this)">👑 VOTANTS</button><button class=lb-tab onclick="switchLbTab('videos',this)">🎬 VIDÉOS</button><button class=lb-tab onclick="switchLbTab('creators',this)">🌟 CRÉATEURS</button><button class=lb-tab onclick="switchLbTab('countries',this)">🌍 PAYS</button></div><div id=leaderboardList><div class="loader-dots"><span></span><span></span><span></span></div></div></div><div id=adminPanel><div class=admin-header><button class=admin-back onclick=closeAdminPanel()>←</button><span class=admin-title>🛡 Administration</span><span class=admin-badge>ADMIN</span></div><div class=admin-tabs><button class="admin-tab active" onclick="switchAdminTab('stats',this)">📊 Stats</button><button onclick="switchAdminTab('users',this)" class=admin-tab>👥 Users</button><button onclick="switchAdminTab('videos',this)" class=admin-tab>🎬 Vidéos</button><button onclick="switchAdminTab('battles',this)" class=admin-tab>⚔️ Battles</button><button onclick="switchAdminTab('reports',this)" class=admin-tab>🚨 Signalements</button></div><div class=admin-body id=adminBody><div class=admin-empty>Chargement...</div></div></div><div id=dmPage><div class=dm-header><button class=dm-back onclick=closeDmPage()>←</button><span class=dm-title>💬 Messages</span><button class=dm-new onclick=openNewDm()>+ Nouveau</button></div><div class=dm-list id=dmList><div class=empty-state><span class=ei>💬</span><p>Aucun message pour l'instant.<br>Envoie un DM à quelqu'un !</div></div></div><div id=dmConvPage><div class=dm-header><button class=dm-back onclick=closeDmConv()>←</button><div class=dm-avatar id=convAvatar style=width:34px;height:34px;font-size:14px></div><span class=dm-title id=convUsername>@user</span></div><div class=conv-messages id=convMessages></div><div class=conv-input-row><input onkeydown="if(event.key==='Enter')sendDm()" class=conv-input id=convInput placeholder=Message…><button class=conv-send onclick=sendDm()>➤</button></div></div><div id=newDmModal style=z-index:870;background:#000c;align-items:flex-end;display:none;position:fixed;inset:0><div style="background:var(--surface);border-radius:20px 20px 0 0;flex-direction:column;gap:12px;width:100%;max-height:70vh;padding:20px;display:flex"><div style=font-family:var(--font-mono);font-size:15px;font-weight:700>Nouveau message</div><input placeholder="🔍 Rechercher un utilisateur…" class=conv-input id=dmSearchInput oninput=searchDmUser(this.value) style=border-radius:12px><div id=dmUserResults style=flex-direction:column;flex:1;gap:4px;display:flex;overflow-y:auto></div><button style="color:var(--muted);font-family:var(--font-mono);cursor:pointer;background:0 0;border:none;padding:8px;font-size:13px" onclick=closeNewDm()>Annuler</button></div></div><div id=publicProfilePage><div class=pub-header><button class=pub-back onclick=closePublicProfile()>←</button><button onclick="openReportModal('user', currentPublicUserId)" style="color:var(--muted);cursor:pointer;background:0 0;border:none;margin-left:auto;font-size:20px">⋯</button></div><div class=pub-top><div class=pub-avatar id=pubAvatar></div><div class=pub-username id=pubUsername>@user</div><div class=pub-bio id=pubBio></div><div class=pub-stats><div class=pstat><span class=pstat-val id=pubVideos>0</span><span class=pstat-lbl>VIDÉOS</span></div><div class=pstat><span class=pstat-val id=pubFollowers>0</span><span class=pstat-lbl>ABONNÉS</span></div><div class=pstat><span class=pstat-val id=pubFollowing>0</span><span class=pstat-lbl>ABONNEMENTS</span></div><div class=pstat><span class=pstat-val id=pubBattlesWon style="color:#ffd700;font-size:13px">0</span><span class=pstat-lbl style=font-size:8px>⚔️ GAGNÉS</span></div><div class=pstat><span class=pstat-val id=pubBattlesLost style="color:#fc5c7d;font-size:13px">0</span><span class=pstat-lbl style=font-size:8px>💀 PERDUS</span></div></div><div class=pub-actions><button class="pub-follow-btn follow" id=pubFollowBtn onclick=togglePublicFollow()>S'abonner</button><button onclick="startDmWithUser(currentPublicUserId, currentPublicUsername)" class=pub-dm-btn>💬 Message</button>
 <button class="pub-follow-btn follow" style="background:linear-gradient(135deg,#fc5c7d,#7c5cfc);flex:none;padding:10px 14px" onclick="openChallengeModal(currentPublicUserId, currentPublicUsername)">⚔️ Défier</button></div><button onclick="adminBanUser(currentPublicUserId,'cet utilisateur')" style="color:#f44;width:90%;font-family:var(--font-mono);cursor:pointer;background:#ff44441a;border:1.5px solid #f44;border-radius:12px;margin-top:8px;margin-left:5%;padding:10px;font-size:12px;font-weight:700;display:none" id=adminBanBtn>🚫 BANNIR CET UTILISATEUR</button></div><div class=pub-grid id=pubGrid></div></div><div id=reportModal><div class=report-box><div class=report-title>🚩 Signaler</div><button onclick="submitReport('spam')" class=report-opt>🗑 Spam ou contenu indésirable</button><button onclick="submitReport('hate')" class=report-opt>😡 Discours haineux</button><button onclick="submitReport('violence')" class=report-opt>⚠️ Violence ou contenu dangereux</button><button onclick="submitReport('nude')" class=report-opt>🔞 Nudité ou contenu sexuel</button><button onclick="submitReport('false')" class=report-opt>❌ Fausse information</button><button class=report-cancel onclick=closeReportModal()>Annuler</button></div></div><div id=soundPage><div class=sound-page-header><button class=sound-page-back onclick=closeSoundPage()>←</button><div style=flex:1><div class=sound-page-name id=soundPageName>🎵 Son</div><div class=sound-page-count id=soundPageCount>0 vidéos</div></div><button class=sound-use-btn onclick=useSoundInUpload()>+ Utiliser ce son</button></div><div class=sound-page-grid id=soundPageGrid></div></div><div id=ageGateModal style="display:none;z-index:2000;background:#0a0a0f;flex-direction:column;justify-content:center;align-items:center;gap:0;padding:20px;position:fixed;inset:0"><div style="flex-direction:column;align-items:center;gap:20px;width:100%;max-width:360px;display:flex"><div style="font-size:48px">⚡</div><div style="text-align:center;color:#fff;font-family:Space Mono,monospace;font-size:22px;font-weight:700">VoltClip</div><div style="color:#ffffff8c;text-align:center;font-size:13px;line-height:1.6">Conformément à la loi française,<br>tu dois avoir <strong style="color:#fff">15 ans minimum</strong><br>pour accéder à VoltClip.</div><div style="background:#13131a;border-radius:16px;flex-direction:column;gap:14px;width:100%;padding:20px;display:flex"><div style="color:#ffffff80;text-align:center;font-family:Space Mono,monospace;font-size:12px">QUELLE EST TA DATE DE NAISSANCE ?</div><div style="gap:8px;display:flex"><select style="color:#fff;text-align:center;background:#1c1c27;border:1.5px solid #ffffff1a;border-radius:12px;outline:none;flex:1;padding:12px 8px;font-size:15px" id=ageDaySelect><option value="">Jour</option></select><select style="color:#fff;text-align:center;background:#1c1c27;border:1.5px solid #ffffff1a;border-radius:12px;outline:none;flex:1.4;padding:12px 8px;font-size:15px" id=ageMonthSelect><option value="">Mois</option><option value=1>Janvier</option><option value=2>Février</option><option value=3>Mars</option><option value=4>Avril</option><option value=5>Mai</option><option value=6>Juin</option><option value=7>Juillet</option><option value=8>Août</option><option value=9>Septembre</option><option value=10>Octobre</option><option value=11>Novembre</option><option value=12>Décembre</option></select><select style="color:#fff;text-align:center;background:#1c1c27;border:1.5px solid #ffffff1a;border-radius:12px;outline:none;flex:1.2;padding:12px 8px;font-size:15px" id=ageYearSelect><option value="">Année</option></select></div><div id=ageGateErr style="color:#fc5c7d;text-align:center;font-size:12px;display:none"></div><button style="color:#fff;cursor:pointer;background:linear-gradient(135deg,#7c5cfc,#fc5c7d);border:none;border-radius:12px;width:100%;padding:14px;font-family:Space Mono,monospace;font-size:14px;font-weight:700" onclick=submitAgeGate()>Confirmer mon âge ⚡</button></div><div style="color:#ffffff40;text-align:center;font-size:10px;line-height:1.5">Loi n°2023-566 — Protection des mineurs<br>Tes données ne sont pas transmises à des tiers.</div></div></div><div id=storyViewer><div id=storyProgressBar><div id=storyProgressFill></div></div><div id=storyHeader><span class=story-uname id=storyUserSpan style=color:#fff;font-size:13px;font-weight:700></span><span style=flex:1></span><button id=storyClose onclick=closeStory()>✕</button></div><video autoplay id=storyVideo loop muted playsinline></video></div><div id=authModal><div class=auth-box><button class=auth-close onclick=closeAuth()>✕</button><div class=auth-title id=authTitle>Connexion</div><input class=auth-input id=authEmail placeholder=Email type=email><input class=auth-input id=authUsername placeholder=Pseudo style=display:none><div id=authBirthdateRow style="display:none;gap:6px"><select class=auth-input id=authBirthDay style="flex:1;padding:12px 6px;text-align:center"><option value="">Jour</option></select><select class=auth-input id=authBirthMonth style="flex:1.4;padding:12px 6px;text-align:center"><option value="">Mois</option><option value=1>Janvier</option><option value=2>Février</option><option value=3>Mars</option><option value=4>Avril</option><option value=5>Mai</option><option value=6>Juin</option><option value=7>Juillet</option><option value=8>Août</option><option value=9>Septembre</option><option value=10>Octobre</option><option value=11>Novembre</option><option value=12>Décembre</option></select><select class=auth-input id=authBirthYear style="flex:1.2;padding:12px 6px;text-align:center"><option value="">Année</option></select></div><input placeholder="Mot de passe" class=auth-input id=authPassword type=password><div class=auth-err id=authErr></div><div id=authConfirmMsg style="display:none;background:#7c5cfc22;border:1px solid #7c5cfc66;border-radius:12px;padding:14px;text-align:center;font-size:13px;line-height:1.6;color:#fff"></div><button class=auth-btn id=authSubmitBtn onclick=submitAuth()>Continuer</button><div class=auth-switch id=authSwitch onclick=toggleAuthMode()>Pas de compte ? <span>S'inscrire</span></div></div></div><div id=uploadModal><div id=uploadStep1><video autoplay id=uploadBgPreview loop muted playsinline style=display:none></video><div id=uploadStep1Overlay><div class=upload-pick-icon>🎬</div><div class=upload-pick-title>Balance ton clip ⚡</div><div class=upload-pick-sub>Clips, battles, créations originales...<br>La communauté VoltClip t'attend ⚡</div><div class=upload-pick-btns><button class="upload-pick-btn gallery" onclick="document.getElementById('fileInput').click()"><span>📁</span><p>FICHIER</button><button class="upload-pick-btn camera" onclick=openCamera()><span>🎥</span><p>CAMÉRA</button></div><div style="color:#ffffff50;text-align:center;font-family:'Space Mono',monospace;font-size:10px;margin-top:8px">📁 Depuis ton PC / téléphone &nbsp;|&nbsp; 🎥 Enregistrer maintenant</div><button style="color:#fff6;cursor:pointer;background:0 0;border:none;margin-top:16px;font-family:Space Mono,monospace;font-size:12px" onclick=closeUpload()>Annuler</button></div><input accept="video/*,video/mp4,video/webm,video/mov,video/avi,video/quicktime" id=fileInput onchange=handleFileSelect(this) style=display:none type=file><input accept="video/*" capture="environment" id=camInput onchange=handleFileSelect(this) style=display:none type=file></div><div id=uploadStep2><div id=uploadStep2Header><button id=uploadStep2Back onclick=uploadGoBack()>←</button><span class=upload-step2-title>Détails de la vidéo</span></div><div id=uploadStep2Body><div id=uploadStep2PreviewWrap><video autoplay id=uploadPreviewVideo loop muted playsinline></video><div class=upload-step2-badge id=uploadTypeBadge>🎬 VIDÉO</div></div><div id=uploadStep2Form><div class=upload-type-row><button class="upload-type-btn active" onclick="setUploadType('video')" id=typeVideo>🎬 Vidéo</button></div><div style="gap:8px;margin-bottom:4px;display:flex"><button class="upload-dur-btn active" onclick="setUploadDuration(240,this)">4 min max (100 MB)</button></div><div id=uploadVideoFields style=flex-direction:column;gap:10px;display:flex><input placeholder="✏️ Titre *" class=upload-input id=uploadTitle><input placeholder="📝 Description (optionnel)" class=upload-input id=uploadDesc><div id="autoTagsDisplay" style="display:none;background:var(--surface2);border:1.5px solid var(--accent);border-radius:12px;padding:11px 14px;font-size:13px;color:var(--accent);font-family:var(--font-mono);letter-spacing:.03em"></div><input type="hidden" id=uploadTags value=""><div id="categoryPicker" style="display:flex;flex-direction:column;gap:8px">
   <div style="font-family:var(--font-mono);font-size:10px;color:var(--accent);letter-spacing:.1em">⚔️ CATÉGORIE *</div>
   <div id="catGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px"></div>
@@ -1628,6 +1628,7 @@ async function voteBattle(battleId, side, el) {
   // Insert vote
   await sb.from('battle_votes').insert({ battle_id: battleId, user_id: currentUser.id, side })
   localStorage.setItem(_lsKey, side) // marquer voté localement
+  document.dispatchEvent(new Event('voltclip:voted'));
 
   // Update compteur
   const field = side === 'left' ? 'votes_left' : 'votes_right'
@@ -1925,6 +1926,7 @@ function _showBattleExpiredOverlay(div, b, pctLeft, pctRight, userLeft, userRigh
       )
       // 💰 Coins de victoire : +25 de base
       await awardCoins(winnerUserId, 25, 'battle_win');
+      if (winnerUserId === currentUser?.id) document.dispatchEvent(new Event('voltclip:won'));
       // Si battle avec mise → distribuer le pot (80% gagnant, 20% brûlé)
       if (b.stake_coins > 0) {
         const winnerGets = Math.floor(b.stake_coins * 2 * 0.8);
@@ -2194,7 +2196,7 @@ feed.appendChild(el)}),!feed._observer){let watchTimers={};feed._observer=new In
 // Preload intelligent : actif + 2 suivants seulement
 activeVideoEl&&activeVideoEl!==vid&&(activeVideoEl.pause(),activeVideoEl.currentTime=0),activeVideoEl=vid,vid&&(vid.preload=`auto`,vid.load());let next=e.target.nextElementSibling,next2=next?.nextElementSibling;if(next){let nv=next.querySelector(`video`);nv&&nv.preload!==`auto`&&(nv.preload=`auto`,nv.load())}if(next2){let nv2=next2.querySelector(`video`);nv2&&nv2.preload!==`auto`&&(nv2.preload=`auto`,nv2.load())}if(currentTab===`feed`&&vid?.play().catch(()=>{}),vidId){
 // Throttle : ne compter qu\'une fois par video par session
-let _viewedThisSession=window._vcViewedSession||(window._vcViewedSession=/* @__PURE__ */ new Set);if(!_viewedThisSession.has(vidId)){_viewedThisSession.add(vidId),sb.rpc(`increment_views`,{video_id:vidId}),checkViralMilestone(vidId);let seen=new Set(JSON.parse(localStorage.getItem(`voltclip_seen`)||`[]`));if(seen.add(vidId),seen.size>200){let arr=[...seen];arr.splice(0,50),seen.clear(),arr.forEach(i=>seen.add(i))}localStorage.setItem(`voltclip_seen`,JSON.stringify([...seen]));let sc=parseInt(localStorage.getItem(`voltclip_session_count`)||`0`)+1;localStorage.setItem(`voltclip_session_count`,sc),sc===5&&toast(`🔥 T'as vu 5 vidéos — encore une ?`),sc===15&&toast(`⚡ 15 vidéos ! Tu es accro 😂`)}}vidId&&(watchTimers[vidId]={start:Date.now(),sent:!1});startLiveReactions(vidId),navigator.vibrate&&navigator.vibrate(8)}else{if(vid?.pause(),stopLiveReactions(),vidId&&watchTimers[vidId]&&!watchTimers[vidId].sent){let watchSec=Math.round((Date.now()-watchTimers[vidId].start)/1e3);watchSec>=1&&currentUser&&(sb.from(`video_watch_times`).insert({user_id:currentUser.id,video_id:vidId,watch_seconds:watchSec,skipped_fast:watchSec<2}).then(()=>{}),watchTimers[vidId].sent=!0)}let items=feed.querySelectorAll(`.video-item`);Array.from(items).indexOf(e.target)>=items.length-3&&!feedAllLoaded&&!feedLoading&&(feedPage++,loadFeed(!0))}})},{threshold:.6})}
+let _viewedThisSession=window._vcViewedSession||(window._vcViewedSession=/* @__PURE__ */ new Set);if(!_viewedThisSession.has(vidId)){_viewedThisSession.add(vidId),sb.rpc(`increment_views`,{video_id:vidId}),checkViralMilestone(vidId),document.dispatchEvent(new Event('voltclip:watched'));let seen=new Set(JSON.parse(localStorage.getItem(`voltclip_seen`)||`[]`));if(seen.add(vidId),seen.size>200){let arr=[...seen];arr.splice(0,50),seen.clear(),arr.forEach(i=>seen.add(i))}localStorage.setItem(`voltclip_seen`,JSON.stringify([...seen]));let sc=parseInt(localStorage.getItem(`voltclip_session_count`)||`0`)+1;localStorage.setItem(`voltclip_session_count`,sc),sc===5&&toast(`🔥 T'as vu 5 vidéos — encore une ?`),sc===15&&toast(`⚡ 15 vidéos ! Tu es accro 😂`)}}vidId&&(watchTimers[vidId]={start:Date.now(),sent:!1});startLiveReactions(vidId),navigator.vibrate&&navigator.vibrate(8)}else{if(vid?.pause(),stopLiveReactions(),vidId&&watchTimers[vidId]&&!watchTimers[vidId].sent){let watchSec=Math.round((Date.now()-watchTimers[vidId].start)/1e3);watchSec>=1&&currentUser&&(sb.from(`video_watch_times`).insert({user_id:currentUser.id,video_id:vidId,watch_seconds:watchSec,skipped_fast:watchSec<2}).then(()=>{}),watchTimers[vidId].sent=!0)}let items=feed.querySelectorAll(`.video-item`);Array.from(items).indexOf(e.target)>=items.length-3&&!feedAllLoaded&&!feedLoading&&(feedPage++,loadFeed(!0))}})},{threshold:.6})}
 // Virtualisation DOM avec debounce
 if(feed.querySelectorAll(`.video-item`).forEach(el=>{el._observed||=(feed._observer.observe(el),!0)}),!feed._virtListener){feed._virtListener=!0;let _virtRaf=null;feed.addEventListener(`scroll`,()=>{_virtRaf||=requestAnimationFrame(()=>{_virtRaf=null;let items=Array.from(feed.querySelectorAll(`.video-item`)),feedRect=feed.getBoundingClientRect();items.forEach(item=>{let vid=item.querySelector(`video`);vid&&(Math.abs(item.getBoundingClientRect().top-feedRect.top)>window.innerHeight*3?vid.src&&!vid.dataset.srcBak&&(vid.dataset.srcBak=vid.src,vid.pause(),vid.removeAttribute(`src`),vid.load()):vid.dataset.srcBak&&!vid.src&&(vid.src=vid.dataset.srcBak,delete vid.dataset.srcBak))})})},{passive:!0})}}
 // ── Suggestions d'abonnements ──
@@ -2310,7 +2312,7 @@ async function toggleLike(videoId,isLiked){
     const newLiked=!alreadyLiked;
     // Mise à jour UI optimiste
     btn.querySelector(`.vi`).textContent=newLiked?`❤️`:`🤍`;
-    newLiked?(btn.classList.add(`liked`),playUISound(`like`),haptic([10,5,20])):btn.classList.remove(`liked`);
+    newLiked?(btn.classList.add(`liked`),playUISound(`like`),haptic([10,5,20]),document.dispatchEvent(new Event('voltclip:liked'))):btn.classList.remove(`liked`);
     btn.setAttribute(`onclick`,`toggleLike('${videoId}',${newLiked})`);
     let rawCount=parseInt(cnt.dataset.raw||cnt.textContent)||0,newCount=newLiked?rawCount+1:Math.max(0,rawCount-1);
     cnt.dataset.raw=newCount;cnt.textContent=fmtNum(newCount);
@@ -2766,7 +2768,8 @@ let{data:videos}=await sb.from(`videos`).select(`id, title, views_count, likes_c
     </div>
   `).join(``)}async function refreshProfile(){let notLogged=document.getElementById(`profileNotLoggedIn`),grid=document.getElementById(`profileGrid`);if(!currentUser){notLogged.style.display=`block`,grid.style.display=`none`;const _hc=document.getElementById('headerCoins');if(_hc)_hc.style.display='none';return}notLogged.style.display=`none`,grid.style.display=`grid`;const _hcShow=document.getElementById('headerCoins');if(_hcShow)_hcShow.style.display='inline-flex';let{data:profile}=await sb.from(`profiles`).select(`*`).eq(`id`,currentUser.id).single();if(!profile)return;_cachedProfile=profile;document.getElementById(`profileUsername`).textContent=`@`+profile.username,document.getElementById(`profileBio`).innerHTML=renderBio(profile.bio),document.getElementById(`pVideos`).textContent=fmtNum(profile.videos_count),document.getElementById(`pFollowers`).textContent=fmtNum(profile.followers_count),document.getElementById(`pFollowing`).textContent=fmtNum(profile.following_count);const _ppBtn=document.getElementById(`profilePaypalBtn`);if(_ppBtn)_ppBtn.textContent=profile.paypal_link?`💜 PayPal ✓`:`💜 PayPal`;
 // Total likes cumulés
-let{data:likesSum}=await sb.from(`videos`).select(`likes_count`).eq(`user_id`,currentUser.id).eq(`status`,`active`),totalLikes=(likesSum||[]).reduce((s,v)=>s+(v.likes_count||0),0);document.getElementById(`pTotalLikes`).textContent=fmtNum(totalLikes),document.getElementById(`pBattlesWon`).textContent=fmtNum(profile.battles_won||0),document.getElementById(`pBattlesLost`).textContent=fmtNum(profile.battles_lost||0);const _pCoinsEl=document.getElementById('pCoins');if(_pCoinsEl)_pCoinsEl.textContent=fmtNum(profile.coins||0);const _hCoinsEl=document.getElementById('headerCoins');if(_hCoinsEl)_hCoinsEl.textContent='💰 '+fmtNum(profile.coins||0);profile.avatar_url?document.getElementById(`profileAvatarWrap`).innerHTML=`<img src="${profile.avatar_url}" alt=""><div class="profile-avatar-edit">✏️</div>`:document.getElementById(`profileAvatarInitial`).textContent=profile.username[0].toUpperCase(),await updateStreak(profile);loadPersonalRank();loadProfileGrid()}async function updateStreak(profile){
+let{data:likesSum}=await sb.from(`videos`).select(`likes_count`).eq(`user_id`,currentUser.id).eq(`status`,`active`),totalLikes=(likesSum||[]).reduce((s,v)=>s+(v.likes_count||0),0);document.getElementById(`pTotalLikes`).textContent=fmtNum(totalLikes),document.getElementById(`pBattlesWon`).textContent=fmtNum(profile.battles_won||0),document.getElementById(`pBattlesLost`).textContent=fmtNum(profile.battles_lost||0);const _pCoinsEl=document.getElementById('pCoins');if(_pCoinsEl)_pCoinsEl.textContent=fmtNum(profile.coins||0);const _hCoinsEl=document.getElementById('headerCoins');if(_hCoinsEl)_hCoinsEl.textContent='💰 '+fmtNum(profile.coins||0);profile.avatar_url?document.getElementById(`profileAvatarWrap`).innerHTML=`<img src="${profile.avatar_url}" alt=""><div class="profile-avatar-edit">✏️</div>`:document.getElementById(`profileAvatarInitial`).textContent=profile.username[0].toUpperCase(),await updateStreak(profile);renderLevelBadge(profile);loadPersonalRank();loadProfileGrid();
+  document.dispatchEvent(new CustomEvent('voltclip:profile_loaded', { detail: { profile } }));async function updateStreak(profile){
   if(!currentUser)return;
   const badge=document.getElementById(`profileStreakBadge`);
   const todayISO=new Date().toISOString().slice(0,10);
@@ -2777,14 +2780,16 @@ let{data:likesSum}=await sb.from(`videos`).select(`likes_count`).eq(`user_id`,cu
   if(lastLogin!==todayISO){
     newStreak=lastLogin===yesterdayISO?streak+1:1;
     await sb.from(`profiles`).update({last_login:todayISO,login_streak:newStreak}).eq(`id`,currentUser.id);
-    // Banner welcome back à la place du simple toast
-    showWelcomeBack(newStreak, lastLogin);
+    // 💰 Coins streak
+    const streakCoins = newStreak>=30?50:newStreak>=7?20:newStreak>=3?10:5;
+    await awardCoins(currentUser.id, streakCoins, 'daily_streak');
+    showWelcomeBack(newStreak, lastLogin, streakCoins);
   }
   if(newStreak>=2){badge.style.display=`block`;badge.textContent=`${newStreak>=30?`👑`:newStreak>=7?`🏆`:`🔥`} ${newStreak} jour${newStreak>1?`s`:``} de suite`;}
 }
 
 // ── Welcome back banner ──
-async function showWelcomeBack(streak, lastLoginISO) {
+async function showWelcomeBack(streak, lastLoginISO, streakCoins) {
   // Éviter double banner
   if(document.getElementById('welcomeBackBanner')) return;
   // Compter les nouveaux battles depuis la dernière connexion
@@ -2804,6 +2809,7 @@ async function showWelcomeBack(streak, lastLoginISO) {
   const streakLine = streak >= 2
     ? `${streakEmoji} ${streak} jours de suite — continue !`
     : lastLoginISO ? `⚡ Bon retour sur VoltClip !` : `🎉 Bienvenue sur VoltClip !`;
+  const coinsLine = streakCoins ? `💰 +${streakCoins} coins de connexion !` : '';
   const battlesLine = newBattles > 0
     ? `⚔️ ${newBattles} nouveau${newBattles>1?'x':''} battle${newBattles>1?'s':''} t'attend${newBattles>1?'ent':''}  — vas voter !`
     : `⚔️ Les battles t'attendent !`;
@@ -2815,7 +2821,7 @@ async function showWelcomeBack(streak, lastLoginISO) {
       <span style="font-size:30px">${streakEmoji}</span>
       <div style="flex:1;min-width:0">
         <div style="font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${streakLine}</div>
-        <div style="font-size:11px;color:rgba(255,255,255,.75);margin-top:3px">${battlesLine}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.75);margin-top:3px">${coinsLine || battlesLine}</div>
       </div>
       <button onclick="document.getElementById('welcomeBackBanner').remove()" style="background:rgba(0,0,0,.2);border:none;color:rgba(255,255,255,.7);font-size:17px;cursor:pointer;padding:0 4px;line-height:1;flex-shrink:0;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center">×</button>
     </div>`;
@@ -3629,6 +3635,7 @@ async function submitUpload() {
     // 💰 +10 coins pour la publication
     if (currentUser) {
       await awardCoins(currentUser.id, 10, 'video_upload');
+      document.dispatchEvent(new Event('voltclip:posted'));
       setTimeout(() => toast('💰 +10 coins pour ta publication !'), 800);
     }
     closeUpload();
@@ -4819,6 +4826,384 @@ function confirmBoost() {
   closeBoostModal()
   toast('📧 Email ouvert ! On active ton boost sous 24h.')
 }
+</script>
+
+<!-- ═══════════════════════════════════════════════════════
+     GAMIFICATION — MISSIONS / ACHIEVEMENTS / LEVEL / SHOP
+     ═══════════════════════════════════════════════════════ -->
+
+<!-- MISSIONS MODAL -->
+<div id="missionsModal" style="display:none;position:fixed;inset:0;z-index:1600;background:rgba(0,0,0,.88);flex-direction:column;justify-content:flex-end">
+  <div style="background:#13131a;border-radius:24px 24px 0 0;padding:0 0 max(24px,env(safe-area-inset-bottom));max-height:90vh;overflow-y:auto;display:flex;flex-direction:column">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px 10px">
+      <div style="font-family:'Space Mono',monospace;font-size:16px;font-weight:700">🎯 Missions du jour</div>
+      <button onclick="closeMissionsModal()" style="background:rgba(255,255,255,.1);border:none;color:#fff;width:30px;height:30px;border-radius:50%;font-size:16px;cursor:pointer">✕</button>
+    </div>
+    <div style="padding:0 16px 8px;color:rgba(255,255,255,.45);font-family:'Space Mono',monospace;font-size:10px" id="missionsResetTimer">Reset à minuit</div>
+    <div id="missionsList" style="padding:0 16px 16px;display:flex;flex-direction:column;gap:10px"></div>
+    <!-- ACHIEVEMENTS -->
+    <div style="padding:16px 20px 8px;font-family:'Space Mono',monospace;font-size:11px;color:rgba(255,255,255,.4);letter-spacing:.08em;border-top:1px solid rgba(255,255,255,.07)">BADGES DÉBLOQUÉS</div>
+    <div id="achievementsList" style="padding:0 16px 20px;display:flex;flex-wrap:wrap;gap:8px"></div>
+  </div>
+</div>
+
+<!-- SHOP MODAL -->
+<div id="shopModal" style="display:none;position:fixed;inset:0;z-index:1600;background:rgba(0,0,0,.88);flex-direction:column;justify-content:flex-end">
+  <div style="background:#13131a;border-radius:24px 24px 0 0;padding:0 0 max(24px,env(safe-area-inset-bottom));max-height:92vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px">
+      <div>
+        <div style="font-family:'Space Mono',monospace;font-size:17px;font-weight:700">💰 Boutique Coins</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">Achète des coins — dépense-les dans les battles</div>
+      </div>
+      <button onclick="closeShopModal()" style="background:rgba(255,255,255,.1);border:none;color:#fff;width:30px;height:30px;border-radius:50%;font-size:16px;cursor:pointer">✕</button>
+    </div>
+    <!-- Solde actuel -->
+    <div style="margin:0 16px 16px;background:linear-gradient(135deg,rgba(124,92,252,.18),rgba(255,215,0,.08));border:1px solid rgba(255,215,0,.25);border-radius:16px;padding:16px;text-align:center">
+      <div style="font-size:11px;color:rgba(255,255,255,.5);font-family:'Space Mono',monospace;margin-bottom:4px">TON SOLDE</div>
+      <div id="shopBalanceDisplay" style="font-size:36px;font-family:'Space Mono',monospace;color:#ffd700;font-weight:700">—</div>
+      <div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:2px">coins</div>
+    </div>
+    <!-- Packs coins -->
+    <div style="padding:0 16px;font-family:'Space Mono',monospace;font-size:10px;color:rgba(255,255,255,.4);letter-spacing:.08em;margin-bottom:10px">PACKS DE COINS</div>
+    <div style="display:flex;flex-direction:column;gap:10px;padding:0 16px 20px" id="shopPacksList">
+      <!-- généré par JS -->
+    </div>
+    <!-- Gagner gratuitement -->
+    <div style="margin:0 16px 8px;background:rgba(255,255,255,.04);border-radius:14px;padding:14px 16px">
+      <div style="font-family:'Space Mono',monospace;font-size:11px;font-weight:700;margin-bottom:10px">🎁 GAGNER DES COINS GRATUITEMENT</div>
+      <div style="display:flex;flex-direction:column;gap:8px;font-size:12px;color:rgba(255,255,255,.7)">
+        <div style="display:flex;justify-content:space-between"><span>🎬 Publier une vidéo</span><span style="color:#ffd700;font-family:'Space Mono',monospace;font-size:11px">+10</span></div>
+        <div style="display:flex;justify-content:space-between"><span>🔥 Connexion quotidienne</span><span style="color:#ffd700;font-family:'Space Mono',monospace;font-size:11px">+5 à +50</span></div>
+        <div style="display:flex;justify-content:space-between"><span>🏆 Gagner une battle</span><span style="color:#ffd700;font-family:'Space Mono',monospace;font-size:11px">+25</span></div>
+        <div style="display:flex;justify-content:space-between"><span>🎯 Missions daily</span><span style="color:#ffd700;font-family:'Space Mono',monospace;font-size:11px">+10 à +30</span></div>
+      </div>
+    </div>
+    <div style="padding:12px 16px 4px;color:rgba(255,255,255,.25);font-size:9px;font-family:'Space Mono',monospace;text-align:center">Paiement sécurisé via PayPal — Coins crédités sous 24h par l'équipe VoltClip</div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// XP / LEVEL SYSTEM (calculé sur données Supabase existantes)
+// ═══════════════════════════════════════
+const VC_LEVELS = [
+  { min:0,     name:'Novice',   emoji:'🌱', color:'#888' },
+  { min:500,   name:'Rookie',   emoji:'⚡', color:'#7c5cfc' },
+  { min:1500,  name:'Pro',      emoji:'🔥', color:'#fc5c7d' },
+  { min:4000,  name:'Expert',   emoji:'💎', color:'#00d4ff' },
+  { min:10000, name:'Légende',  emoji:'👑', color:'#ffd700' },
+];
+function computeXP(p) {
+  return (p.videos_count||0)*50 + (p.followers_count||0)*10
+    + (p.battles_won||0)*100 + (p.login_streak||0)*15
+    + Math.min(p.coins||0, 2000);
+}
+function getLevel(xp) {
+  let lv=VC_LEVELS[0];
+  for(const l of VC_LEVELS){ if(xp>=l.min) lv=l; else break; }
+  const idx=VC_LEVELS.indexOf(lv), next=VC_LEVELS[idx+1];
+  return {...lv, xp, pct:next?Math.min(100,Math.round((xp-lv.min)/(next.min-lv.min)*100)):100, nextXp:next?.min, nextName:next?.name};
+}
+function renderLevelBadge(p) {
+  const el=document.getElementById('profileLevelBadge'); if(!el)return;
+  const lv=getLevel(computeXP(p));
+  el.style.display='block';
+  el.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;gap:4px;margin:4px 0 6px">
+    <div style="font-size:11px;font-family:'Space Mono',monospace;color:${lv.color};font-weight:700">${lv.emoji} ${lv.name} · ${lv.xp} XP</div>
+    <div style="width:160px;height:6px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden">
+      <div style="height:100%;width:${lv.pct}%;background:${lv.color};border-radius:4px;transition:width .6s"></div>
+    </div>
+    ${lv.nextName?`<div style="font-size:9px;color:rgba(255,255,255,.35);font-family:'Space Mono',monospace">${lv.pct}% → ${lv.nextName}</div>`:`<div style="font-size:9px;color:#ffd700;font-family:'Space Mono',monospace">NIVEAU MAX 👑</div>`}
+  </div>`;
+}
+
+// ═══════════════════════════════════════
+// ACHIEVEMENTS — via Supabase RPC
+// ═══════════════════════════════════════
+const VC_ACHIEVEMENTS_DEF = [
+  { id:'first_clip',    emoji:'🎬', name:'Premier Clip',   desc:'Poste ta 1ère vidéo' },
+  { id:'hot_streak',    emoji:'🔥', name:'En Feu',         desc:'7 jours de suite' },
+  { id:'legend_streak', emoji:'👑', name:'Indestructible', desc:'30 jours de suite' },
+  { id:'warrior',       emoji:'⚔️', name:'Guerrier',       desc:'10 battles gagnées' },
+  { id:'champion',      emoji:'🏆', name:'Champion',       desc:'50 battles gagnées' },
+  { id:'influencer',    emoji:'🌟', name:'Influenceur',    desc:'100 abonnés' },
+  { id:'viral',         emoji:'💥', name:'Viral',          desc:'500 abonnés' },
+  { id:'rich',          emoji:'💰', name:'Cassino',        desc:'500 coins accumulés' },
+  { id:'creator',       emoji:'🎥', name:'Créateur',       desc:'10 vidéos postées' },
+];
+let _vcUnlockedAchievements = new Set();
+
+async function loadAndCheckAchievements(profile) {
+  try {
+    // Charger les achievements déjà débloqués depuis Supabase
+    const { data } = await sb.rpc('get_achievements');
+    _vcUnlockedAchievements = new Set(Array.isArray(data) ? data : []);
+    // Vérifier si de nouveaux achievements sont débloquables
+    for (const a of VC_ACHIEVEMENTS_DEF) {
+      if (!_vcUnlockedAchievements.has(a.id)) {
+        const shouldUnlock = _checkAchievementLocal(a.id, profile);
+        if (shouldUnlock) {
+          const res = await sb.rpc('unlock_achievement', { p_achievement_id: a.id });
+          if (res.data?.ok) {
+            _vcUnlockedAchievements.add(a.id);
+            setTimeout(() => toast(`🏅 Badge débloqué : ${a.emoji} ${a.name} !`), 500);
+          }
+        }
+      }
+    }
+    renderAchievements();
+  } catch(e) { console.warn('achievements error', e); }
+}
+
+function _checkAchievementLocal(id, p) {
+  switch(id) {
+    case 'first_clip':    return (p.videos_count||0)>=1;
+    case 'hot_streak':    return (p.login_streak||0)>=7;
+    case 'legend_streak': return (p.login_streak||0)>=30;
+    case 'warrior':       return (p.battles_won||0)>=10;
+    case 'champion':      return (p.battles_won||0)>=50;
+    case 'influencer':    return (p.followers_count||0)>=100;
+    case 'viral':         return (p.followers_count||0)>=500;
+    case 'rich':          return (p.coins||0)>=500;
+    case 'creator':       return (p.videos_count||0)>=10;
+    default:              return false;
+  }
+}
+
+function renderAchievements() {
+  const el = document.getElementById('achievementsList'); if(!el)return;
+  el.innerHTML = VC_ACHIEVEMENTS_DEF.map(a => {
+    const unlocked = _vcUnlockedAchievements.has(a.id);
+    return `<div title="${a.name} — ${a.desc}" style="display:flex;flex-direction:column;align-items:center;gap:3px;background:${unlocked?'rgba(124,92,252,.18)':'rgba(255,255,255,.04)'};border:1px solid ${unlocked?'rgba(124,92,252,.5)':'rgba(255,255,255,.08)'};border-radius:12px;padding:10px 8px;width:72px;opacity:${unlocked?'1':'.4'}">
+      <span style="font-size:22px">${a.emoji}</span>
+      <span style="font-size:9px;font-family:'Space Mono',monospace;color:${unlocked?'#fff':'rgba(255,255,255,.5)'};text-align:center;line-height:1.2">${a.name}</span>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════
+// DAILY MISSIONS — 100% Supabase (RPC track_mission)
+// ═══════════════════════════════════════
+const VC_MISSIONS_DEF = [
+  { id:'vote3',     emoji:'⚔️', name:'Voter 3 battles',  coins:15, target:3 },
+  { id:'like5',     emoji:'❤️', name:'Liker 5 vidéos',   coins:10, target:5 },
+  { id:'post1',     emoji:'🎬', name:'Poster une vidéo', coins:20, target:1 },
+  { id:'watch10',   emoji:'👁', name:'Voir 10 vidéos',   coins:5,  target:10 },
+  { id:'winbattle', emoji:'🏆', name:'Gagner 1 battle',  coins:30, target:1 },
+];
+
+function _getDailyMissions() {
+  const day = Math.floor((Date.now() - new Date(new Date().getFullYear(),0,0)) / 864e5);
+  return [day%5, (day+1)%5, (day+2)%5].map(i => VC_MISSIONS_DEF[i]);
+}
+
+let _vcMissionsCache = {}; // { mission_id: { progress, claimed } }
+
+async function loadMissionsFromSupabase() {
+  if (!currentUser) return;
+  try {
+    const { data } = await sb.rpc('get_daily_missions');
+    _vcMissionsCache = {};
+    (Array.isArray(data) ? data : []).forEach(m => {
+      _vcMissionsCache[m.mission_id] = { progress: m.progress, claimed: m.claimed };
+    });
+  } catch(e) { console.warn('missions load error', e); }
+}
+
+async function trackMission(missionId) {
+  if (!currentUser) return;
+  const mis = VC_MISSIONS_DEF.find(m => m.id === missionId); if(!mis) return;
+  // Vérifier si déjà claimée localement pour éviter un appel inutile
+  if (_vcMissionsCache[missionId]?.claimed) return;
+  try {
+    const { data } = await sb.rpc('track_mission', {
+      p_mission_id: missionId,
+      p_target:     mis.target,
+      p_coins:      mis.coins
+    });
+    if (data) {
+      _vcMissionsCache[missionId] = { progress: data.progress, claimed: data.claimed };
+      // Mettre à jour affichage coins si mission claimée
+      if (data.coins_earned) {
+        const el = document.getElementById('pCoins');
+        if (el) el.textContent = fmtNum(data.new_balance);
+        const hel = document.getElementById('headerCoins');
+        if (hel) hel.textContent = '💰 ' + fmtNum(data.new_balance);
+        if (_cachedProfile) _cachedProfile.coins = data.new_balance;
+        toast(`🎯 Mission accomplie — +${data.coins_earned} coins !`);
+      }
+      // Refresh le modal si ouvert
+      if (document.getElementById('missionsModal').style.display !== 'none') _renderMissionsModal();
+    }
+  } catch(e) { console.warn('trackMission error', e); }
+}
+
+function openMissionsModal() {
+  if (!currentUser) { openAuth(); return; }
+  document.getElementById('missionsModal').style.display = 'flex';
+  loadMissionsFromSupabase().then(() => _renderMissionsModal());
+  if (_cachedProfile) renderAchievements();
+}
+function closeMissionsModal() {
+  document.getElementById('missionsModal').style.display = 'none';
+}
+function _renderMissionsModal() {
+  const missions = _getDailyMissions();
+  const now = new Date();
+  const msToMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate()+1) - now;
+  const h = Math.floor(msToMidnight/3600000), m2 = Math.floor((msToMidnight%3600000)/60000);
+  document.getElementById('missionsResetTimer').textContent = `Reset dans ${h}h ${m2}min`;
+  document.getElementById('missionsList').innerHTML = missions.map(mis => {
+    const st = _vcMissionsCache[mis.id] || { progress:0, claimed:false };
+    const prog = Math.min(mis.target, st.progress||0);
+    const claimed = !!st.claimed;
+    const pct = Math.round(prog/mis.target*100);
+    return `<div style="background:${claimed?'rgba(46,204,113,.08)':'rgba(255,255,255,.04)'};border:1px solid ${claimed?'rgba(46,204,113,.3)':'rgba(255,255,255,.08)'};border-radius:16px;padding:14px 16px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <span style="font-size:22px">${mis.emoji}</span>
+        <div style="flex:1">
+          <div style="font-weight:600;font-size:13px;color:${claimed?'#2ecc71':'#fff'}">${mis.name}</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.45);font-family:'Space Mono',monospace;margin-top:2px">${prog}/${mis.target}</div>
+        </div>
+        <div style="font-family:'Space Mono',monospace;font-size:13px;color:#ffd700;font-weight:700">+${mis.coins}</div>
+        ${claimed?'<span style="font-size:18px">✅</span>':''}
+      </div>
+      <div style="height:6px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden">
+        <div style="height:100%;width:${pct}%;background:${claimed?'linear-gradient(90deg,#2ecc71,#27ae60)':'linear-gradient(90deg,#7c5cfc,#fc5c7d)'};border-radius:4px;transition:width .4s"></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════
+// COINS — Remplacer awardCoins par RPC sécurisée
+// ═══════════════════════════════════════
+async function awardCoins(userId, amount, reason) {
+  // Sécurité : on ignore userId (le serveur utilise auth.uid())
+  // Seul l'utilisateur connecté peut recevoir des coins via cette fonction
+  if (!currentUser || userId !== currentUser.id) return;
+  try {
+    const { data } = await sb.rpc('award_coins_secure', { p_amount: amount, p_reason: reason });
+    if (data?.ok) {
+      const el  = document.getElementById('pCoins');    if(el)  el.textContent  = fmtNum(data.coins);
+      const hel = document.getElementById('headerCoins'); if(hel) hel.textContent = '💰 ' + fmtNum(data.coins);
+      if (_cachedProfile) _cachedProfile.coins = data.coins;
+    } else if (data?.error) {
+      console.warn('awardCoins RPC:', data.error, reason, amount);
+    }
+  } catch(e) { console.warn('awardCoins error', e); }
+}
+
+async function debitCoins(userId, amount) {
+  if (!currentUser || userId !== currentUser.id) return false;
+  try {
+    const { data } = await sb.rpc('spend_coins_secure', { p_amount: amount, p_reason: 'stake_debit' });
+    if (data?.ok) {
+      const el  = document.getElementById('pCoins');    if(el)  el.textContent  = fmtNum(data.coins);
+      const hel = document.getElementById('headerCoins'); if(hel) hel.textContent = '💰 ' + fmtNum(data.coins);
+      if (_cachedProfile) _cachedProfile.coins = data.coins;
+      return true;
+    }
+    if (data?.error === 'insufficient_coins') toast('❌ Coins insuffisants');
+    return false;
+  } catch(e) { console.warn('debitCoins error', e); return false; }
+}
+
+// ═══════════════════════════════════════
+// STREAK — via RPC sécurisée
+// ═══════════════════════════════════════
+async function updateStreak(profile) {
+  if (!currentUser) return;
+  const badge = document.getElementById('profileStreakBadge');
+  try {
+    const { data } = await sb.rpc('update_daily_streak');
+    if (!data) return;
+    const streak = data.streak || 0;
+    if (streak >= 2) {
+      badge.style.display = 'block';
+      badge.textContent = `${streak>=30?'👑':streak>=7?'🏆':'🔥'} ${streak} jour${streak>1?'s':''} de suite`;
+    }
+    if (data.is_new_day) {
+      // Mettre à jour le profil local
+      if (_cachedProfile) { _cachedProfile.login_streak = streak; _cachedProfile.coins = data.new_coins; }
+      showWelcomeBack(streak, profile.last_login, data.coins_add);
+      // Refresh coins display
+      const el  = document.getElementById('pCoins');    if(el)  el.textContent  = fmtNum(data.new_coins);
+      const hel = document.getElementById('headerCoins'); if(hel) hel.textContent = '💰 ' + fmtNum(data.new_coins);
+    }
+  } catch(e) {
+    // Fallback silencieux si RPC pas encore créée
+    console.warn('updateStreak RPC error:', e);
+    const streak = parseInt(profile.login_streak||0);
+    if (streak >= 2) { badge.style.display='block'; badge.textContent=`🔥 ${streak} jours de suite`; }
+  }
+}
+
+// ═══════════════════════════════════════
+// SHOP
+// ═══════════════════════════════════════
+const VC_COIN_PACKS = [
+  { coins:200,  price:'1,99€',  label:'Pack Débutant', emoji:'🥉', highlight:false },
+  { coins:600,  price:'4,99€',  label:'Pack Pro',      emoji:'🥈', highlight:true  },
+  { coins:1500, price:'9,99€',  label:'Pack Expert',   emoji:'🥇', highlight:false },
+  { coins:5000, price:'24,99€', label:'Pack Légende',  emoji:'👑', highlight:false },
+];
+function openShopModal() {
+  if (!currentUser) { openAuth(); return; }
+  document.getElementById('shopModal').style.display = 'flex';
+  const coins = _cachedProfile?.coins || 0;
+  document.getElementById('shopBalanceDisplay').textContent = fmtNum(coins);
+  document.getElementById('shopPacksList').innerHTML = VC_COIN_PACKS.map((p,i) => `
+    <div onclick="buyPack(${i})" style="background:${p.highlight?'rgba(124,92,252,.15)':'#1c1c27'};border:2px solid ${p.highlight?'#7c5cfc':'rgba(255,255,255,.1)'};border-radius:16px;padding:14px 16px;cursor:pointer;position:relative">
+      ${p.highlight?'<div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#7c5cfc,#fc5c7d);color:#fff;font-family:\'Space Mono\',monospace;font-size:9px;font-weight:700;padding:3px 12px;border-radius:20px">⭐ POPULAIRE</div>':''}
+      <div style="display:flex;align-items:center;gap:12px">
+        <span style="font-size:28px">${p.emoji}</span>
+        <div style="flex:1">
+          <div style="font-family:'Space Mono',monospace;font-weight:700;font-size:13px">${p.label}</div>
+          <div style="color:#ffd700;font-family:'Space Mono',monospace;font-size:14px;font-weight:700;margin-top:2px">💰 ${p.coins.toLocaleString()} coins</div>
+        </div>
+        <div style="font-family:'Space Mono',monospace;font-weight:700;font-size:16px;color:${p.highlight?'#7c5cfc':'#fff'}">${p.price}</div>
+      </div>
+    </div>`).join('');
+}
+function closeShopModal() { document.getElementById('shopModal').style.display='none'; }
+function buyPack(idx) {
+  if (!currentUser) { closeShopModal(); openAuth(); return; }
+  const p = VC_COIN_PACKS[idx];
+  const subject = encodeURIComponent(`[VoltClip Shop] ${p.label} — ${p.price}`);
+  const body = encodeURIComponent(
+    `Bonjour,\n\nJe souhaite acheter le ${p.label}.\n\n`+
+    `Pack : ${p.label} — ${p.coins} coins — ${p.price}\n`+
+    `Compte : ${currentUser.email||'N/A'}\n`+
+    `ID utilisateur : ${currentUser.id}\n\n`+
+    `Merci de me confirmer la procédure de paiement.`
+  );
+  window.open(`mailto:hervecaporale17@gmail.com?subject=${subject}&body=${body}`);
+  closeShopModal();
+  toast('📧 Email ouvert ! Coins crédités sous 24h après paiement.');
+}
+
+// ═══════════════════════════════════════
+// HOOKS — dispatch events depuis les actions existantes
+// ═══════════════════════════════════════
+document.addEventListener('voltclip:liked',   () => trackMission('like5'));
+document.addEventListener('voltclip:voted',   () => trackMission('vote3'));
+document.addEventListener('voltclip:posted',  () => trackMission('post1'));
+document.addEventListener('voltclip:watched', () => trackMission('watch10'));
+document.addEventListener('voltclip:won',     () => trackMission('winbattle'));
+
+// Charger achievements + missions quand profil chargé
+document.addEventListener('voltclip:profile_loaded', (e) => {
+  if (e.detail?.profile) {
+    renderLevelBadge(e.detail.profile);
+    loadAndCheckAchievements(e.detail.profile);
+    loadMissionsFromSupabase();
+  }
+});
+
+// Fermer modals au clic backdrop
+document.getElementById('missionsModal')?.addEventListener('click', e => { if(e.target.id==='missionsModal') closeMissionsModal(); });
+document.getElementById('shopModal')?.addEventListener('click', e => { if(e.target.id==='shopModal') closeShopModal(); });
 </script>
 
 <!-- COOKIE BANNER -->
