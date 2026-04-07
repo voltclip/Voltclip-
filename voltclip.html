@@ -1668,7 +1668,7 @@ async function superVoteBattle(battleId, side) {
 // ── Boost clip avec coins ──────────────────────────────────────────────────
 async function boostClipCoins(videoId) {
   if (!currentUser) { openAuth(); return }
-  const BOOST_COST = 50
+  const BOOST_COST = 120
   const BOOST_HOURS = 24
   const { data: prof } = await sb.from('profiles').select('coins').eq('id', currentUser.id).single()
   const coins = prof?.coins || 0
@@ -2032,7 +2032,7 @@ function _showBattleExpiredOverlay(div, b, pctLeft, pctRight, userLeft, userRigh
         )
       )
       // 💰 Coins de victoire : +25 de base
-      await awardCoins(winnerUserId, 25, 'battle_win');
+      await awardCoins(winnerUserId, 15, 'battle_win');
       if (winnerUserId === currentUser?.id) document.dispatchEvent(new Event('voltclip:won'));
       // Si battle avec mise → distribuer le pot (80% gagnant, 20% brûlé)
       if (b.stake_coins > 0) {
@@ -3725,9 +3725,9 @@ async function submitUpload() {
     toast('Publié avec succès ⚡');
     // 💰 +10 coins pour la publication
     if (currentUser) {
-      await awardCoins(currentUser.id, 10, 'video_upload');
+      await awardCoins(currentUser.id, 5, 'video_upload');
       document.dispatchEvent(new Event('voltclip:posted'));
-      setTimeout(() => toast('💰 +10 coins pour ta publication !'), 800);
+      setTimeout(() => toast('💰 +5 coins pour ta publication !'), 800);
     }
     closeUpload();
     showTab('profile');
@@ -4322,7 +4322,7 @@ function showCoinsInfo() {
       </div>
       <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.08em">COMMENT GAGNER DES COINS</div>
       ${[
-        ['🎬','Publier une vidéo','+10'],
+        ['🎬','Publier une vidéo','+5'],
         ['🏆','Gagner une battle','+25'],
         ['⚔️','Gagner un défi avec mise','80% du pot'],
       ].map(([ic,lb,val])=>`
@@ -5040,11 +5040,11 @@ function renderAchievements() {
 // DAILY MISSIONS — 100% Supabase (RPC track_mission)
 // ═══════════════════════════════════════
 const VC_MISSIONS_DEF = [
-  { id:'vote3',     emoji:'⚔️', name:'Voter 3 battles',  coins:15, target:3 },
-  { id:'like5',     emoji:'❤️', name:'Liker 5 vidéos',   coins:10, target:5 },
-  { id:'post1',     emoji:'🎬', name:'Poster une vidéo', coins:20, target:1 },
-  { id:'watch10',   emoji:'👁', name:'Voir 10 vidéos',   coins:5,  target:10 },
-  { id:'winbattle', emoji:'🏆', name:'Gagner 1 battle',  coins:30, target:1 },
+  { id:'vote3',     emoji:'⚔️', name:'Voter 3 battles',  coins:5,  target:3 },
+  { id:'like5',     emoji:'❤️', name:'Liker 5 vidéos',   coins:3,  target:5 },
+  { id:'post1',     emoji:'🎬', name:'Poster une vidéo', coins:10, target:1 },
+  { id:'watch10',   emoji:'👁', name:'Voir 10 vidéos',   coins:2,  target:10 },
+  { id:'winbattle', emoji:'🏆', name:'Gagner 1 battle',  coins:15, target:1 },
 ];
 
 function _getDailyMissions() {
