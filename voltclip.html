@@ -3716,9 +3716,22 @@ async function submitUpload() {
     toast('Publié avec succès ⚡');
     // 💰 +10 coins pour la publication
     if (currentUser) {
-      await awardCoins(currentUser.id, 5, 'video_upload');
+      const coinOk = await awardCoins(currentUser.id, 10, 'video_upload');
       document.dispatchEvent(new Event('voltclip:posted'));
-      setTimeout(() => toast('💰 +5 coins pour ta publication !'), 800);
+      if (coinOk) {
+        setTimeout(() => toast('💰 +10 coins pour ta publication !'), 800);
+      } else {
+        // Fallback : incrément direct si la RPC a refusé la raison
+        try {
+          const { data: _pf } = await sb.from('profiles').select('coins').eq('id', currentUser.id).single();
+          const newCoins = (_pf?.coins || 0) + 10;
+          await sb.from('profiles').update({ coins: newCoins }).eq('id', currentUser.id);
+          const el  = document.getElementById('pCoins');    if (el)  el.textContent  = fmtNum(newCoins);
+          const hel = document.getElementById('headerCoins'); if (hel) hel.textContent = '💰 ' + fmtNum(newCoins);
+          if (_cachedProfile) _cachedProfile.coins = newCoins;
+          setTimeout(() => toast('💰 +10 coins pour ta publication !'), 800);
+        } catch (e) { console.warn('awardCoins fallback error', e); }
+      }
     }
     closeUpload();
     showTab('profile');
@@ -5128,17 +5141,19 @@ function _renderMissionsModal() {
 async function awardCoins(userId, amount, reason) {
   // Sécurité : on ignore userId (le serveur utilise auth.uid())
   // Seul l'utilisateur connecté peut recevoir des coins via cette fonction
-  if (!currentUser || userId !== currentUser.id) return;
+  if (!currentUser || userId !== currentUser.id) return false;
   try {
     const { data } = await sb.rpc('award_coins_secure', { p_amount: amount, p_reason: reason });
     if (data?.ok) {
       const el  = document.getElementById('pCoins');    if(el)  el.textContent  = fmtNum(data.new_coins);
       const hel = document.getElementById('headerCoins'); if(hel) hel.textContent = '💰 ' + fmtNum(data.new_coins);
       if (_cachedProfile) _cachedProfile.coins = data.new_coins;
+      return true;
     } else if (data?.error) {
       console.warn('awardCoins RPC:', data.error, reason, amount);
     }
   } catch(e) { console.warn('awardCoins error', e); }
+  return false;
 }
 
 async function debitCoins(userId, amount) {
