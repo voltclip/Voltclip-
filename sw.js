@@ -4,7 +4,7 @@
 // • PWA cache — offline shell
 // ══════════════════════════════════════════════════════════════════
 
-const CACHE_NAME = 'voltclip-v4';
+const CACHE_NAME = 'voltclip-v5';
 
 // Ressources de l'app shell à précacher
 const PRECACHE = [
@@ -45,6 +45,15 @@ self.addEventListener('fetch', event => {
 
   // Ignorer les appels API Google
   if (url.hostname.includes('googleapis.com') && url.pathname.includes('/v1/')) return;
+
+  // Ignorer Google Ads / Analytics / Tag Manager (pas de support CORS → 503 sinon)
+  if (
+    url.hostname.includes('googlesyndication.com') ||
+    url.hostname.includes('doubleclick.net')        ||
+    url.hostname.includes('googleadservices.com')   ||
+    url.hostname.includes('google-analytics.com')   ||
+    url.hostname.includes('googletagmanager.com')
+  ) return;
 
   event.respondWith(handleRequest(request));
 });
