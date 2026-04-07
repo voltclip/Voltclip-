@@ -3416,14 +3416,24 @@ async function submitUpload() {
     }
 
     // 1c. Compression FFmpeg — réduit la taille avant envoi
+    const _preCompressFile = fileToUpload;
     try {
       const beforeMB = (fileToUpload.size / 1024 / 1024).toFixed(1);
-      fileToUpload = await compressVideo(fileToUpload, (msg) => { prog.textContent = msg; });
-      const afterMB = (fileToUpload.size / 1024 / 1024).toFixed(1);
-      if (beforeMB !== afterMB) toast(`🗜️ Compressé : ${beforeMB}Mo → ${afterMB}Mo`);
+      const compressed = await compressVideo(fileToUpload, (msg) => { prog.textContent = msg; });
+      if (compressed && compressed.size > 0) {
+        fileToUpload = compressed;
+        const afterMB = (fileToUpload.size / 1024 / 1024).toFixed(1);
+        if (beforeMB !== afterMB) toast(`🗜️ Compressé : ${beforeMB}Mo → ${afterMB}Mo`);
+      } else {
+        console.warn('[FFmpeg] Fichier compressé vide, fallback original');
+        toast(`⚠️ Compression ignorée, envoi du fichier original`);
+        fileToUpload = _preCompressFile;
+      }
     } catch(compErr) {
       console.warn('[Upload] Compression échouée, on continue:', compErr);
+      fileToUpload = _preCompressFile;
     }
+    if (!fileToUpload || fileToUpload.size === 0) throw new Error('Fichier vide après compression — resélectionne la vidéo');
 
     prog.textContent = `☁️ Envoi (${(fileToUpload.size/1024/1024).toFixed(1)}MB)…`;
 
@@ -3980,7 +3990,7 @@ async function pinVideo(videoId){currentUser&&(await sb.from(`videos`).update({i
 function checkAgeGate(){
 const AGE_GATE_VERSION=`v2`;if(localStorage.getItem(`voltclip_age_version`)!==AGE_GATE_VERSION){localStorage.removeItem(`voltclip_age_ok`);localStorage.setItem(`voltclip_age_version`,AGE_GATE_VERSION)}
 if(localStorage.getItem(`voltclip_age_ok`)===`1`)return;
-let maxDate=new Date();maxDate.setFullYear(maxDate.getFullYear()-15);const _ag=document.getElementById(`ageGateModal`);if(_ag){_ag.style.display=`flex`;_ag.classList.add(`open`)}}
+let maxDate=new Date();maxDate.setFullYear(maxDate.getFullYear()-15);const _ag=document.getElementById(`ageGateModal`);if(_ag&&_ag.style.display!==`flex`){_ag.style.display=`flex`;_ag.classList.add(`open`)}}
 function submitAgeGate(){let errEl=document.getElementById(`ageGateErr`),day=document.getElementById(`ageDaySelect`).value,month=document.getElementById(`ageMonthSelect`).value,year=document.getElementById(`ageYearSelect`).value;if(!day||!month||!year){errEl.textContent=`Indique ta date de naissance complète`,errEl.style.display=`block`;return}let birth=new Date(parseInt(year),parseInt(month)-1,parseInt(day)),now=/* @__PURE__ */ new Date;if(now.getFullYear()-birth.getFullYear()-(now<new Date(now.getFullYear(),birth.getMonth(),birth.getDate())?1:0)<15){errEl.textContent=`🚫 Tu dois avoir au moins 15 ans pour accéder à VoltClip.`,errEl.style.display=`block`;return}let val=`${year}-${String(month).padStart(2,`0`)}-${String(day).padStart(2,`0`)}`;localStorage.setItem(`voltclip_age_ok`,`1`);const _ag2=document.getElementById(`ageGateModal`);if(_ag2){_ag2.style.display=`none`;_ag2.classList.remove(`open`);};currentUser&&sb.from(`profiles`).update({birthdate:val}).eq(`id`,currentUser.id).then(()=>{})}
 (function initAgeSelects(){let daySelect=document.getElementById(`ageDaySelect`),yearSelect=document.getElementById(`ageYearSelect`);if(!daySelect||!yearSelect)return;for(let d=1;d<=31;d++){let opt=document.createElement(`option`);opt.value=d,opt.textContent=d,daySelect.appendChild(opt)}let currentYear=(new Date()).getFullYear();for(let y=currentYear-5;y>=1920;y--){let opt=document.createElement(`option`);opt.value=y,opt.textContent=y,yearSelect.appendChild(opt)}})();
 // ══════════════════════════════════════════
