@@ -118,7 +118,7 @@ function injectCOIHeaders(response, isSameOrigin) {
   if (isSameOrigin) {
     // Headers d'isolation complets sur la page principale et les assets same-origin
     headers.set('Cross-Origin-Opener-Policy',  'same-origin');
-    headers.set('Cross-Origin-Embedder-Policy', 'require-corp');
+    headers.set('Cross-Origin-Embedder-Policy', 'credentialless');
   }
 
   // Toujours ajouter CORP cross-origin pour que les ressources externes
