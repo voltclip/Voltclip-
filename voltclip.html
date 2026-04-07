@@ -2017,13 +2017,17 @@ function _showBattleExpiredOverlay(div, b, pctLeft, pctRight, userLeft, userRigh
           sb.from('profiles').update({ battles_won: (prof?.battles_won || 0) + 1 }).eq('id', winnerUserId)
         )
       )
-      // 💰 Coins de victoire : +25 de base
-      await awardCoins(winnerUserId, 25, 'battle_win');
-      if (winnerUserId === currentUser?.id) document.dispatchEvent(new Event('voltclip:won'));
-      // Si battle avec mise → distribuer le pot (80% gagnant, 20% brûlé)
-      if (b.stake_coins > 0) {
-        const winnerGets = Math.floor(b.stake_coins * 2 * 0.8);
-        await awardCoins(winnerUserId, winnerGets, 'battle_stake_win');
+      // 💰 Coins de victoire — uniquement pour le gagnant connecté
+      // awardCoins() utilise auth.uid() côté serveur et ignore le 1er paramètre :
+      // sans ce garde, tout spectateur qui charge le battle recevrait les coins.
+      if (winnerUserId === currentUser?.id) {
+        await awardCoins(winnerUserId, 25, 'battle_win');
+        document.dispatchEvent(new Event('voltclip:won'));
+        // Si battle avec mise → distribuer le pot (80% gagnant, 20% brûlé)
+        if (b.stake_coins > 0) {
+          const winnerGets = Math.floor(b.stake_coins * 2 * 0.8);
+          await awardCoins(winnerUserId, winnerGets, 'battle_stake_win');
+        }
       }
     }
     if (loserUserId) {
