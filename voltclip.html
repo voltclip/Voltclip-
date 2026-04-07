@@ -1653,11 +1653,6 @@ async function superVoteBattle(battleId, side) {
   haptic([30, 10, 50])
   playUISound('like')
   toast('⚡ Super Vote ×5 envoyé ! (-' + SUPER_VOTE_COST + ' coins)')
-  // Mettre à jour le solde affiché
-  const _hc = document.getElementById('headerCoins')
-  if (_hc) _hc.textContent = '💰 ' + fmtNum(coins - SUPER_VOTE_COST)
-  const _pc = document.getElementById('pCoins')
-  if (_pc) _pc.textContent = fmtNum(coins - SUPER_VOTE_COST)
 }
 
 // ── Boost clip avec coins ──────────────────────────────────────────────────
@@ -1682,11 +1677,9 @@ async function boostClipCoins(videoId) {
     setTimeout(() => { _el.remove(); resolve(false) }, 10000)
   })
   if (!_confirmed) return
-  // Débiter
-  const { error: debitErr } = await sb.from('profiles')
-    .update({ coins: coins - BOOST_COST })
-    .eq('id', currentUser.id)
-  if (debitErr) { toast('❌ Erreur paiement'); return }
+  // Débiter via RPC sécurisée
+  const paid = await debitCoins(currentUser.id, BOOST_COST)
+  if (!paid) return
   // Activer le boost sur la vidéo
   const boostUntil = new Date(Date.now() + BOOST_HOURS * 3600 * 1000).toISOString()
   const { error: boostErr } = await sb.from('videos')
@@ -1694,16 +1687,12 @@ async function boostClipCoins(videoId) {
     .eq('id', videoId)
     .eq('user_id', currentUser.id)
   if (boostErr) {
-    await sb.from('profiles').update({ coins: coins }).eq('id', currentUser.id)
+    await awardCoins(currentUser.id, BOOST_COST, 'boost_refund')
     toast('❌ Erreur boost')
     return
   }
   haptic([20, 10, 40])
   toast('⚡ Clip boosté pendant ' + BOOST_HOURS + 'h ! (-' + BOOST_COST + ' coins)')
-  const _hc = document.getElementById('headerCoins')
-  if (_hc) _hc.textContent = '💰 ' + fmtNum(coins - BOOST_COST)
-  const _pc = document.getElementById('pCoins')
-  if (_pc) _pc.textContent = fmtNum(coins - BOOST_COST)
 }
 
 async function voteBattle(battleId, side, el) {
@@ -1742,8 +1731,10 @@ async function voteBattle(battleId, side, el) {
   const pctLeft = (b && total) ? Math.round(b.votes_left / total * 100) : 50
   const pctRight = 100 - pctLeft
   if (b) {
-    document.getElementById('pct-left-' + battleId).textContent = pctLeft + '%'
-    document.getElementById('pct-right-' + battleId).textContent = pctRight + '%'
+    const _pctL = document.getElementById('pct-left-' + battleId)
+    const _pctR = document.getElementById('pct-right-' + battleId)
+    if (_pctL) _pctL.textContent = pctLeft + '%'
+    if (_pctR) _pctR.textContent = pctRight + '%'
     const _fillL = document.getElementById('fill-left-' + battleId)
     const _fillR = document.getElementById('fill-right-' + battleId)
     if (_fillL) _fillL.style.background = 'rgba(124,92,252,' + (pctLeft/100*0.4) + ')'
@@ -2027,7 +2018,7 @@ function _showBattleExpiredOverlay(div, b, pctLeft, pctRight, userLeft, userRigh
         )
       )
       // 💰 Coins de victoire : +25 de base
-      await awardCoins(winnerUserId, 15, 'battle_win');
+      await awardCoins(winnerUserId, 25, 'battle_win');
       if (winnerUserId === currentUser?.id) document.dispatchEvent(new Event('voltclip:won'));
       // Si battle avec mise → distribuer le pot (80% gagnant, 20% brûlé)
       if (b.stake_coins > 0) {
@@ -3083,7 +3074,7 @@ async function openWebcamRecorder(){
         <button id="webcamSwitchCam" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);color:#fff;font-family:'Space Mono',monospace;font-size:11px;padding:8px 14px;border-radius:12px;cursor:pointer">🔄 Changer cam</button>
         <button onclick="closeWebcamRecorder()" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);color:#fff;font-family:'Space Mono',monospace;font-size:11px;padding:8px 14px;border-radius:12px;cursor:pointer">✕ Annuler</button>
       </div>
-      <div style="color:rgba(255,255,255,0.35);font-size:10px;font-family:'Space Mono',monospace;text-align:center">Max \${uploadMaxDuration}s · Clique Arrêter pour utiliser la vidéo</div>
+      <div style="color:rgba(255,255,255,0.35);font-size:10px;font-family:'Space Mono',monospace;text-align:center">Max ${uploadMaxDuration}s · Clique Arrêter pour utiliser la vidéo</div>
     </div>
   `;
   document.body.appendChild(modal);
@@ -4556,7 +4547,7 @@ async function confirmAcceptChallenge() {
 
   const battleTitle = `⚔️ @${(data.challenger_username||'user')} VS @${myUsername}`;
 
-  const { error } = await sb.from('battles').insert({
+  const { data: newBattle, error } = await sb.from('battles').insert({
     video_left_id: data.video_id,
     video_right_id: acceptMyVideoId,
     title: battleTitle,
@@ -4566,7 +4557,7 @@ async function confirmAcceptChallenge() {
     votes_left: 0,
     votes_right: 0,
     stake_coins: data.stake_coins || 0,
-  });
+  }).select('id').single();
 
   if (error) {
     toast('❌ Erreur création battle : ' + error.message);
@@ -4586,6 +4577,7 @@ async function confirmAcceptChallenge() {
     user_id: data.challenger_id,
     actor_id: currentUser.id,
     type: 'battle_accepted',
+    related_id: newBattle?.id || null,
     is_read: false
   });
 
