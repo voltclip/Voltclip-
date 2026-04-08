@@ -2567,7 +2567,8 @@ try{
 let fetchUsers=(currentSearchMode==='all'||currentSearchMode==='users'),fetchVideos=(currentSearchMode==='all'||currentSearchMode==='videos'),fetchTags=(currentSearchMode==='all');
 let cleanQ=q.replace(/^#+/,'');
 let promises=[fetchUsers?sb.from('profiles').select('id,username,avatar_url,followers_count,videos_count').ilike('username','%'+q+'%').limit(8):Promise.resolve({data:[]}),fetchVideos?sb.rpc('search_videos',{query:q}):Promise.resolve({data:[]}),fetchTags?sb.from('hashtags').select('name,videos_count').ilike('name','%'+cleanQ+'%').order('videos_count',{ascending:false}).limit(10):Promise.resolve({data:[]})];
-let[usersRes,videosRes,tagsRes]=await Promise.all(promises);
+const _searchFallback=new Promise(res=>setTimeout(()=>res([{data:[]},{data:[]},{data:[]}]),8000));
+let[usersRes,videosRes,tagsRes]=await Promise.race([Promise.all(promises),_searchFallback]);
 if(tagsRes.data?.length){html+=`<div class="search-section-title"># HASHTAGS (${tagsRes.data.length})</div>`;html+=`<div style="padding:4px 0 8px">`+tagsRes.data.map(t=>`<button class="hashtag-chip" onclick="searchByTag('${t.name}')">#${t.name} <span style="color:var(--muted);font-size:10px">${fmtNum(t.videos_count)}</span></button>`).join('')+`</div>`}
 if(usersRes.data?.length){html+=`<div class="search-section-title" style="margin-top:${tagsRes.data?.length?'8px':'0'}">👤 CRÉATEURS (${usersRes.data.length})</div>`;html+=usersRes.data.map(u=>`
       <div class="search-user-item" onclick="openPublicProfile('${u.id}')">
@@ -2609,10 +2610,11 @@ async function searchByTag(tag) {
 
   try {
     // Chercher via la table video_hashtags (jointure correcte)
-    const { data: hashtagRow } = await sb.from('hashtags')
-      .select('id')
-      .eq('name', tag)
-      .maybeSingle();
+    const _stFallback = new Promise(res => setTimeout(() => res({ data: null }), 8000));
+    const { data: hashtagRow } = await Promise.race([
+      sb.from('hashtags').select('id').eq('name', tag).maybeSingle(),
+      _stFallback
+    ]);
 
     let videos = [];
     if (hashtagRow) {
@@ -3193,7 +3195,7 @@ function closeWebcamRecorder(){
   document.getElementById('webcamModal')?.remove();
 }function handleFileSelect(input){let file=input.files[0];if(!file)return;_uploadOriginalFile=file;// Sur Android caméra, file.type peut être vide ou 'video/mp4' — on accepte si extension vidéo ou type absent
 const ext=(file.name||'').split('.').pop().toLowerCase();const validExt=['mp4','mov','webm','avi','mkv','3gp','m4v','ts',''].includes(ext);// Caméra Android : file.type souvent vide — on bloque seulement si type clairement non-vidéo
-if(file.type&&!file.type.startsWith('video/')&&!file.type.startsWith('application/octet')&&ext&&!validExt){document.getElementById('uploadErr').textContent=`Format non supporté`;return}if(file.size>100*1024*1024){document.getElementById('uploadErr').textContent=`Fichier trop lourd (max 100 MB)`;return}let goStep2=(resolvedFile)=>{uploadFile=resolvedFile||file;let blobUrl=URL.createObjectURL(file);let bg=document.getElementById(`uploadBgPreview`);bg.src=blobUrl,bg.style.display=`block`,document.getElementById(`uploadStep1`).style.display=`none`,document.getElementById(`uploadStep2`).style.display=`flex`,document.getElementById(`uploadPreviewVideo`).src=blobUrl,document.getElementById(`uploadSubmit`).style.display=`block`,document.getElementById(`uploadErr`).textContent=``,document.getElementById(`uploadProgress`).style.display=`none`,openUploadStep2()};let url=URL.createObjectURL(file),tmpVid=document.createElement(`video`);tmpVid.preload=`metadata`;let _goStep2Called=false;let _safeGoStep2=(resolvedFile)=>{if(_goStep2Called)return;_goStep2Called=true;URL.revokeObjectURL(url);goStep2(resolvedFile);};// Lire en ArrayBuffer — timeout 8s sur mobile (gros fichier caméra sinon freeze)
+if(file.type&&!file.type.startsWith('video/')&&!file.type.startsWith('application/octet')&&ext&&!validExt){document.getElementById('uploadErr').textContent=`Format non supporté`;return}if(file.size>300*1024*1024){document.getElementById('uploadErr').textContent=`Fichier trop lourd (max 300 MB)`;return}let goStep2=(resolvedFile)=>{uploadFile=resolvedFile||file;let blobUrl=URL.createObjectURL(file);let bg=document.getElementById(`uploadBgPreview`);bg.src=blobUrl,bg.style.display=`block`,document.getElementById(`uploadStep1`).style.display=`none`,document.getElementById(`uploadStep2`).style.display=`flex`,document.getElementById(`uploadPreviewVideo`).src=blobUrl,document.getElementById(`uploadSubmit`).style.display=`block`,document.getElementById(`uploadErr`).textContent=``,document.getElementById(`uploadProgress`).style.display=`none`,openUploadStep2()};let url=URL.createObjectURL(file),tmpVid=document.createElement(`video`);tmpVid.preload=`metadata`;let _goStep2Called=false;let _safeGoStep2=(resolvedFile)=>{if(_goStep2Called)return;_goStep2Called=true;URL.revokeObjectURL(url);goStep2(resolvedFile);};// Lire en ArrayBuffer — timeout 8s sur mobile (gros fichier caméra sinon freeze)
 const _abTimeout=new Promise(res=>setTimeout(()=>res(null),8000));Promise.race([file.arrayBuffer().catch(()=>null),_abTimeout]).then(buf=>{if(buf===null){tmpVid.onloadedmetadata=()=>{_safeGoStep2(file)};tmpVid.onerror=()=>{_safeGoStep2(file)};setTimeout(()=>{if(!_goStep2Called)_safeGoStep2(file)},3000);tmpVid.src=url;return;}const safeBlob=new Blob([buf],{type:file.type||'video/mp4'});const safeFile=new File([safeBlob],file.name||'video.mp4',{type:file.type||'video/mp4'});tmpVid.onloadedmetadata=()=>{let dur=tmpVid.duration;if(dur&&isFinite(dur)&&dur>uploadMaxDuration){document.getElementById('uploadErr').textContent=`Vidéo trop longue — maximum 4 minutes autorisé sur VoltClip.`;return;}else{toast(`Vidéo sélectionnée ✓`)}_safeGoStep2(safeFile)};tmpVid.onerror=()=>{toast(`Vidéo sélectionnée ✓`);_safeGoStep2(safeFile)};setTimeout(()=>{if(!_goStep2Called){toast(`Vidéo sélectionnée ✓`);_safeGoStep2(safeFile)}},3000);tmpVid.src=url});}
 // ── FFmpeg.wasm v0.11 — compression vidéo côté client ──
 let _ffmpegLoaded = false;
@@ -3442,30 +3444,28 @@ async function submitUpload() {
       throw new Error(`Vidéo trop longue — maximum 4 minutes autorisé sur VoltClip.`);
     }
 
-    const sizeMB = (fileToUpload.size / 1024 / 1024).toFixed(1);
-    if (fileToUpload.size > 100 * 1024 * 1024) {
-      throw new Error(`Fichier trop lourd (max 100 MB). Réduis la qualité ou raccourcis ta vidéo.`);
-    }
-
-    // 1c. Compression FFmpeg — réduit la taille avant envoi
-    const _preCompressFile = fileToUpload;
-    try {
-      const beforeMB = (fileToUpload.size / 1024 / 1024).toFixed(1);
-      const compressed = await compressVideo(fileToUpload, (msg) => { prog.textContent = msg; });
-      if (compressed && compressed.size > 0) {
-        fileToUpload = compressed;
-        const afterMB = (fileToUpload.size / 1024 / 1024).toFixed(1);
-        if (beforeMB !== afterMB) toast(`🗜️ Compressé : ${beforeMB}Mo → ${afterMB}Mo`);
-      } else {
-        console.warn('[FFmpeg] Fichier compressé vide, fallback original');
-        toast(`⚠️ Compression ignorée, envoi du fichier original`);
+    // 1c. Compression FFmpeg si fichier > 80MB — résultat doit être ≤ 100MB
+    if (fileToUpload.size > 80 * 1024 * 1024) {
+      const _preCompressFile = fileToUpload;
+      try {
+        const beforeMB = (fileToUpload.size / 1024 / 1024).toFixed(1);
+        const compressed = await compressVideo(fileToUpload, (msg) => { prog.textContent = msg; });
+        if (compressed && compressed.size > 0 && compressed.size < fileToUpload.size) {
+          fileToUpload = compressed;
+          const afterMB = (fileToUpload.size / 1024 / 1024).toFixed(1);
+          toast(`🗜️ Compressé : ${beforeMB}Mo → ${afterMB}Mo`);
+        } else {
+          fileToUpload = _preCompressFile;
+        }
+      } catch(compErr) {
+        console.warn('[Upload] Compression échouée, fallback original:', compErr);
         fileToUpload = _preCompressFile;
       }
-    } catch(compErr) {
-      console.warn('[Upload] Compression échouée, on continue:', compErr);
-      fileToUpload = _preCompressFile;
     }
-    if (!fileToUpload || fileToUpload.size === 0) throw new Error('Fichier vide après compression — resélectionne la vidéo');
+    if (!fileToUpload || fileToUpload.size === 0) throw new Error('Fichier vide — resélectionne la vidéo');
+    if (fileToUpload.size > 100 * 1024 * 1024) {
+      throw new Error(`Vidéo trop lourde même après compression (max 100 MB). Raccourcis la vidéo.`);
+    }
 
     prog.textContent = `☁️ Envoi (${(fileToUpload.size/1024/1024).toFixed(1)}MB)…`;
 
@@ -3584,24 +3584,44 @@ async function submitUpload() {
         clearTimeout(_insertTimeout);
         const insertData = await insertResp.json();
         insertedVideoId = Array.isArray(insertData) ? insertData[0]?.id : insertData?.id;
-        // Incrémenter videos_count dans profiles
+        // Incrémenter videos_count — fetch() direct fire-and-forget (évite hang sb.from Android)
         if (insertedVideoId) {
-          // Pas de RPC increment_videos_count → mise à jour directe
-          try {
-            const { data: pData } = await sb.from('profiles').select('videos_count').eq('id', currentUser.id).single();
-            await sb.from('profiles').update({ videos_count: (pData?.videos_count || 0) + 1 }).eq('id', currentUser.id);
-          } catch(e) { console.warn('videos_count update:', e); }
+          (async () => {
+            try {
+              const _ac1 = new AbortController();
+              setTimeout(() => _ac1.abort(), 5000);
+              const r1 = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${currentUser.id}&select=videos_count`, {
+                headers: { 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${authToken || SUPABASE_ANON}` },
+                signal: _ac1.signal
+              });
+              const [pd] = await r1.json().catch(() => [{}]);
+              const _ac2 = new AbortController();
+              setTimeout(() => _ac2.abort(), 5000);
+              await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${currentUser.id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${authToken || SUPABASE_ANON}` },
+                body: JSON.stringify({ videos_count: ((pd?.videos_count || 0) + 1) }),
+                signal: _ac2.signal
+              });
+            } catch(e) { console.warn('videos_count update:', e); }
+          })();
         }
       } catch(e) { console.warn('insert video err (possible timeout mobile):', e); }
 
       if (!insertedVideoId) {
-        // Fallback: attendre et chercher en base
-        await new Promise(r => setTimeout(r, 2000));
+        // Fallback: chercher l'ID en base — fetch() direct avec timeout (évite hang Android)
+        await new Promise(r => setTimeout(r, 1500));
         try {
           const fallbackCat = document.getElementById('uploadCategory')?.value || null;
-          let fbQuery = sb.from('videos').select('id').eq('user_id', currentUser.id).eq('status', 'active').order('created_at', { ascending: false }).limit(1);
-          if (fallbackCat) fbQuery = fbQuery.eq('category', fallbackCat);
-          const { data: fbVids } = await fbQuery;
+          const _fbCtrl = new AbortController();
+          setTimeout(() => _fbCtrl.abort(), 6000);
+          let fbUrl = `${SUPABASE_URL}/rest/v1/videos?user_id=eq.${currentUser.id}&status=eq.active&order=created_at.desc&limit=1&select=id`;
+          if (fallbackCat) fbUrl += `&category=eq.${encodeURIComponent(fallbackCat)}`;
+          const fbResp = await fetch(fbUrl, {
+            headers: { 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${authToken || SUPABASE_ANON}` },
+            signal: _fbCtrl.signal
+          });
+          const fbVids = await fbResp.json().catch(() => []);
           if (fbVids?.[0]) insertedVideoId = fbVids[0].id;
         } catch(e) {}
       }
@@ -4969,11 +4989,7 @@ function confirmBoost() {
       <div id="shopBalanceDisplay" style="font-size:36px;font-family:'Space Mono',monospace;color:#ffd700;font-weight:700">—</div>
       <div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:2px">coins</div>
     </div>
-    <!-- Packs coins -->
-    <div style="padding:0 16px;font-family:'Space Mono',monospace;font-size:10px;color:rgba(255,255,255,.4);letter-spacing:.08em;margin-bottom:10px">PACKS DE COINS</div>
-    <div style="display:flex;flex-direction:column;gap:10px;padding:0 16px 20px" id="shopPacksList">
-      <!-- généré par JS -->
-    </div>
+
     <!-- Gagner gratuitement -->
     <div style="margin:0 16px 8px;background:rgba(255,255,255,.04);border-radius:14px;padding:14px 16px">
       <div style="font-family:'Space Mono',monospace;font-size:11px;font-weight:700;margin-bottom:10px">🎁 GAGNER DES COINS GRATUITEMENT</div>
@@ -5277,18 +5293,7 @@ function openShopModal() {
   document.getElementById('shopModal').style.display = 'flex';
   const coins = _cachedProfile?.coins || 0;
   document.getElementById('shopBalanceDisplay').textContent = fmtNum(coins);
-  document.getElementById('shopPacksList').innerHTML = VC_COIN_PACKS.map((p,i) => `
-    <div onclick="buyPack(${i})" style="background:${p.highlight?'rgba(124,92,252,.15)':'#1c1c27'};border:2px solid ${p.highlight?'#7c5cfc':'rgba(255,255,255,.1)'};border-radius:16px;padding:14px 16px;cursor:pointer;position:relative">
-      ${p.highlight?'<div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#7c5cfc,#fc5c7d);color:#fff;font-family:\'Space Mono\',monospace;font-size:9px;font-weight:700;padding:3px 12px;border-radius:20px">⭐ POPULAIRE</div>':''}
-      <div style="display:flex;align-items:center;gap:12px">
-        <span style="font-size:28px">${p.emoji}</span>
-        <div style="flex:1">
-          <div style="font-family:'Space Mono',monospace;font-weight:700;font-size:13px">${p.label}</div>
-          <div style="color:#ffd700;font-family:'Space Mono',monospace;font-size:14px;font-weight:700;margin-top:2px">💰 ${p.coins.toLocaleString()} coins</div>
-        </div>
-        <div style="font-family:'Space Mono',monospace;font-weight:700;font-size:16px;color:${p.highlight?'#7c5cfc':'#fff'}">${p.price}</div>
-      </div>
-    </div>`).join('');
+  // shopPacksList supprimé — PayPal uniquement
   // Packs PayPal direct
   const _ppEmail = atob('YWxleGFuZHJhaGVydmU4NkBnbWFpbC5jb20=');
   document.getElementById('shopPaypalList').innerHTML = VC_COIN_PACKS.map(p => {
