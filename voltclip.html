@@ -3197,123 +3197,124 @@ function closeWebcamRecorder(){
 const ext=(file.name||'').split('.').pop().toLowerCase();const validExt=['mp4','mov','webm','avi','mkv','3gp','m4v','ts',''].includes(ext);// Caméra Android : file.type souvent vide — on bloque seulement si type clairement non-vidéo
 if(file.type&&!file.type.startsWith('video/')&&!file.type.startsWith('application/octet')&&ext&&!validExt){document.getElementById('uploadErr').textContent=`Format non supporté`;return}if(file.size>300*1024*1024){document.getElementById('uploadErr').textContent=`Fichier trop lourd (max 300 MB)`;return}let goStep2=(resolvedFile)=>{uploadFile=resolvedFile||file;let blobUrl=URL.createObjectURL(file);let bg=document.getElementById(`uploadBgPreview`);bg.src=blobUrl,bg.style.display=`block`,document.getElementById(`uploadStep1`).style.display=`none`,document.getElementById(`uploadStep2`).style.display=`flex`,document.getElementById(`uploadPreviewVideo`).src=blobUrl,document.getElementById(`uploadSubmit`).style.display=`block`,document.getElementById(`uploadErr`).textContent=``,document.getElementById(`uploadProgress`).style.display=`none`,openUploadStep2()};let url=URL.createObjectURL(file),tmpVid=document.createElement(`video`);tmpVid.preload=`metadata`;let _goStep2Called=false;let _safeGoStep2=(resolvedFile)=>{if(_goStep2Called)return;_goStep2Called=true;URL.revokeObjectURL(url);goStep2(resolvedFile);};// Lire en ArrayBuffer — timeout 8s sur mobile (gros fichier caméra sinon freeze)
 const _abTimeout=new Promise(res=>setTimeout(()=>res(null),8000));Promise.race([file.arrayBuffer().catch(()=>null),_abTimeout]).then(buf=>{if(buf===null){tmpVid.onloadedmetadata=()=>{_safeGoStep2(file)};tmpVid.onerror=()=>{_safeGoStep2(file)};setTimeout(()=>{if(!_goStep2Called)_safeGoStep2(file)},3000);tmpVid.src=url;return;}const safeBlob=new Blob([buf],{type:file.type||'video/mp4'});const safeFile=new File([safeBlob],file.name||'video.mp4',{type:file.type||'video/mp4'});tmpVid.onloadedmetadata=()=>{let dur=tmpVid.duration;if(dur&&isFinite(dur)&&dur>uploadMaxDuration){document.getElementById('uploadErr').textContent=`Vidéo trop longue — maximum 4 minutes autorisé sur VoltClip.`;return;}else{toast(`Vidéo sélectionnée ✓`)}_safeGoStep2(safeFile)};tmpVid.onerror=()=>{toast(`Vidéo sélectionnée ✓`);_safeGoStep2(safeFile)};setTimeout(()=>{if(!_goStep2Called){toast(`Vidéo sélectionnée ✓`);_safeGoStep2(safeFile)}},3000);tmpVid.src=url});}
-// ── Compression vidéo via Canvas + MediaRecorder ──
+// ── FFmpeg.wasm v0.12 single-thread (pas besoin de SharedArrayBuffer) ──
+// v0.12 @ffmpeg/core (sans -mt) = WASM simple, fonctionne sur GitHub Pages
+let _ffLoaded = false;
+let _ffLoading = false;
+let _ffInstance = null;
+
+async function loadFFmpeg() {
+  if (_ffLoaded && _ffInstance) return _ffInstance;
+  if (_ffLoading) {
+    await new Promise(res => {
+      const t = setInterval(() => { if (!_ffLoading) { clearInterval(t); res(); } }, 100);
+    });
+    return _ffInstance;
+  }
+  _ffLoading = true;
+  try {
+    await new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js';
+      s.onload = resolve;
+      s.onerror = reject;
+      document.head.appendChild(s);
+    });
+    // Le global UMD s'appelle FFmpegWASM
+    const FFmpegClass = (window.FFmpegWASM || window.FFmpeg || {}).FFmpeg;
+    if (!FFmpegClass) throw new Error('FFmpeg class not found');
+    const ff = new FFmpegClass();
+    // Core single-thread : aucun SharedArrayBuffer requis
+    await ff.load({
+      coreURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js',
+      wasmURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.wasm',
+    });
+    _ffInstance = ff;
+    _ffLoaded = true;
+    return ff;
+  } catch(e) {
+    console.warn('[FFmpeg] Chargement echoue:', e);
+    return null;
+  } finally {
+    _ffLoading = false;
+  }
+}
+
 async function compressVideo(file, onProgress) {
   if (file.size < 80 * 1024 * 1024) return file;
 
-  return new Promise((resolve) => {
-    onProgress('🗜️ Préparation compression…');
+  let ff = null;
+  try {
+    onProgress('Chargement compresseur...');
+    ff = await loadFFmpeg();
+    if (!ff) throw new Error('FFmpeg indisponible');
 
-    const video = document.createElement('video');
-    video.muted  = false; // DOIT être false pour que AudioContext capture l'audio
-    video.volume = 0;     // Silencieux pour l'utilisateur
-    video.playsInline = true;
-    video.preload = 'auto';
-    const url = URL.createObjectURL(file);
-    video.src = url;
+    onProgress('Lecture fichier...');
+    const fileData = new Uint8Array(await file.arrayBuffer());
+    await ff.writeFile('input.mp4', fileData);
 
-    let audioCtx = null;
-    const cleanup = () => {
-      try { URL.revokeObjectURL(url); } catch(_) {}
-      try { if (audioCtx) audioCtx.close(); } catch(_) {}
+    const LIMIT = 90 * 1024 * 1024;
+
+    // Passe 1 : 720p CRF 28, fast + maxrate 2500k
+    onProgress('Compression 1/2... (720p)');
+    const progressCb = ({ progress }) => {
+      if (progress >= 0 && progress <= 1)
+        onProgress('Compression 1/2... ' + Math.round(progress * 100) + '%');
     };
+    ff.on('progress', progressCb);
+    const code1 = await ff.exec([
+      '-i', 'input.mp4',
+      '-vf', 'scale=-2:min(720\\,ih)',
+      '-c:v', 'libx264', '-crf', '28', '-preset', 'fast',
+      '-maxrate', '2500k', '-bufsize', '5000k',
+      '-c:a', 'aac', '-b:a', '96k',
+      '-movflags', '+faststart', '-y', 'out1.mp4'
+    ]);
+    ff.off('progress', progressCb);
+    if (code1 !== 0) throw new Error('FFmpeg passe 1 echouee');
 
-    video.onerror = () => { cleanup(); resolve(file); };
+    let data = await ff.readFile('out1.mp4');
+    let result = new File([data.buffer], 'video.mp4', { type: 'video/mp4' });
+    console.log('[FFmpeg] P1: ' + (file.size/1024/1024).toFixed(1) + 'MB -> ' + (result.size/1024/1024).toFixed(1) + 'MB');
 
-    video.onloadedmetadata = () => {
-      let w = video.videoWidth  || 1280;
-      let h = video.videoHeight || 720;
-      const maxDim = 720;
-      if (Math.max(w, h) > maxDim) {
-        if (h >= w) { w = Math.round(w * maxDim / h); h = maxDim; }
-        else        { h = Math.round(h * maxDim / w); w = maxDim; }
+    // Passe 2 si encore > 90MB
+    if (result.size > LIMIT) {
+      onProgress('Compression 2/2... (480p)');
+      const p2cb = ({ progress }) => {
+        if (progress >= 0 && progress <= 1)
+          onProgress('Compression 2/2... ' + Math.round(progress * 100) + '%');
+      };
+      ff.on('progress', p2cb);
+      const code2 = await ff.exec([
+        '-i', 'out1.mp4',
+        '-vf', 'scale=-2:min(480\\,ih)',
+        '-c:v', 'libx264', '-crf', '32', '-preset', 'fast',
+        '-maxrate', '1500k', '-bufsize', '3000k',
+        '-c:a', 'aac', '-b:a', '64k',
+        '-movflags', '+faststart', '-y', 'out2.mp4'
+      ]);
+      ff.off('progress', p2cb);
+      if (code2 === 0) {
+        const d2 = await ff.readFile('out2.mp4');
+        const r2 = new File([d2.buffer], 'video.mp4', { type: 'video/mp4' });
+        console.log('[FFmpeg] P2: ' + (result.size/1024/1024).toFixed(1) + 'MB -> ' + (r2.size/1024/1024).toFixed(1) + 'MB');
+        if (r2.size > 0) result = r2;
+        try { await ff.deleteFile('out2.mp4'); } catch(_) {}
       }
-      if (w % 2 !== 0) w--;
-      if (h % 2 !== 0) h--;
+    }
 
-      const canvas = document.createElement('canvas');
-      canvas.width  = w;
-      canvas.height = h;
-      const ctx = canvas.getContext('2d');
+    try { await ff.deleteFile('input.mp4'); } catch(_) {}
+    try { await ff.deleteFile('out1.mp4'); } catch(_) {}
 
-      // ── Capture audio via AudioContext ──
-      let combinedStream;
-      try {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const src       = audioCtx.createMediaElementSource(video);
-        const audioDest = audioCtx.createMediaStreamDestination();
-        src.connect(audioDest);
-        combinedStream = new MediaStream([
-          ...canvas.captureStream(30).getVideoTracks(),
-          ...audioDest.stream.getAudioTracks()
-        ]);
-      } catch(e) {
-        combinedStream = canvas.captureStream(30);
-      }
+    if (result.size === 0 || result.size >= file.size) return file;
+    return result;
 
-      // VP8+Opus : meilleur support Chrome Android
-      const mimeType = [
-        'video/webm;codecs=vp8,opus',
-        'video/webm;codecs=vp9,opus',
-        'video/webm;codecs=vp8',
-        'video/webm'
-      ].find(m => { try { return MediaRecorder.isTypeSupported(m); } catch(_) { return false; } })
-       || 'video/webm';
-
-      let recorder;
-      try {
-        recorder = new MediaRecorder(combinedStream, {
-          mimeType,
-          bitsPerSecond: 2000000  // 2 Mbps total → 4min ≈ 60MB sous 98MB
-        });
-      } catch(e) { cleanup(); resolve(file); return; }
-
-      const chunks = [];
-      recorder.ondataavailable = e => { if (e.data && e.data.size > 0) chunks.push(e.data); };
-      recorder.onstop = () => {
-        cleanup();
-        const blob   = new Blob(chunks, { type: mimeType });
-        const result = new File([blob], 'video.webm', { type: mimeType });
-        console.log('[Compress] ' + (file.size/1024/1024).toFixed(1) + 'MB → ' + (result.size/1024/1024).toFixed(1) + 'MB');
-        resolve(result.size > 0 && result.size < file.size ? result : file);
-      };
-      recorder.onerror = () => { cleanup(); resolve(file); };
-
-      recorder.start(1000);
-
-      // setInterval au lieu de requestAnimationFrame :
-      // rAF throttlé par Chrome mobile → 3MB. setInterval tourne en arrière-plan.
-      let drawTimer;
-      const startDraw = () => {
-        drawTimer = setInterval(() => {
-          if (video.readyState >= 2) {
-            try { ctx.drawImage(video, 0, 0, w, h); } catch(_) {}
-          }
-          const pct = video.duration > 0
-            ? Math.round((video.currentTime / video.duration) * 100) : 0;
-          onProgress('🗜️ Compression… ' + pct + '%');
-        }, 33); // ~30fps
-      };
-
-      video.onplay  = startDraw;
-      video.onended = () => {
-        clearInterval(drawTimer);
-        try { ctx.drawImage(video, 0, 0, w, h); } catch(_) {}
-        setTimeout(() => {
-          try { recorder.stop(); } catch(_) { cleanup(); resolve(file); }
-        }, 300);
-      };
-      video.onerror = () => {
-        clearInterval(drawTimer);
-        try { recorder.stop(); } catch(_) {}
-        cleanup(); resolve(file);
-      };
-
-      video.playbackRate = 1;
-      video.play().catch(() => { cleanup(); resolve(file); });
-    };
-  });
+  } catch(e) {
+    console.warn('[FFmpeg] Erreur:', e);
+    return file;
+  }
 }
+
 // ── Rate limiting upload : max 5 uploads par heure ──
 // ══════════════════════════════════════════
 
