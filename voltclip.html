@@ -3197,140 +3197,117 @@ function closeWebcamRecorder(){
 const ext=(file.name||'').split('.').pop().toLowerCase();const validExt=['mp4','mov','webm','avi','mkv','3gp','m4v','ts',''].includes(ext);// Caméra Android : file.type souvent vide — on bloque seulement si type clairement non-vidéo
 if(file.type&&!file.type.startsWith('video/')&&!file.type.startsWith('application/octet')&&ext&&!validExt){document.getElementById('uploadErr').textContent=`Format non supporté`;return}if(file.size>300*1024*1024){document.getElementById('uploadErr').textContent=`Fichier trop lourd (max 300 MB)`;return}let goStep2=(resolvedFile)=>{uploadFile=resolvedFile||file;let blobUrl=URL.createObjectURL(file);let bg=document.getElementById(`uploadBgPreview`);bg.src=blobUrl,bg.style.display=`block`,document.getElementById(`uploadStep1`).style.display=`none`,document.getElementById(`uploadStep2`).style.display=`flex`,document.getElementById(`uploadPreviewVideo`).src=blobUrl,document.getElementById(`uploadSubmit`).style.display=`block`,document.getElementById(`uploadErr`).textContent=``,document.getElementById(`uploadProgress`).style.display=`none`,openUploadStep2()};let url=URL.createObjectURL(file),tmpVid=document.createElement(`video`);tmpVid.preload=`metadata`;let _goStep2Called=false;let _safeGoStep2=(resolvedFile)=>{if(_goStep2Called)return;_goStep2Called=true;URL.revokeObjectURL(url);goStep2(resolvedFile);};// Lire en ArrayBuffer — timeout 8s sur mobile (gros fichier caméra sinon freeze)
 const _abTimeout=new Promise(res=>setTimeout(()=>res(null),8000));Promise.race([file.arrayBuffer().catch(()=>null),_abTimeout]).then(buf=>{if(buf===null){tmpVid.onloadedmetadata=()=>{_safeGoStep2(file)};tmpVid.onerror=()=>{_safeGoStep2(file)};setTimeout(()=>{if(!_goStep2Called)_safeGoStep2(file)},3000);tmpVid.src=url;return;}const safeBlob=new Blob([buf],{type:file.type||'video/mp4'});const safeFile=new File([safeBlob],file.name||'video.mp4',{type:file.type||'video/mp4'});tmpVid.onloadedmetadata=()=>{let dur=tmpVid.duration;if(dur&&isFinite(dur)&&dur>uploadMaxDuration){document.getElementById('uploadErr').textContent=`Vidéo trop longue — maximum 4 minutes autorisé sur VoltClip.`;return;}else{toast(`Vidéo sélectionnée ✓`)}_safeGoStep2(safeFile)};tmpVid.onerror=()=>{toast(`Vidéo sélectionnée ✓`);_safeGoStep2(safeFile)};setTimeout(()=>{if(!_goStep2Called){toast(`Vidéo sélectionnée ✓`);_safeGoStep2(safeFile)}},3000);tmpVid.src=url});}
-// ── FFmpeg.wasm v0.11 — compression vidéo côté client ──
-let _ffmpegLoaded = false;
-let _ffmpegLoading = false;
-let _ffmpegInstance = null;
-
-async function loadFFmpeg() {
-  if (_ffmpegLoaded && _ffmpegInstance) return _ffmpegInstance;
-  if (_ffmpegLoading) {
-    // Attendre que le chargement en cours se termine
-    await new Promise(res => {
-      const check = setInterval(() => { if (!_ffmpegLoading) { clearInterval(check); res(); } }, 100);
-    });
-    return _ffmpegInstance;
-  }
-  _ffmpegLoading = true;
-  try {
-    await new Promise((resolve, reject) => {
-      const s = document.createElement('script');
-      s.src = 'https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js';
-      s.onload = resolve;
-      s.onerror = reject;
-      document.head.appendChild(s);
-    });
-    const { createFFmpeg, fetchFile } = FFmpeg;
-    const ff = createFFmpeg({
-      corePath: 'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js',
-      log: false
-    });
-    await ff.load();
-    _ffmpegInstance = { ff, fetchFile };
-    _ffmpegLoaded = true;
-    return _ffmpegInstance;
-  } catch(e) {
-    console.warn('[FFmpeg] Chargement échoué:', e);
-    return null;
-  } finally {
-    _ffmpegLoading = false;
-  }
-}
-
+// ── Compression vidéo via Canvas + MediaRecorder ──
+// Fonctionne sans SharedArrayBuffer, sans librairie externe,
+// sur tous les navigateurs mobile (Chrome Android, Safari iOS)
 async function compressVideo(file, onProgress) {
-  // Pas de compression si déjà petit (< 80 Mo)
   if (file.size < 80 * 1024 * 1024) return file;
 
-  let ffmpegCtx = null;
-  try {
-    onProgress('🔧 Chargement compresseur…');
-    ffmpegCtx = await loadFFmpeg();
-    if (!ffmpegCtx) throw new Error('FFmpeg indisponible');
+  return new Promise((resolve) => {
+    onProgress('🗜️ Préparation compression…');
 
-    const { ff, fetchFile } = ffmpegCtx;
-    const inp  = 'input.mp4';
-    const out1 = 'out1.mp4';
-    const out2 = 'out2.mp4';
-    const out3 = 'out3.mp4';
-    const LIMIT = 92 * 1024 * 1024; // cible interne 92MB (marge avant le reject 98MB)
+    const video = document.createElement('video');
+    video.muted = true;
+    video.playsInline = true;
+    video.preload = 'metadata';
+    const url = URL.createObjectURL(file);
+    video.src = url;
 
-    // ── Passe 1 : 720p, CRF 30, veryfast + plafond 2500k ──
-    // Le -maxrate/-bufsize garantit que l'encodeur respecte le débit max
-    // même sur contenu gaming très dense (mouvements rapides, HUD, effets)
-    onProgress('🗜️ Compression 1/3… (720p)');
-    ff.FS('writeFile', inp, await fetchFile(file));
-    await Promise.race([
-      ff.run(
-        '-i', inp,
-        '-vf', 'scale=-2:min(720,ih)',
-        '-c:v', 'libx264', '-crf', '30', '-preset', 'veryfast',
-        '-maxrate', '2500k', '-bufsize', '5000k',
-        '-c:a', 'aac', '-b:a', '96k',
-        '-movflags', '+faststart', '-y', out1
-      ),
-      new Promise((_, rej) => setTimeout(() => rej(new Error('FFmpeg timeout 150s')), 150000))
-    ]);
+    const cleanup = () => { try { URL.revokeObjectURL(url); } catch(_) {} };
 
-    let data = ff.FS('readFile', out1);
-    let result = new File([data.buffer], 'video.mp4', { type: 'video/mp4' });
-    console.log(`[FFmpeg] P1: ${(file.size/1024/1024).toFixed(1)}MB → ${(result.size/1024/1024).toFixed(1)}MB`);
+    video.onerror = () => { cleanup(); resolve(file); };
 
-    // ── Passe 2 : si encore > 92MB → 480p CRF 33 + plafond 1500k ──
-    if (result.size > LIMIT) {
-      onProgress('🗜️ Compression 2/3… (480p, dense)');
-      ff.FS('writeFile', out1, data);
-      await Promise.race([
-        ff.run(
-          '-i', out1,
-          '-vf', 'scale=-2:min(480,ih)',
-          '-c:v', 'libx264', '-crf', '33', '-preset', 'veryfast',
-          '-maxrate', '1500k', '-bufsize', '3000k',
-          '-c:a', 'aac', '-b:a', '64k',
-          '-movflags', '+faststart', '-y', out2
-        ),
-        new Promise((_, rej) => setTimeout(() => rej(new Error('FFmpeg timeout p2 150s')), 150000))
-      ]);
-      data = ff.FS('readFile', out2);
-      const r2 = new File([data.buffer], 'video.mp4', { type: 'video/mp4' });
-      console.log(`[FFmpeg] P2: ${(result.size/1024/1024).toFixed(1)}MB → ${(r2.size/1024/1024).toFixed(1)}MB`);
-      if (r2.size > 0) result = r2;
-      try { ff.FS('unlink', out2); } catch(_) {}
-    }
+    video.onloadedmetadata = () => {
+      // ── Calcul résolution cible ──
+      // Cible : 1800 kbps → 4min = ~54MB vidéo → largement sous 98MB avec audio
+      let w = video.videoWidth  || 1280;
+      let h = video.videoHeight || 720;
 
-    // ── Passe 3 : dernier recours → 360p CRF 36 + plafond 900k ──
-    // Garantit le passage sous 92MB même pour les gaming clips 4min ultra-denses
-    if (result.size > LIMIT) {
-      onProgress('🗜️ Compression 3/3… (360p, dernier recours)');
-      ff.FS('writeFile', out2, data);
-      await Promise.race([
-        ff.run(
-          '-i', out2,
-          '-vf', 'scale=-2:min(360,ih)',
-          '-c:v', 'libx264', '-crf', '36', '-preset', 'veryfast',
-          '-maxrate', '900k', '-bufsize', '1800k',
-          '-c:a', 'aac', '-b:a', '48k',
-          '-movflags', '+faststart', '-y', out3
-        ),
-        new Promise((_, rej) => setTimeout(() => rej(new Error('FFmpeg timeout p3 150s')), 150000))
-      ]);
-      data = ff.FS('readFile', out3);
-      const r3 = new File([data.buffer], 'video.mp4', { type: 'video/mp4' });
-      console.log(`[FFmpeg] P3: ${(result.size/1024/1024).toFixed(1)}MB → ${(r3.size/1024/1024).toFixed(1)}MB`);
-      if (r3.size > 0) result = r3;
-      try { ff.FS('unlink', out2); } catch(_) {}
-      try { ff.FS('unlink', out3); } catch(_) {}
-    }
+      // Portrait téléphone : limiter à 720px sur le grand côté
+      const maxDim = 720;
+      if (Math.max(w, h) > maxDim) {
+        if (h >= w) { w = Math.round(w * maxDim / h); h = maxDim; }
+        else         { h = Math.round(h * maxDim / w); w = maxDim; }
+      }
+      // Dimensions paires obligatoires pour certains encodeurs
+      if (w % 2 !== 0) w--;
+      if (h % 2 !== 0) h--;
 
-    try { ff.FS('unlink', inp); } catch(_) {}
-    try { ff.FS('unlink', out1); } catch(_) {}
+      const canvas = document.createElement('canvas');
+      canvas.width  = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
 
-    if (result.size === 0 || result.size >= file.size) return file;
-    return result;
+      // ── Choisir le meilleur codec disponible ──
+      const mimeType = [
+        'video/webm;codecs=vp9',
+        'video/webm;codecs=vp8',
+        'video/webm',
+        'video/mp4'
+      ].find(m => { try { return MediaRecorder.isTypeSupported(m); } catch(_) { return false; } })
+       || 'video/webm';
 
-  } catch(e) {
-    console.warn('[FFmpeg] Erreur:', e);
-    return file;
-  }
+      let recorder;
+      try {
+        recorder = new MediaRecorder(canvas.captureStream(30), {
+          mimeType,
+          videoBitsPerSecond: 1_800_000  // 1.8 Mbps — 4min ≈ 54MB garanti sous 98MB
+        });
+      } catch(e) {
+        cleanup();
+        resolve(file);
+        return;
+      }
+
+      const chunks = [];
+      recorder.ondataavailable = e => { if (e.data && e.data.size > 0) chunks.push(e.data); };
+
+      recorder.onstop = () => {
+        cleanup();
+        const ext  = mimeType.includes('mp4') ? 'mp4' : 'webm';
+        const blob = new Blob(chunks, { type: mimeType });
+        const result = new File([blob], `video.${ext}`, { type: mimeType });
+        console.log(`[Canvas] ${(file.size/1024/1024).toFixed(1)}MB → ${(result.size/1024/1024).toFixed(1)}MB (${mimeType})`);
+        resolve(result.size > 0 && result.size < file.size ? result : file);
+      };
+
+      recorder.onerror = () => { cleanup(); resolve(file); };
+
+      // Démarrer l'enregistrement
+      recorder.start(500); // chunk toutes les 500ms
+
+      // 2x speed : 4min de vidéo → ~2min de compression
+      video.playbackRate = 2;
+
+      let rafId;
+      const drawFrame = () => {
+        if (video.ended || video.paused) return;
+        try { ctx.drawImage(video, 0, 0, w, h); } catch(_) {}
+        const pct = video.duration > 0 ? Math.round((video.currentTime / video.duration) * 100) : 0;
+        onProgress(`🗜️ Compression… ${pct}%`);
+        rafId = requestAnimationFrame(drawFrame);
+      };
+
+      video.onplay  = () => { rafId = requestAnimationFrame(drawFrame); };
+      video.onended = () => {
+        cancelAnimationFrame(rafId);
+        // Dernière frame
+        try { ctx.drawImage(video, 0, 0, w, h); } catch(_) {}
+        setTimeout(() => {
+          try { recorder.stop(); } catch(_) { cleanup(); resolve(file); }
+        }, 200);
+      };
+
+      video.onerror = () => {
+        cancelAnimationFrame(rafId);
+        try { recorder.stop(); } catch(_) {}
+        cleanup();
+        resolve(file);
+      };
+
+      video.play().catch(() => { cleanup(); resolve(file); });
+    };
+  });
 }
 // ── Rate limiting upload : max 5 uploads par heure ──
 // ══════════════════════════════════════════
