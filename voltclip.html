@@ -1141,10 +1141,15 @@ async function loadLeaderboard() {
   const list = document.getElementById('leaderboardList')
   if (!list) return
   list.innerHTML = '<div class="loader-dots"><span></span><span></span><span></span></div>'
-  if (_lbCurrentTab === 'voters') await _loadLbVoters(list)
-  else if (_lbCurrentTab === 'videos') await _loadLbVideos(list)
-  else if (_lbCurrentTab === 'creators') await _loadLbCreators(list)
-  else if (_lbCurrentTab === 'countries') await _loadLbGeo(list, 'country')
+  try {
+    if (_lbCurrentTab === 'voters') await _loadLbVoters(list)
+    else if (_lbCurrentTab === 'videos') await _loadLbVideos(list)
+    else if (_lbCurrentTab === 'creators') await _loadLbCreators(list)
+    else if (_lbCurrentTab === 'countries') await _loadLbGeo(list, 'country')
+  } catch(e) {
+    console.error('loadLeaderboard error:', e)
+    list.innerHTML = '<div class="empty-state"><span class="ei">⚠️</span><p>Erreur de chargement.<br>Vérifie ta connexion.</p></div>'
+  }
 }
 
 async function _loadLbVideos(list) {
@@ -1640,7 +1645,7 @@ async function superVoteBattle(battleId, side) {
   try {
   // Débiter les coins via RPC sécurisée
   const paid = await debitCoins(currentUser.id, SUPER_VOTE_COST)
-  if (!paid) return
+  if (!paid) { toast('❌ Impossible de débiter les coins. Réessaie.'); return }
   // Appel RPC super_vote_battle (+5)
   const { error: voteErr } = await sb.rpc('super_vote_battle', { p_battle_id: battleId, p_side: side })
   if (voteErr) {
@@ -3273,7 +3278,6 @@ async function compressVideo(file, onProgress) {
 
     // Sortie vide (FFmpeg a planté silencieusement) → fallback original
     if (compressed.size === 0) {
-      console.warn('[FFmpeg] Sortie vide (0 octets), fallback original');
       return file;
     }
 
@@ -4935,8 +4939,8 @@ function confirmBoost() {
      ═══════════════════════════════════════════════════════ -->
 
 <!-- MISSIONS MODAL -->
-<div id="missionsModal" style="display:none;position:fixed;inset:0;z-index:1600;background:rgba(0,0,0,.88);flex-direction:column;justify-content:flex-end">
-  <div style="background:#13131a;border-radius:24px 24px 0 0;padding:0 0 max(24px,env(safe-area-inset-bottom));max-height:90vh;overflow-y:auto;display:flex;flex-direction:column">
+<div id="missionsModal" style="display:none;position:fixed;inset:0;z-index:1600;background:rgba(0,0,0,.88);flex-direction:column;justify-content:flex-end;align-items:center">
+  <div style="background:#13131a;border-radius:24px 24px 0 0;padding:0 0 max(24px,env(safe-area-inset-bottom));max-height:90vh;overflow-y:auto;display:flex;flex-direction:column;width:100%;max-width:600px">
     <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px 10px">
       <div style="font-family:'Space Mono',monospace;font-size:16px;font-weight:700">🎯 Missions du jour</div>
       <button onclick="closeMissionsModal()" style="background:rgba(255,255,255,.1);border:none;color:#fff;width:30px;height:30px;border-radius:50%;font-size:16px;cursor:pointer">✕</button>
@@ -4981,6 +4985,15 @@ function confirmBoost() {
       </div>
     </div>
     <div style="padding:12px 16px 4px;color:rgba(255,255,255,.25);font-size:9px;font-family:'Space Mono',monospace;text-align:center">Paiement sécurisé via PayPal — Coins crédités sous 24h par l'équipe VoltClip</div>
+    <!-- Paiement direct PayPal -->
+    <div style="margin:8px 16px 20px;background:rgba(0,68,204,.13);border:1px solid rgba(0,120,255,.3);border-radius:16px;padding:16px">
+      <div style="font-family:'Space Mono',monospace;font-size:11px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:8px">
+        <img src="https://www.paypalobjects.com/webstatic/mktg/logo/pp_cc_mark_37x23.jpg" alt="PayPal" style="height:20px;border-radius:3px">
+        PAYER DIRECTEMENT VIA PAYPAL
+      </div>
+      <div style="font-size:10px;color:rgba(255,255,255,.45);margin-bottom:12px">Clique sur un pack → PayPal s'ouvre → Coins crédités sous 24h</div>
+      <div style="display:flex;flex-direction:column;gap:8px" id="shopPaypalList"></div>
+    </div>
   </div>
 </div>
 
@@ -5276,6 +5289,22 @@ function openShopModal() {
         <div style="font-family:'Space Mono',monospace;font-weight:700;font-size:16px;color:${p.highlight?'#7c5cfc':'#fff'}">${p.price}</div>
       </div>
     </div>`).join('');
+  // Packs PayPal direct
+  const _ppEmail = atob('YWxleGFuZHJhaGVydmU4NkBnbWFpbC5jb20=');
+  document.getElementById('shopPaypalList').innerHTML = VC_COIN_PACKS.map(p => {
+    const priceNum = parseFloat(p.price.replace(',','.'));
+    const ppUrl = 'https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=' + encodeURIComponent(_ppEmail)
+      + '&amount=' + priceNum.toFixed(2)
+      + '&currency_code=EUR'
+      + '&item_name=' + encodeURIComponent('[VoltClip] ' + p.label + ' — ' + p.coins + ' coins')
+      + '&no_shipping=1';
+    return `<a href="${ppUrl}" target="_blank" onclick="closeShopModal();toast('💙 PayPal ouvert ! Coins crédités sous 24h après paiement.')"
+      style="display:flex;align-items:center;justify-content:space-between;background:#003087;border-radius:12px;padding:10px 14px;text-decoration:none;color:#fff;gap:10px">
+      <span style="font-size:18px">${p.emoji}</span>
+      <span style="flex:1;font-family:'Space Mono',monospace;font-size:11px;font-weight:700">${p.label} — 💰 ${p.coins.toLocaleString()} coins</span>
+      <span style="font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:#ffd700">${p.price}</span>
+    </a>`;
+  }).join('');
 }
 function closeShopModal() { document.getElementById('shopModal').style.display='none'; }
 function buyPack(idx) {
