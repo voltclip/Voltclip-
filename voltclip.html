@@ -3702,7 +3702,7 @@ async function submitUpload() {
             if (!battleErr) {
               toast('⚔️ Battle lancé automatiquement !');
               // Refresh le feed battle si l'user est dessus
-              if (currentTab === 'battle') { battlePage = 0; battleAllLoaded = false; loadBattles(); }
+              battlePage = 0; battleAllLoaded = false; loadBattles();
             } else { console.warn('[matchmaking] insert battle err:', battleErr); }
           } else {
             console.debug('[matchmaking] aucun adversaire disponible dans cette catégorie');
@@ -3756,14 +3756,13 @@ async function submitUpload() {
       // Pas de fallback direct : UPDATE bloqué par RLS — award_coins_secure est requis
     }
     closeUpload();
-    showTab('profile');
+    showTab('battle');
     feedPage = 0; feedAllLoaded = false;
     loadFeed();
     loadStories();
-    setTimeout(() => refreshProfile(), 600);
-    setTimeout(() => refreshProfile(), 3500);
-    // Refresh battle feed (le matchmaking peut avoir créé un battle)
-    setTimeout(() => { battlePage = 0; battleAllLoaded = false; loadBattles(); }, 1500);
+    setTimeout(() => refreshProfile(), 800);
+    // Refresh battle feed — délai 3s pour laisser le matchmaking terminer son INSERT
+    setTimeout(() => { battlePage = 0; battleAllLoaded = false; loadBattles(); }, 3000);
 
   } catch (err) {
     console.error('[VoltClip] Upload error:', err);
