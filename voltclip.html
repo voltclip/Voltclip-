@@ -3248,18 +3248,21 @@ async function compressVideo(file, onProgress) {
     ff.FS('writeFile', inputName, await fetchFile(file));
 
     // 720p max, CRF 28 (bon compromis qualité/taille), preset ultrafast pour mobile
-    await ff.run(
-      '-i', inputName,
-      '-vf', 'scale=\'min(1280,iw)\':\'min(720,ih)\':force_original_aspect_ratio=decrease',
-      '-c:v', 'libx264',
-      '-crf', '28',
-      '-preset', 'ultrafast',
-      '-c:a', 'aac',
-      '-b:a', '96k',
-      '-movflags', '+faststart',
-      '-y',
-      outputName
-    );
+    await Promise.race([
+      ff.run(
+        '-i', inputName,
+        '-vf', 'scale=-2:min(720,ih)',
+        '-c:v', 'libx264',
+        '-crf', '28',
+        '-preset', 'ultrafast',
+        '-c:a', 'aac',
+        '-b:a', '96k',
+        '-movflags', '+faststart',
+        '-y',
+        outputName
+      ),
+      new Promise((_, rej) => setTimeout(() => rej(new Error('FFmpeg timeout 50s')), 50000))
+    ]);
 
     const data = ff.FS('readFile', outputName);
     // Nettoyage mémoire
