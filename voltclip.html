@@ -3251,45 +3251,74 @@ async function compressVideo(file, onProgress) {
     const inp  = 'input.mp4';
     const out1 = 'out1.mp4';
     const out2 = 'out2.mp4';
+    const out3 = 'out3.mp4';
+    const LIMIT = 92 * 1024 * 1024; // cible interne 92MB (marge avant le reject 98MB)
 
-    // ── Passe 1 : 720p, CRF 30, veryfast ──
-    // veryfast compresse 4-5x mieux qu'ultrafast à qualité égale
-    onProgress('🗜️ Compression 1/2… (60-90s)');
+    // ── Passe 1 : 720p, CRF 30, veryfast + plafond 2500k ──
+    // Le -maxrate/-bufsize garantit que l'encodeur respecte le débit max
+    // même sur contenu gaming très dense (mouvements rapides, HUD, effets)
+    onProgress('🗜️ Compression 1/3… (720p)');
     ff.FS('writeFile', inp, await fetchFile(file));
     await Promise.race([
       ff.run(
         '-i', inp,
         '-vf', 'scale=-2:min(720,ih)',
         '-c:v', 'libx264', '-crf', '30', '-preset', 'veryfast',
+        '-maxrate', '2500k', '-bufsize', '5000k',
         '-c:a', 'aac', '-b:a', '96k',
         '-movflags', '+faststart', '-y', out1
       ),
-      new Promise((_, rej) => setTimeout(() => rej(new Error('FFmpeg timeout 120s')), 120000))
+      new Promise((_, rej) => setTimeout(() => rej(new Error('FFmpeg timeout 150s')), 150000))
     ]);
 
     let data = ff.FS('readFile', out1);
     let result = new File([data.buffer], 'video.mp4', { type: 'video/mp4' });
     console.log(`[FFmpeg] P1: ${(file.size/1024/1024).toFixed(1)}MB → ${(result.size/1024/1024).toFixed(1)}MB`);
 
-    // ── Passe 2 : si encore > 95MB → 480p CRF 34 ──
-    if (result.size > 95 * 1024 * 1024) {
-      onProgress('🗜️ Compression 2/2… (vidéo dense)');
+    // ── Passe 2 : si encore > 92MB → 480p CRF 33 + plafond 1500k ──
+    if (result.size > LIMIT) {
+      onProgress('🗜️ Compression 2/3… (480p, dense)');
       ff.FS('writeFile', out1, data);
       await Promise.race([
         ff.run(
           '-i', out1,
           '-vf', 'scale=-2:min(480,ih)',
-          '-c:v', 'libx264', '-crf', '34', '-preset', 'veryfast',
+          '-c:v', 'libx264', '-crf', '33', '-preset', 'veryfast',
+          '-maxrate', '1500k', '-bufsize', '3000k',
           '-c:a', 'aac', '-b:a', '64k',
           '-movflags', '+faststart', '-y', out2
         ),
-        new Promise((_, rej) => setTimeout(() => rej(new Error('FFmpeg timeout p2 120s')), 120000))
+        new Promise((_, rej) => setTimeout(() => rej(new Error('FFmpeg timeout p2 150s')), 150000))
       ]);
       data = ff.FS('readFile', out2);
       const r2 = new File([data.buffer], 'video.mp4', { type: 'video/mp4' });
       console.log(`[FFmpeg] P2: ${(result.size/1024/1024).toFixed(1)}MB → ${(r2.size/1024/1024).toFixed(1)}MB`);
       if (r2.size > 0) result = r2;
       try { ff.FS('unlink', out2); } catch(_) {}
+    }
+
+    // ── Passe 3 : dernier recours → 360p CRF 36 + plafond 900k ──
+    // Garantit le passage sous 92MB même pour les gaming clips 4min ultra-denses
+    if (result.size > LIMIT) {
+      onProgress('🗜️ Compression 3/3… (360p, dernier recours)');
+      ff.FS('writeFile', out2, data);
+      await Promise.race([
+        ff.run(
+          '-i', out2,
+          '-vf', 'scale=-2:min(360,ih)',
+          '-c:v', 'libx264', '-crf', '36', '-preset', 'veryfast',
+          '-maxrate', '900k', '-bufsize', '1800k',
+          '-c:a', 'aac', '-b:a', '48k',
+          '-movflags', '+faststart', '-y', out3
+        ),
+        new Promise((_, rej) => setTimeout(() => rej(new Error('FFmpeg timeout p3 150s')), 150000))
+      ]);
+      data = ff.FS('readFile', out3);
+      const r3 = new File([data.buffer], 'video.mp4', { type: 'video/mp4' });
+      console.log(`[FFmpeg] P3: ${(result.size/1024/1024).toFixed(1)}MB → ${(r3.size/1024/1024).toFixed(1)}MB`);
+      if (r3.size > 0) result = r3;
+      try { ff.FS('unlink', out2); } catch(_) {}
+      try { ff.FS('unlink', out3); } catch(_) {}
     }
 
     try { ff.FS('unlink', inp); } catch(_) {}
