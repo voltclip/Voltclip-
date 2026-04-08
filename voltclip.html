@@ -3240,7 +3240,7 @@ async function loadFFmpeg() {
   }
 }
 
-async function compressVideo(file, onProgress) {
+async function compressVideo(file, onProgress, knownDuration) {
   if (file.size < 50 * 1024 * 1024) return file;
 
   let ff = null;
@@ -3253,23 +3253,22 @@ async function compressVideo(file, onProgress) {
     const fileData = new Uint8Array(await file.arrayBuffer());
     await ff.writeFile('input.mp4', fileData);
 
-    // Calculer bitrate cible selon la durée pour garantir résultat < 88MB
+    // Bitrate cible selon durée pour garantir < 93MB
+    // knownDuration passé depuis l'upload (évite un 2ème getVideoDuration sur mobile)
     const TARGET_MB = 93;
-    const duration = await getVideoDuration(file);
-    let vBitrate, p1Scale, p1Crf;
-    if (duration && isFinite(duration) && duration > 0) {
+    const duration = (knownDuration && isFinite(knownDuration) && knownDuration > 0) ? knownDuration : null;
+    let vBitrate, p1Scale;
+    if (duration) {
       const totalKbps = Math.floor((TARGET_MB * 8 * 1024) / duration);
-      vBitrate = Math.max(400, totalKbps - 96); // soustraire audio 96kbps
+      vBitrate = Math.max(400, totalKbps - 96);
       p1Scale  = vBitrate > 1500 ? '720' : '480';
-      p1Crf    = vBitrate > 1500 ? '28'  : '31';
     } else {
-      // Durée inconnue : 480p serré
       vBitrate = 1200;
       p1Scale  = '480';
-      p1Crf    = '31';
     }
-    const p1Maxrate = Math.floor(vBitrate * 1.2);
-    const p1Bufsize = vBitrate * 2;
+    // NOTE: pas de -crf ici — libx264 ignore -b:v quand -crf est présent (ABR strict)
+    const p1Maxrate = Math.floor(vBitrate * 1.5);
+    const p1Bufsize = vBitrate * 3;
 
     onProgress('Compression 1/2... (' + p1Scale + 'p, ~' + vBitrate + 'k)');
     const progressCb = ({ progress }) => {
@@ -3280,7 +3279,7 @@ async function compressVideo(file, onProgress) {
     const code1 = await ff.exec([
       '-i', 'input.mp4',
       '-vf', 'scale=-2:min(' + p1Scale + '\\,ih)',
-      '-c:v', 'libx264', '-crf', p1Crf, '-preset', 'fast',
+      '-c:v', 'libx264', '-preset', 'fast',
       '-b:v', vBitrate + 'k', '-maxrate', p1Maxrate + 'k', '-bufsize', p1Bufsize + 'k',
       '-c:a', 'aac', '-b:a', '96k',
       '-movflags', '+faststart', '-y', 'out1.mp4'
@@ -3292,7 +3291,7 @@ async function compressVideo(file, onProgress) {
     let result = new File([data.buffer], 'video.mp4', { type: 'video/mp4' });
     console.log('[FFmpeg] P1: ' + (file.size/1024/1024).toFixed(1) + 'MB -> ' + (result.size/1024/1024).toFixed(1) + 'MB');
 
-    // Passe 2 si encore > 92MB : 360p très serré
+    // Passe 2 si encore > 95MB : 360p, bitrate encore plus serré
     if (result.size > 95 * 1024 * 1024) {
       onProgress('Compression 2/2... (360p)');
       const p2cb = ({ progress }) => {
@@ -3300,12 +3299,13 @@ async function compressVideo(file, onProgress) {
           onProgress('Compression 2/2... ' + Math.round(progress * 100) + '%');
       };
       ff.on('progress', p2cb);
-      const vBitrate2 = duration ? Math.max(300, Math.floor((TARGET_MB * 8 * 1024) / duration) - 64) : 800;
+      const vBitrate2 = duration ? Math.max(300, Math.floor((TARGET_MB * 8 * 1024) / duration) - 64) : 700;
+      const v2max = Math.floor(vBitrate2 * 1.5);
       const code2 = await ff.exec([
         '-i', 'out1.mp4',
         '-vf', 'scale=-2:min(360\\,ih)',
-        '-c:v', 'libx264', '-crf', '34', '-preset', 'fast',
-        '-b:v', vBitrate2 + 'k', '-maxrate', Math.floor(vBitrate2 * 1.2) + 'k', '-bufsize', (vBitrate2 * 2) + 'k',
+        '-c:v', 'libx264', '-preset', 'fast',
+        '-b:v', vBitrate2 + 'k', '-maxrate', v2max + 'k', '-bufsize', (vBitrate2 * 3) + 'k',
         '-c:a', 'aac', '-b:a', '64k',
         '-movflags', '+faststart', '-y', 'out2.mp4'
       ]);
@@ -3482,7 +3482,7 @@ async function submitUpload() {
       const _preCompressFile = fileToUpload;
       try {
         const beforeMB = (fileToUpload.size / 1024 / 1024).toFixed(1);
-        const compressed = await compressVideo(fileToUpload, (msg) => { prog.textContent = msg; });
+        const compressed = await compressVideo(fileToUpload, (msg) => { prog.textContent = msg; }, rawDurCheck);
         if (compressed && compressed.size > 0 && compressed.size < fileToUpload.size) {
           fileToUpload = compressed;
           const afterMB = (fileToUpload.size / 1024 / 1024).toFixed(1);
