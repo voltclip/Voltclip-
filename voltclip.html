@@ -3271,6 +3271,12 @@ async function compressVideo(file, onProgress) {
 
     const compressed = new File([data.buffer], 'video.mp4', { type: 'video/mp4' });
 
+    // Sortie vide (FFmpeg a planté silencieusement) → fallback original
+    if (compressed.size === 0) {
+      console.warn('[FFmpeg] Sortie vide (0 octets), fallback original');
+      return file;
+    }
+
     // Si la compression a empiré les choses (rare), on garde l'original
     if (compressed.size >= file.size) {
       console.warn('[FFmpeg] Compression pas utile, fichier original gardé');
@@ -3746,17 +3752,21 @@ async function submitUpload() {
 
     _uploadLog.push(Date.now());
     toast('Publié avec succès ⚡');
-    // 💰 +5 coins directs (RPC award_coins_secure) + +10 via mission post1 = +15 si mission active
-    if (currentUser) {
-      const coinOk = await awardCoins(currentUser.id, 5, 'video_upload');
-      document.dispatchEvent(new Event('voltclip:posted')); // → trackMission('post1')
-      if (coinOk) {
-        setTimeout(() => toast('💰 +5 coins pour ta publication !'), 800);
-      }
-      // Pas de fallback direct : UPDATE bloqué par RLS — award_coins_secure est requis
-    }
+    // Fermer le modal immédiatement — ne pas bloquer sur awardCoins
     closeUpload();
     showTab('battle');
+    // 💰 +5 coins en arrière-plan (RPC award_coins_secure) — fire-and-forget
+    if (currentUser) {
+      (async () => {
+        try {
+          const coinOk = await awardCoins(currentUser.id, 5, 'video_upload');
+          document.dispatchEvent(new Event('voltclip:posted')); // → trackMission('post1')
+          if (coinOk) {
+            setTimeout(() => toast('💰 +5 coins pour ta publication !'), 800);
+          }
+        } catch(e) { console.warn('awardCoins post-upload:', e); }
+      })();
+    }
     feedPage = 0; feedAllLoaded = false;
     loadFeed();
     loadStories();
@@ -5210,8 +5220,11 @@ async function debitCoins(userId, amount) {
 // ═══════════════════════════════════════
 // STREAK — via RPC sécurisée
 // ═══════════════════════════════════════
+let _streakCalledToday = false;
 async function updateStreak(profile) {
   if (!currentUser) return;
+  if (_streakCalledToday) return; // évite le double appel à l'init
+  _streakCalledToday = true;
   const badge = document.getElementById('profileStreakBadge');
   try {
     const { data } = await sb.rpc('update_daily_streak');
