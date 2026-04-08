@@ -3238,8 +3238,8 @@ async function loadFFmpeg() {
 }
 
 async function compressVideo(file, onProgress) {
-  // Pas de compression si déjà petit (< 15 Mo)
-  if (file.size < 15 * 1024 * 1024) return file;
+  // Pas de compression si déjà petit (< 80 Mo)
+  if (file.size < 80 * 1024 * 1024) return file;
 
   let ffmpegCtx = null;
   try {
@@ -3248,72 +3248,59 @@ async function compressVideo(file, onProgress) {
     if (!ffmpegCtx) throw new Error('FFmpeg indisponible');
 
     const { ff, fetchFile } = ffmpegCtx;
-    const inputName = 'input.mp4';
-    const outputName = 'output.mp4';
+    const inp  = 'input.mp4';
+    const out1 = 'out1.mp4';
+    const out2 = 'out2.mp4';
 
-    onProgress('🗜️ Compression… (peut prendre 30-60s)');
-    ff.FS('writeFile', inputName, await fetchFile(file));
-
-    // Calcul bitrate cible : garantit < 95MB quelle que soit la durée (max 4min)
-    // Pour 240s : 95MB = 774144 kbits → 3225 kbps total → vidéo 3100kbps
-    // Mais on lit la durée réelle pour être précis
-    let _targetVideoBitrate = '2500k'; // défaut conservateur
-    try {
-      const _tmpMeta = document.createElement('video');
-      _tmpMeta.src = URL.createObjectURL(file);
-      await new Promise(res => { _tmpMeta.onloadedmetadata = res; _tmpMeta.onerror = res; setTimeout(res, 3000); });
-      if (_tmpMeta.duration && isFinite(_tmpMeta.duration) && _tmpMeta.duration > 0) {
-        const _dur = _tmpMeta.duration;
-        // 90MB budget (octets) → kbits → kbps - audio 96kbps
-        const _vbps = Math.min(3000, Math.max(500, Math.floor((90 * 1024 * 1024 * 8 / _dur / 1000) - 96)));
-        _targetVideoBitrate = _vbps + 'k';
-      }
-      URL.revokeObjectURL(_tmpMeta.src);
-    } catch(_) {}
-    onProgress(`🗜️ Compression… (cible ~90MB)`);
+    // ── Passe 1 : 720p, CRF 30, veryfast ──
+    // veryfast compresse 4-5x mieux qu'ultrafast à qualité égale
+    onProgress('🗜️ Compression 1/2… (60-90s)');
+    ff.FS('writeFile', inp, await fetchFile(file));
     await Promise.race([
       ff.run(
-        '-i', inputName,
+        '-i', inp,
         '-vf', 'scale=-2:min(720,ih)',
-        '-c:v', 'libx264',
-        '-b:v', _targetVideoBitrate,
-        '-maxrate', _targetVideoBitrate,
-        '-bufsize', '3000k',
-        '-preset', 'ultrafast',
-        '-c:a', 'aac',
-        '-b:a', '96k',
-        '-movflags', '+faststart',
-        '-y',
-        outputName
+        '-c:v', 'libx264', '-crf', '30', '-preset', 'veryfast',
+        '-c:a', 'aac', '-b:a', '96k',
+        '-movflags', '+faststart', '-y', out1
       ),
-      new Promise((_, rej) => setTimeout(() => rej(new Error('FFmpeg timeout 90s')), 90000))
+      new Promise((_, rej) => setTimeout(() => rej(new Error('FFmpeg timeout 120s')), 120000))
     ]);
 
-    const data = ff.FS('readFile', outputName);
-    // Nettoyage mémoire
-    try { ff.FS('unlink', inputName); } catch(_) {}
-    try { ff.FS('unlink', outputName); } catch(_) {}
+    let data = ff.FS('readFile', out1);
+    let result = new File([data.buffer], 'video.mp4', { type: 'video/mp4' });
+    console.log(`[FFmpeg] P1: ${(file.size/1024/1024).toFixed(1)}MB → ${(result.size/1024/1024).toFixed(1)}MB`);
 
-    const compressed = new File([data.buffer], 'video.mp4', { type: 'video/mp4' });
-
-    // Sortie vide (FFmpeg a planté silencieusement) → fallback original
-    if (compressed.size === 0) {
-      return file;
+    // ── Passe 2 : si encore > 95MB → 480p CRF 34 ──
+    if (result.size > 95 * 1024 * 1024) {
+      onProgress('🗜️ Compression 2/2… (vidéo dense)');
+      ff.FS('writeFile', out1, data);
+      await Promise.race([
+        ff.run(
+          '-i', out1,
+          '-vf', 'scale=-2:min(480,ih)',
+          '-c:v', 'libx264', '-crf', '34', '-preset', 'veryfast',
+          '-c:a', 'aac', '-b:a', '64k',
+          '-movflags', '+faststart', '-y', out2
+        ),
+        new Promise((_, rej) => setTimeout(() => rej(new Error('FFmpeg timeout p2 120s')), 120000))
+      ]);
+      data = ff.FS('readFile', out2);
+      const r2 = new File([data.buffer], 'video.mp4', { type: 'video/mp4' });
+      console.log(`[FFmpeg] P2: ${(result.size/1024/1024).toFixed(1)}MB → ${(r2.size/1024/1024).toFixed(1)}MB`);
+      if (r2.size > 0) result = r2;
+      try { ff.FS('unlink', out2); } catch(_) {}
     }
 
-    // Si la compression a empiré les choses (rare), on garde l'original
-    if (compressed.size >= file.size) {
-      console.warn('[FFmpeg] Compression pas utile, fichier original gardé');
-      return file;
-    }
+    try { ff.FS('unlink', inp); } catch(_) {}
+    try { ff.FS('unlink', out1); } catch(_) {}
 
-    const ratio = ((1 - compressed.size / file.size) * 100).toFixed(0);
-    console.log(`[FFmpeg] ${(file.size/1024/1024).toFixed(1)}Mo → ${(compressed.size/1024/1024).toFixed(1)}Mo (-${ratio}%)`);
-    return compressed;
+    if (result.size === 0 || result.size >= file.size) return file;
+    return result;
 
   } catch(e) {
-    console.warn('[FFmpeg] Erreur compression, fallback original:', e);
-    return file; // fallback silencieux
+    console.warn('[FFmpeg] Erreur:', e);
+    return file;
   }
 }
 // ── Rate limiting upload : max 5 uploads par heure ──
@@ -3481,24 +3468,23 @@ async function submitUpload() {
       }
     }
     if (!fileToUpload || fileToUpload.size === 0) throw new Error('Fichier vide — resélectionne la vidéo');
+    // Bloquer avant même d'envoyer si encore trop gros (évite erreur réseau bidon)
+    if (fileToUpload.size > 98 * 1024 * 1024) {
+      throw new Error(`Vidéo encore trop lourde après compression (${(fileToUpload.size/1024/1024).toFixed(0)}MB > 98MB). Raccourcis la vidéo ou réduis la qualité.`);
+    }
 
     prog.textContent = `☁️ Envoi (${(fileToUpload.size/1024/1024).toFixed(1)}MB)…`;
 
     // 2. Upload Cloudinary via XHR
-    const formData = new FormData();
-    formData.append('file', fileToUpload);
-    formData.append('upload_preset', CLOUDINARY_PRESET);
-    formData.append('folder', 'voltclip');
-
     const xhrUpload = () => new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       xhr.open('POST', `${CLOUDINARY_URL}/video/upload`, true);
-      xhr.timeout = 180000;
+      xhr.timeout = 240000;
       xhr.upload.onprogress = e => {
         if (e.lengthComputable) prog.textContent = `☁️ Upload… ${Math.round(e.loaded / e.total * 100)}%`;
       };
       xhr.ontimeout = () => reject(new Error('Timeout — connexion trop lente'));
-      xhr.onerror = () => reject(new Error('Erreur réseau'));
+      xhr.onerror = () => reject(new Error('Erreur réseau — vérifie ta connexion'));
       xhr.onload = () => {
         if (xhr.status >= 200 && xhr.status < 300) {
           try { resolve(JSON.parse(xhr.responseText)); }
@@ -3509,13 +3495,20 @@ async function submitUpload() {
           reject(new Error(`Cloudinary erreur ${xhr.status}${msg ? ' — ' + msg : ''}`));
         }
       };
-      xhr.send(formData);
+      const fd = new FormData();
+      fd.append('file', fileToUpload);
+      fd.append('upload_preset', CLOUDINARY_PRESET);
+      fd.append('folder', 'voltclip');
+      xhr.send(fd);
     });
 
     let cdnData;
     try {
       cdnData = await xhrUpload();
     } catch (err1) {
+      // Retry seulement si pas une erreur de taille (inutile de renvoyer un fichier rejeté)
+      const isNetErr = err1.message.includes('réseau') || err1.message.includes('Timeout');
+      if (!isNetErr) throw err1;
       prog.textContent = '⚠️ Retry…';
       await new Promise(r => setTimeout(r, 2000));
       cdnData = await xhrUpload();
