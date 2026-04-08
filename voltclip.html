@@ -2567,7 +2567,7 @@ try{
 let fetchUsers=(currentSearchMode==='all'||currentSearchMode==='users'),fetchVideos=(currentSearchMode==='all'||currentSearchMode==='videos'),fetchTags=(currentSearchMode==='all');
 let cleanQ=q.replace(/^#+/,'');
 let promises=[fetchUsers?sb.from('profiles').select('id,username,avatar_url,followers_count,videos_count').ilike('username','%'+q+'%').limit(8):Promise.resolve({data:[]}),fetchVideos?sb.rpc('search_videos',{query:q}):Promise.resolve({data:[]}),fetchTags?sb.from('hashtags').select('name,videos_count').ilike('name','%'+cleanQ+'%').order('videos_count',{ascending:false}).limit(10):Promise.resolve({data:[]})];
-const _searchFallback=new Promise(res=>setTimeout(()=>res([{data:[]},{data:[]},{data:[]}]),8000));
+const _searchFallback=new Promise(_sfResolve=>setTimeout(()=>_sfResolve([{data:[]},{data:[]},{data:[]}]),8000));
 let[usersRes,videosRes,tagsRes]=await Promise.race([Promise.all(promises),_searchFallback]);
 if(tagsRes.data?.length){html+=`<div class="search-section-title"># HASHTAGS (${tagsRes.data.length})</div>`;html+=`<div style="padding:4px 0 8px">`+tagsRes.data.map(t=>`<button class="hashtag-chip" onclick="searchByTag('${t.name}')">#${t.name} <span style="color:var(--muted);font-size:10px">${fmtNum(t.videos_count)}</span></button>`).join('')+`</div>`}
 if(usersRes.data?.length){html+=`<div class="search-section-title" style="margin-top:${tagsRes.data?.length?'8px':'0'}">👤 CRÉATEURS (${usersRes.data.length})</div>`;html+=usersRes.data.map(u=>`
@@ -2610,7 +2610,7 @@ async function searchByTag(tag) {
 
   try {
     // Chercher via la table video_hashtags (jointure correcte)
-    const _stFallback = new Promise(res => setTimeout(() => res({ data: null }), 8000));
+    const _stFallback = new Promise(_stRes => setTimeout(() => _stRes({ data: null }), 8000));
     const { data: hashtagRow } = await Promise.race([
       sb.from('hashtags').select('id').eq('name', tag).maybeSingle(),
       _stFallback
