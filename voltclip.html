@@ -1044,6 +1044,7 @@ const _todaySession=(/* @__PURE__ */ new Date()).toDateString();localStorage.get
 // ══════════════════════════════════════════
 // CLIP BATTLE
 // ══════════════════════════════════════════
+const BATTLE_DURATION_MS = 7 * 24 * 60 * 60 * 1000  // 7 jours — durée globale des battles
 const BATTLE_CATEGORIES = [
   {id:'solo_danse',   label:'🕺 Solo danse'},
   {id:'duo_danse',    label:'👯 Duo danse'},
@@ -1549,7 +1550,7 @@ function createBattleItem(b, myVotes) {
   const userRightId = b.video_right?.user_id || ''
 
   // Calcul durée restante
-  const BATTLE_DURATION_MS = 7 * 24 * 60 * 60 * 1000
+
   const createdAt = b.expires_at
     ? new Date(b.expires_at).getTime() - BATTLE_DURATION_MS
     : new Date(b.created_at || Date.now()).getTime()
@@ -1615,8 +1616,18 @@ function createBattleItem(b, myVotes) {
 
 
 // ── Super Vote (×5 coins) ──────────────────────────────────────────────────
+let _superVoting = false  // guard in-flight (anti spam-click)
 async function superVoteBattle(battleId, side) {
   if (!currentUser) { openAuth(); return }
+  if (_superVoting) return  // déjà une requête en cours
+
+  // ── Anti-doublon localStorage (réponse immédiate) ──
+  const _svKey = 'vc_svote_' + battleId
+  if (localStorage.getItem(_svKey)) {
+    toast('⚡ Tu as déjà utilisé le Super Vote sur ce battle !')
+    return
+  }
+
   const SUPER_VOTE_COST = 10
   const { data: prof } = await sb.from('profiles').select('coins').eq('id', currentUser.id).single()
   const coins = prof?.coins || 0
@@ -1624,6 +1635,9 @@ async function superVoteBattle(battleId, side) {
     toast('❌ ' + SUPER_VOTE_COST + ' coins requis pour le Super Vote (solde : ' + coins + ')')
     return
   }
+
+  _superVoting = true
+  try {
   // Débiter les coins via RPC sécurisée
   const paid = await debitCoins(currentUser.id, SUPER_VOTE_COST)
   if (!paid) return
@@ -1635,6 +1649,8 @@ async function superVoteBattle(battleId, side) {
     toast('❌ Erreur Super Vote')
     return
   }
+  // Marquer super-voté localement (empêche tout nouveau super vote sur ce battle)
+  localStorage.setItem(_svKey, side)
   // Refresh affichage compteurs
   const { data: b } = await sb.from('battles').select('votes_left,votes_right').eq('id', battleId).single()
   if (b) {
@@ -1653,6 +1669,9 @@ async function superVoteBattle(battleId, side) {
   haptic([30, 10, 50])
   playUISound('like')
   toast('⚡ Super Vote ×5 envoyé ! (-' + SUPER_VOTE_COST + ' coins)')
+  } finally {
+    _superVoting = false
+  }
 }
 
 // ── Boost clip avec coins ──────────────────────────────────────────────────
@@ -3247,9 +3266,7 @@ async function compressVideo(file, onProgress) {
     try { ff.FS('unlink', inputName); } catch(_) {}
     try { ff.FS('unlink', outputName); } catch(_) {}
 
-    // data est un Uint8Array avec byteOffset potentiellement > 0 dans un SharedArrayBuffer
-    // → passer data directement (pas data.buffer qui donne tout le buffer depuis 0)
-    const compressed = new File([data], 'video.mp4', { type: 'video/mp4' });
+    const compressed = new File([data.buffer], 'video.mp4', { type: 'video/mp4' });
 
     // Si la compression a empiré les choses (rare), on garde l'original
     if (compressed.size >= file.size) {
