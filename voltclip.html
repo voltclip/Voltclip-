@@ -3213,13 +3213,8 @@ async function loadFFmpeg() {
   }
   _ffmpegLoading = true;
   try {
-    // FIX : guard explicite — SharedArrayBuffer requis par FFmpeg.wasm v0.11
-    // Si crossOriginIsolated est false, ff.load() va throw de toute façon.
-    // On court-circuite avec un message clair plutôt qu'une erreur opaque.
-    if (!self.crossOriginIsolated) {
-      console.warn('[FFmpeg] crossOriginIsolated=false — SharedArrayBuffer indisponible. Vérifie sw.js (COOP/COEP).');
-      return null;
-    }
+    // Core single-thread (@ffmpeg/core-st) : ne nécessite PAS SharedArrayBuffer
+    // → fonctionne sur Android Chrome sans dépendre de crossOriginIsolated/COOP/COEP
     await new Promise((resolve, reject) => {
       const s = document.createElement('script');
       s.src = 'https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js';
@@ -3229,9 +3224,8 @@ async function loadFFmpeg() {
     });
     const { createFFmpeg, fetchFile } = FFmpeg;
     const ff = createFFmpeg({
-      corePath: 'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js',
+      corePath: 'https://unpkg.com/@ffmpeg/core-st@0.11.1/dist/ffmpeg-core.js',
       log: false,
-      // FIX : logger custom — capte les erreurs fferr sans spammer la console
       logger: ({ type, message }) => {
         if (type === 'fferr') console.error('[FFmpeg.wasm]', message);
       }
