@@ -3216,8 +3216,7 @@ async function loadFFmpeg() {
   }
   _ffmpegLoading = true;
   try {
-    // Core single-thread (@ffmpeg/core-st) : ne nécessite PAS SharedArrayBuffer
-    // → fonctionne sur Android Chrome sans dépendre de crossOriginIsolated/COOP/COEP
+    // Core adaptatif : MT si crossOriginIsolated (SAB dispo), ST sinon
     const _loadScript = (src) => new Promise((resolve, reject) => {
       const s = document.createElement('script');
       s.src = src; s.onload = resolve; s.onerror = reject;
@@ -3228,8 +3227,15 @@ async function loadFFmpeg() {
       .catch(() => new Promise(r=>setTimeout(r,1500))
         .then(() => _loadScript('https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js')));
     const { createFFmpeg, fetchFile } = FFmpeg;
+    // MT core (crossOriginIsolated=true) → SAB, mémoire dynamique, gère les gros fichiers >100MB
+    // ST core (fallback) → heap fixe ~512MB → OOM sur gros fichiers
+    const _useMT = (typeof self !== 'undefined' && self.crossOriginIsolated === true);
+    const _corePath = _useMT
+      ? 'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js'
+      : 'https://unpkg.com/@ffmpeg/core-st@0.11.1/dist/ffmpeg-core.js';
+    console.log(`[FFmpeg] core: ${_useMT ? 'MT (crossOriginIsolated=true)' : 'ST (fallback)'}`);
     const ff = createFFmpeg({
-      corePath: 'https://unpkg.com/@ffmpeg/core-st@0.11.1/dist/ffmpeg-core.js',
+      corePath: _corePath,
       log: false,
       logger: ({ type, message }) => {
         if (type === 'fferr') console.error('[FFmpeg.wasm]', message);
