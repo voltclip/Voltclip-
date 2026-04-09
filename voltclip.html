@@ -3246,9 +3246,13 @@ async function compressVideo(file, onProgress) {
   // Pas de compression si déjà petit (< 80 Mo)
   if (file.size < 80 * 1024 * 1024) return file;
 
+  // Yield helper : force le render DOM avant chaque étape bloquante WASM
+  const _yield = () => new Promise(r => requestAnimationFrame(r));
+
   let ffmpegCtx = null;
   try {
     onProgress('🔧 Chargement compresseur…');
+    await _yield();
     ffmpegCtx = await loadFFmpeg();
     if (!ffmpegCtx) throw new Error('FFmpeg indisponible');
 
@@ -3260,9 +3264,8 @@ async function compressVideo(file, onProgress) {
     const LIMIT = 92 * 1024 * 1024; // cible interne 92MB (marge avant le reject 98MB)
 
     // ── Passe 1 : 720p, CRF 30, veryfast + plafond 2500k ──
-    // Le -maxrate/-bufsize garantit que l'encodeur respecte le débit max
-    // même sur contenu gaming très dense (mouvements rapides, HUD, effets)
     onProgress('🗜️ Compression 1/3… (720p)');
+    await _yield();
     ff.FS('writeFile', inp, await fetchFile(file));
     await Promise.race([
       ff.run(
@@ -3282,8 +3285,8 @@ async function compressVideo(file, onProgress) {
 
     // ── Passe 2 : si encore > 92MB → 480p CRF 33 + plafond 1500k ──
     if (result.size > LIMIT) {
-      onProgress('🗜️ Compression 2/3… (480p, dense)');
-      // FIX : supprimé ff.FS('writeFile', out1, data) — out1 existe déjà dans le FS FFmpeg
+      onProgress('🗜️ Compression 2/3… (480p)');
+      await _yield();
       await Promise.race([
         ff.run(
           '-i', out1,
@@ -3299,14 +3302,12 @@ async function compressVideo(file, onProgress) {
       const r2 = new File([data.buffer], 'video.mp4', { type: 'video/mp4' });
       console.log(`[FFmpeg] P2: ${(result.size/1024/1024).toFixed(1)}MB → ${(r2.size/1024/1024).toFixed(1)}MB`);
       if (r2.size > 0) result = r2;
-      // FIX : supprimé unlink(out2) ici — out2 sera unlink dans la passe 3 ou le nettoyage final
     }
 
     // ── Passe 3 : dernier recours → 360p CRF 36 + plafond 900k ──
-    // Garantit le passage sous 92MB même pour les gaming clips 4min ultra-denses
     if (result.size > LIMIT) {
-      onProgress('🗜️ Compression 3/3… (360p, dernier recours)');
-      // FIX : supprimé ff.FS('writeFile', out2, data) — out2 existe déjà dans le FS FFmpeg
+      onProgress('🗜️ Compression 3/3… (360p)');
+      await _yield();
       await Promise.race([
         ff.run(
           '-i', out2,
@@ -3334,7 +3335,10 @@ async function compressVideo(file, onProgress) {
 
   } catch(e) {
     console.warn('[FFmpeg] Erreur:', e);
-    return file;
+    // Afficher l'erreur dans l'UI au lieu de rater silencieusement
+    try { onProgress('⚠️ Compression échouée : ' + (e?.message || e)); } catch(_) {}
+    await _yield();
+    return null; // null → le code appelant sait que la compression a échoué
   }
 }
 // ── Rate limiting upload : max 5 uploads par heure ──
@@ -3493,6 +3497,9 @@ async function submitUpload() {
           fileToUpload = compressed;
           const afterMB = (fileToUpload.size / 1024 / 1024).toFixed(1);
           toast(`🗜️ Compressé : ${beforeMB}Mo → ${afterMB}Mo`);
+        } else if (compressed === null) {
+          // FFmpeg a planté (OOM, WASM error) — garder l'original, le check taille va afficher l'erreur
+          fileToUpload = _preCompressFile;
         } else {
           fileToUpload = _preCompressFile;
         }
