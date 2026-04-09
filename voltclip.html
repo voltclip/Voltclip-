@@ -3197,130 +3197,143 @@ function closeWebcamRecorder(){
 const ext=(file.name||'').split('.').pop().toLowerCase();const validExt=['mp4','mov','webm','avi','mkv','3gp','m4v','ts',''].includes(ext);// Caméra Android : file.type souvent vide — on bloque seulement si type clairement non-vidéo
 if(file.type&&!file.type.startsWith('video/')&&!file.type.startsWith('application/octet')&&ext&&!validExt){document.getElementById('uploadErr').textContent=`Format non supporté`;return}if(file.size>300*1024*1024){document.getElementById('uploadErr').textContent=`Fichier trop lourd (max 300 MB)`;return}let goStep2=(resolvedFile)=>{uploadFile=resolvedFile||file;let blobUrl=URL.createObjectURL(file);let bg=document.getElementById(`uploadBgPreview`);bg.src=blobUrl,bg.style.display=`block`,document.getElementById(`uploadStep1`).style.display=`none`,document.getElementById(`uploadStep2`).style.display=`flex`,document.getElementById(`uploadPreviewVideo`).src=blobUrl,document.getElementById(`uploadSubmit`).style.display=`block`,document.getElementById(`uploadErr`).textContent=``,document.getElementById(`uploadProgress`).style.display=`none`,openUploadStep2()};let url=URL.createObjectURL(file),tmpVid=document.createElement(`video`);tmpVid.preload=`metadata`;let _goStep2Called=false;let _safeGoStep2=(resolvedFile)=>{if(_goStep2Called)return;_goStep2Called=true;URL.revokeObjectURL(url);goStep2(resolvedFile);};// Lire en ArrayBuffer — timeout 8s sur mobile (gros fichier caméra sinon freeze)
 const _abTimeout=new Promise(res=>setTimeout(()=>res(null),8000));Promise.race([file.arrayBuffer().catch(()=>null),_abTimeout]).then(buf=>{if(buf===null){tmpVid.onloadedmetadata=()=>{_safeGoStep2(file)};tmpVid.onerror=()=>{_safeGoStep2(file)};setTimeout(()=>{if(!_goStep2Called)_safeGoStep2(file)},3000);tmpVid.src=url;return;}const safeBlob=new Blob([buf],{type:file.type||'video/mp4'});const safeFile=new File([safeBlob],file.name||'video.mp4',{type:file.type||'video/mp4'});tmpVid.onloadedmetadata=()=>{let dur=tmpVid.duration;if(dur&&isFinite(dur)&&dur>uploadMaxDuration){document.getElementById('uploadErr').textContent=`Vidéo trop longue — maximum 4 minutes autorisé sur VoltClip.`;return;}else{toast(`Vidéo sélectionnée ✓`)}_safeGoStep2(safeFile)};tmpVid.onerror=()=>{toast(`Vidéo sélectionnée ✓`);_safeGoStep2(safeFile)};setTimeout(()=>{if(!_goStep2Called){toast(`Vidéo sélectionnée ✓`);_safeGoStep2(safeFile)}},3000);tmpVid.src=url});}
-// ── FFmpeg.wasm v0.12 single-thread (pas besoin de SharedArrayBuffer) ──
-// v0.12 @ffmpeg/core (sans -mt) = WASM simple, fonctionne sur GitHub Pages
-let _ffLoaded = false;
-let _ffLoading = false;
-let _ffInstance = null;
+// ── FFmpeg.wasm v0.11 — compression vidéo côté client ──
+let _ffmpegLoaded = false;
+let _ffmpegLoading = false;
+let _ffmpegInstance = null;
 
 async function loadFFmpeg() {
-  if (_ffLoaded && _ffInstance) return _ffInstance;
-  if (_ffLoading) {
+  if (_ffmpegLoaded && _ffmpegInstance) return _ffmpegInstance;
+  if (_ffmpegLoading) {
+    // Attendre que le chargement en cours se termine
     await new Promise(res => {
-      const t = setInterval(() => { if (!_ffLoading) { clearInterval(t); res(); } }, 100);
+      const check = setInterval(() => { if (!_ffmpegLoading) { clearInterval(check); res(); } }, 100);
     });
-    return _ffInstance;
+    return _ffmpegInstance;
   }
-  _ffLoading = true;
+  _ffmpegLoading = true;
   try {
+    // FIX : guard explicite — SharedArrayBuffer requis par FFmpeg.wasm v0.11
+    // Si crossOriginIsolated est false, ff.load() va throw de toute façon.
+    // On court-circuite avec un message clair plutôt qu'une erreur opaque.
+    if (!self.crossOriginIsolated) {
+      console.warn('[FFmpeg] crossOriginIsolated=false — SharedArrayBuffer indisponible. Vérifie sw.js (COOP/COEP).');
+      return null;
+    }
     await new Promise((resolve, reject) => {
       const s = document.createElement('script');
-      s.src = 'https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js';
+      s.src = 'https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js';
       s.onload = resolve;
       s.onerror = reject;
       document.head.appendChild(s);
     });
-    // Le global UMD s'appelle FFmpegWASM
-    const FFmpegClass = (window.FFmpegWASM || window.FFmpeg || {}).FFmpeg;
-    if (!FFmpegClass) throw new Error('FFmpeg class not found');
-    const ff = new FFmpegClass();
-    // Core single-thread : aucun SharedArrayBuffer requis
-    await ff.load({
-      coreURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js',
-      wasmURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.wasm',
+    const { createFFmpeg, fetchFile } = FFmpeg;
+    const ff = createFFmpeg({
+      corePath: 'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js',
+      log: false,
+      // FIX : logger custom — capte les erreurs fferr sans spammer la console
+      logger: ({ type, message }) => {
+        if (type === 'fferr') console.error('[FFmpeg.wasm]', message);
+      }
     });
-    _ffInstance = ff;
-    _ffLoaded = true;
-    return ff;
+    await ff.load();
+    _ffmpegInstance = { ff, fetchFile };
+    _ffmpegLoaded = true;
+    return _ffmpegInstance;
   } catch(e) {
-    console.warn('[FFmpeg] Chargement echoue:', e);
+    console.warn('[FFmpeg] Chargement échoué:', e);
     return null;
   } finally {
-    _ffLoading = false;
+    _ffmpegLoading = false;
   }
 }
 
-async function compressVideo(file, onProgress, knownDuration) {
-  if (file.size < 50 * 1024 * 1024) return file;
+async function compressVideo(file, onProgress) {
+  // Pas de compression si déjà petit (< 80 Mo)
+  if (file.size < 80 * 1024 * 1024) return file;
 
-  let ff = null;
+  let ffmpegCtx = null;
   try {
-    onProgress('Chargement compresseur...');
-    ff = await loadFFmpeg();
-    if (!ff) throw new Error('FFmpeg indisponible');
+    onProgress('🔧 Chargement compresseur…');
+    ffmpegCtx = await loadFFmpeg();
+    if (!ffmpegCtx) throw new Error('FFmpeg indisponible');
 
-    onProgress('Lecture fichier...');
-    const fileData = new Uint8Array(await file.arrayBuffer());
-    await ff.writeFile('input.mp4', fileData);
+    const { ff, fetchFile } = ffmpegCtx;
+    const inp  = 'input.mp4';
+    const out1 = 'out1.mp4';
+    const out2 = 'out2.mp4';
+    const out3 = 'out3.mp4';
+    const LIMIT = 92 * 1024 * 1024; // cible interne 92MB (marge avant le reject 98MB)
 
-    // Bitrate cible selon durée pour garantir < 93MB
-    // knownDuration passé depuis l'upload (évite un 2ème getVideoDuration sur mobile)
-    const TARGET_MB = 93;
-    const duration = (knownDuration && isFinite(knownDuration) && knownDuration > 0) ? knownDuration : null;
-    let vBitrate, p1Scale;
-    if (duration) {
-      const totalKbps = Math.floor((TARGET_MB * 8 * 1024) / duration);
-      vBitrate = Math.max(400, totalKbps - 96);
-      p1Scale  = vBitrate > 1500 ? '720' : '480';
-    } else {
-      vBitrate = 1200;
-      p1Scale  = '480';
-    }
-    // NOTE: pas de -crf ici — libx264 ignore -b:v quand -crf est présent (ABR strict)
-    const p1Maxrate = Math.floor(vBitrate * 1.5);
-    const p1Bufsize = vBitrate * 3;
-
-    onProgress('Compression 1/2... (' + p1Scale + 'p, ~' + vBitrate + 'k)');
-    const progressCb = ({ progress }) => {
-      if (progress >= 0 && progress <= 1)
-        onProgress('Compression 1/2... ' + Math.round(progress * 100) + '%');
-    };
-    ff.on('progress', progressCb);
-    const code1 = await ff.exec([
-      '-i', 'input.mp4',
-      '-vf', 'scale=-2:min(' + p1Scale + '\\,ih)',
-      '-c:v', 'libx264', '-preset', 'fast',
-      '-b:v', vBitrate + 'k', '-maxrate', p1Maxrate + 'k', '-bufsize', p1Bufsize + 'k',
-      '-c:a', 'aac', '-b:a', '96k',
-      '-movflags', '+faststart', '-y', 'out1.mp4'
+    // ── Passe 1 : 720p, CRF 30, veryfast + plafond 2500k ──
+    // Le -maxrate/-bufsize garantit que l'encodeur respecte le débit max
+    // même sur contenu gaming très dense (mouvements rapides, HUD, effets)
+    onProgress('🗜️ Compression 1/3… (720p)');
+    ff.FS('writeFile', inp, await fetchFile(file));
+    await Promise.race([
+      ff.run(
+        '-i', inp,
+        '-vf', 'scale=-2:min(720,ih)',
+        '-c:v', 'libx264', '-crf', '30', '-preset', 'veryfast',
+        '-maxrate', '2500k', '-bufsize', '5000k',
+        '-c:a', 'aac', '-b:a', '96k',
+        '-movflags', '+faststart', '-y', out1
+      ),
+      new Promise((_, rej) => setTimeout(() => rej(new Error('FFmpeg timeout 150s')), 150000))
     ]);
-    ff.off('progress', progressCb);
-    if (code1 !== 0) throw new Error('FFmpeg passe 1 echouee');
 
-    let data = await ff.readFile('out1.mp4');
+    let data = ff.FS('readFile', out1);
     let result = new File([data.buffer], 'video.mp4', { type: 'video/mp4' });
-    console.log('[FFmpeg] P1: ' + (file.size/1024/1024).toFixed(1) + 'MB -> ' + (result.size/1024/1024).toFixed(1) + 'MB');
+    console.log(`[FFmpeg] P1: ${(file.size/1024/1024).toFixed(1)}MB → ${(result.size/1024/1024).toFixed(1)}MB`);
 
-    // Passe 2 si encore > 95MB : 360p, bitrate encore plus serré
-    if (result.size > 95 * 1024 * 1024) {
-      onProgress('Compression 2/2... (360p)');
-      const p2cb = ({ progress }) => {
-        if (progress >= 0 && progress <= 1)
-          onProgress('Compression 2/2... ' + Math.round(progress * 100) + '%');
-      };
-      ff.on('progress', p2cb);
-      const vBitrate2 = duration ? Math.max(300, Math.floor((TARGET_MB * 8 * 1024) / duration) - 64) : 700;
-      const v2max = Math.floor(vBitrate2 * 1.5);
-      const code2 = await ff.exec([
-        '-i', 'out1.mp4',
-        '-vf', 'scale=-2:min(360\\,ih)',
-        '-c:v', 'libx264', '-preset', 'fast',
-        '-b:v', vBitrate2 + 'k', '-maxrate', v2max + 'k', '-bufsize', (vBitrate2 * 3) + 'k',
-        '-c:a', 'aac', '-b:a', '64k',
-        '-movflags', '+faststart', '-y', 'out2.mp4'
+    // ── Passe 2 : si encore > 92MB → 480p CRF 33 + plafond 1500k ──
+    if (result.size > LIMIT) {
+      onProgress('🗜️ Compression 2/3… (480p, dense)');
+      // FIX : supprimé ff.FS('writeFile', out1, data) — out1 existe déjà dans le FS FFmpeg
+      await Promise.race([
+        ff.run(
+          '-i', out1,
+          '-vf', 'scale=-2:min(480,ih)',
+          '-c:v', 'libx264', '-crf', '33', '-preset', 'veryfast',
+          '-maxrate', '1500k', '-bufsize', '3000k',
+          '-c:a', 'aac', '-b:a', '64k',
+          '-movflags', '+faststart', '-y', out2
+        ),
+        new Promise((_, rej) => setTimeout(() => rej(new Error('FFmpeg timeout p2 150s')), 150000))
       ]);
-      ff.off('progress', p2cb);
-      if (code2 === 0) {
-        const d2 = await ff.readFile('out2.mp4');
-        const r2 = new File([d2.buffer], 'video.mp4', { type: 'video/mp4' });
-        console.log('[FFmpeg] P2: ' + (result.size/1024/1024).toFixed(1) + 'MB -> ' + (r2.size/1024/1024).toFixed(1) + 'MB');
-        if (r2.size > 0) result = r2;
-        try { await ff.deleteFile('out2.mp4'); } catch(_) {}
-      }
+      data = ff.FS('readFile', out2);
+      const r2 = new File([data.buffer], 'video.mp4', { type: 'video/mp4' });
+      console.log(`[FFmpeg] P2: ${(result.size/1024/1024).toFixed(1)}MB → ${(r2.size/1024/1024).toFixed(1)}MB`);
+      if (r2.size > 0) result = r2;
+      // FIX : supprimé unlink(out2) ici — out2 sera unlink dans la passe 3 ou le nettoyage final
     }
 
-    try { await ff.deleteFile('input.mp4'); } catch(_) {}
-    try { await ff.deleteFile('out1.mp4'); } catch(_) {}
+    // ── Passe 3 : dernier recours → 360p CRF 36 + plafond 900k ──
+    // Garantit le passage sous 92MB même pour les gaming clips 4min ultra-denses
+    if (result.size > LIMIT) {
+      onProgress('🗜️ Compression 3/3… (360p, dernier recours)');
+      // FIX : supprimé ff.FS('writeFile', out2, data) — out2 existe déjà dans le FS FFmpeg
+      await Promise.race([
+        ff.run(
+          '-i', out2,
+          '-vf', 'scale=-2:min(360,ih)',
+          '-c:v', 'libx264', '-crf', '36', '-preset', 'veryfast',
+          '-maxrate', '900k', '-bufsize', '1800k',
+          '-c:a', 'aac', '-b:a', '48k',
+          '-movflags', '+faststart', '-y', out3
+        ),
+        new Promise((_, rej) => setTimeout(() => rej(new Error('FFmpeg timeout p3 150s')), 150000))
+      ]);
+      data = ff.FS('readFile', out3);
+      const r3 = new File([data.buffer], 'video.mp4', { type: 'video/mp4' });
+      console.log(`[FFmpeg] P3: ${(result.size/1024/1024).toFixed(1)}MB → ${(r3.size/1024/1024).toFixed(1)}MB`);
+      if (r3.size > 0) result = r3;
+      try { ff.FS('unlink', out2); } catch(_) {}
+      try { ff.FS('unlink', out3); } catch(_) {}
+    }
+
+    try { ff.FS('unlink', inp); } catch(_) {}
+    try { ff.FS('unlink', out1); } catch(_) {}
 
     if (result.size === 0 || result.size >= file.size) return file;
     return result;
@@ -3330,7 +3343,6 @@ async function compressVideo(file, onProgress, knownDuration) {
     return file;
   }
 }
-
 // ── Rate limiting upload : max 5 uploads par heure ──
 // ══════════════════════════════════════════
 
@@ -3477,12 +3489,12 @@ async function submitUpload() {
       throw new Error(`Vidéo trop longue — maximum 4 minutes autorisé sur VoltClip.`);
     }
 
-    // 1c. Compression FFmpeg si fichier > 50MB — résultat doit être ≤ 100MB
-    if (fileToUpload.size > 50 * 1024 * 1024) {
+    // 1c. Compression FFmpeg si fichier > 80MB — résultat doit être ≤ 100MB
+    if (fileToUpload.size > 80 * 1024 * 1024) {
       const _preCompressFile = fileToUpload;
       try {
         const beforeMB = (fileToUpload.size / 1024 / 1024).toFixed(1);
-        const compressed = await compressVideo(fileToUpload, (msg) => { prog.textContent = msg; }, rawDurCheck);
+        const compressed = await compressVideo(fileToUpload, (msg) => { prog.textContent = msg; });
         if (compressed && compressed.size > 0 && compressed.size < fileToUpload.size) {
           fileToUpload = compressed;
           const afterMB = (fileToUpload.size / 1024 / 1024).toFixed(1);
@@ -4135,6 +4147,10 @@ init();checkAgeGate();`serviceWorker`in navigator&&window.addEventListener(`load
         }
       }else{
         sessionStorage.removeItem('_vc_coi_reload');
+        // FIX : avertir si l'isolation a échoué même après le reload SW
+        if (!self.crossOriginIsolated) {
+          console.warn('[COI] crossOriginIsolated=false après reload SW — FFmpeg désactivé. Vérifie sw.js COOP/COEP.');
+        }
       }
     })
     .catch(e=>console.log(`SW error:`,e));

@@ -1,12 +1,11 @@
 // ══════════════════════════════════════════════════════════════════
-// VoltClip Service Worker
+// VoltClip Service Worker v7
 // • COI (Cross-Origin Isolation) — SharedArrayBuffer / FFmpeg.wasm
 // • PWA cache — offline shell
 // ══════════════════════════════════════════════════════════════════
 
-const CACHE_NAME = 'voltclip-v6';
+const CACHE_NAME = 'voltclip-v7'; // ← bumped : force la mise à jour chez tous les clients
 
-// Ressources de l'app shell à précacher
 const PRECACHE = [
   './',
   './voltclip.html',
@@ -36,48 +35,75 @@ self.addEventListener('fetch', event => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Ne pas intercepter les requêtes non-GET
+  // Non-GET : laisser passer sans modification
   if (request.method !== 'GET') return;
 
-  // Ne pas intercepter les range requests (streaming vidéo — 206 Partial Content)
-  // → cloner un ReadableStream partiel est impossible → ERR_CACHE_OPERATION_NOT_SUPPORTED
-  if (request.headers.has('Range')) return;
-
   // Ignorer les endpoints Supabase REST / Auth / Realtime (non-storage)
-  // mais laisser passer /storage/ (avatars, etc.) pour y injecter les headers COI
   if (url.hostname.includes('supabase.co') && !url.pathname.startsWith('/storage/')) return;
 
-  // Ignorer les appels API Google
+  // Ignorer Google APIs internes (pas de support CORP/CORS adapté)
   if (url.hostname.includes('googleapis.com') && url.pathname.includes('/v1/')) return;
 
-  // Ignorer Google Ads / Analytics / Tag Manager (pas de support CORS → 503 sinon)
+  // Ignorer Google Ads / Analytics / Tag Manager
   if (
-    url.hostname.includes('googlesyndication.com')        ||
-    url.hostname.includes('doubleclick.net')               ||
-    url.hostname.includes('googleadservices.com')          ||
-    url.hostname.includes('google-analytics.com')          ||
-    url.hostname.includes('googletagmanager.com')          ||
+    url.hostname.includes('googlesyndication.com')         ||
+    url.hostname.includes('doubleclick.net')                ||
+    url.hostname.includes('googleadservices.com')           ||
+    url.hostname.includes('google-analytics.com')           ||
+    url.hostname.includes('googletagmanager.com')           ||
     url.hostname.includes('fundingchoicesmessages.google.com')
   ) return;
+
+  // ── Range requests (streaming vidéo Cloudinary) ─────────────────
+  // On ne met PAS en cache (ERR_CACHE_OPERATION_NOT_SUPPORTED sur ReadableStream partiel)
+  // MAIS on injecte quand même CORP cross-origin pour que require-corp ne les bloque pas.
+  // FIX v7 : anciennement on faisait `return` sans respondWith → pas de CORP → COEP bloquait
+  // les vidéos Cloudinary avec require-corp → c'est pourquoi on utilisait credentialless.
+  // Avec ce handler, on peut passer à require-corp (compatible Safari/iOS).
+  if (request.headers.has('Range')) {
+    event.respondWith(handleRangeRequest(request));
+    return;
+  }
 
   event.respondWith(handleRequest(request));
 });
 
+// ── Range handler : inject CORP, pas de cache ─────────────────────
+async function handleRangeRequest(request) {
+  try {
+    const response = await fetch(request);
+    // Réponse opaque : rien à modifier
+    if (response.type === 'opaque') return response;
+
+    const headers = new Headers(response.headers);
+    if (!headers.has('Cross-Origin-Resource-Policy')) {
+      headers.set('Cross-Origin-Resource-Policy', 'cross-origin');
+    }
+    // Reconstruction sans mise en cache — body stream direct
+    return new Response(response.body, {
+      status:     response.status,
+      statusText: response.statusText,
+      headers,
+    });
+  } catch (_) {
+    // Réseau KO sur range request → 503 minimal
+    return new Response('', { status: 503 });
+  }
+}
+
+// ── Requêtes normales : fetch + cache + COI headers ───────────────
 async function handleRequest(request) {
-  const url = new URL(request.url);
+  const url        = new URL(request.url);
   const isSameOrigin = url.origin === self.location.origin;
 
-  // ── Pour les ressources cross-origin (Cloudinary, Supabase storage…)
-  // on force le mode CORS afin d'obtenir une réponse non-opaque
-  // que l'on peut ensuite décorer avec les headers COI.
-  // Les images/vidéos sans attribut `crossorigin` font des requêtes
-  // no-cors → réponse opaque → impossible d'ajouter CORP → COEP bloque.
+  // Pour les ressources cross-origin (Cloudinary, CDN…) on force mode:cors
+  // afin d'obtenir une réponse non-opaque que l'on peut décorer avec CORP.
   const fetchRequest = isSameOrigin
     ? request
     : new Request(request.url, {
         method:      'GET',
         mode:        'cors',
-        credentials: 'omit',   // pas de cookies pour les CDN tiers
+        credentials: 'omit',
         headers:     request.headers,
       });
 
@@ -91,10 +117,10 @@ async function handleRequest(request) {
     return new Response('Offline', { status: 503 });
   }
 
-  // Réponses opaques résiduelles (ressource refusant CORS) — on ne peut rien faire
+  // Réponse opaque résiduelle (ressource refusant CORS) : rien à faire
   if (response.type === 'opaque') return response;
 
-  // Mettre en cache les ressources same-origin et les assets stables
+  // Mise en cache same-origin uniquement
   if (response.ok && isSameOrigin) {
     const cache = await caches.open(CACHE_NAME);
     cache.put(request, response.clone()).catch(() => {});
@@ -104,26 +130,28 @@ async function handleRequest(request) {
 }
 
 /**
- * Injecte les headers COOP / COEP / CORP nécessaires à crossOriginIsolated.
+ * Injecte les headers COI nécessaires à crossOriginIsolated = true.
  *
- * - COOP same-origin      : isole le contexte de navigation
- * - COEP require-corp     : bloque les ressources sans CORP
- * - CORP cross-origin     : autorise les ressources cross-origin (Cloudinary, CDN…)
+ * COOP same-origin      — isole le contexte de navigation (onglet)
+ * COEP require-corp     — exige CORP sur toutes les ressources cross-origin
+ *                         FIX v7 : on est passé de "credentialless" à "require-corp"
+ *                         car "credentialless" n'est PAS supporté par Safari/iOS
+ *                         → crossOriginIsolated restait false sur iPhone/iPad
+ *                         → SharedArrayBuffer indisponible → FFmpeg.wasm refusait de charger
+ * CORP cross-origin     — autorise le chargement cross-origin (Cloudinary, CDN, fonts…)
  */
 function injectCOIHeaders(response, isSameOrigin) {
-  // Réponses opaques (mode:no-cors) — on ne peut pas modifier leurs headers
   if (response.type === 'opaque') return response;
 
   const headers = new Headers(response.headers);
 
   if (isSameOrigin) {
-    // Headers d'isolation complets sur la page principale et les assets same-origin
     headers.set('Cross-Origin-Opener-Policy',  'same-origin');
-    headers.set('Cross-Origin-Embedder-Policy', 'credentialless');
+    headers.set('Cross-Origin-Embedder-Policy', 'require-corp'); // ← était "credentialless" (Safari KO)
   }
 
-  // Toujours ajouter CORP cross-origin pour que les ressources externes
-  // (Cloudinary, Supabase storage, unpkg, fonts…) passent le filtre COEP
+  // CORP sur toutes les ressources (same-origin et cross-origin)
+  // pour qu'elles passent le filtre COEP require-corp
   if (!headers.has('Cross-Origin-Resource-Policy')) {
     headers.set('Cross-Origin-Resource-Policy', 'cross-origin');
   }
