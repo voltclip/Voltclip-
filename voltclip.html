@@ -3273,7 +3273,7 @@ async function compressVideo(file, onProgress) {
         '-c:a', 'aac', '-b:a', '96k',
         '-movflags', '+faststart', '-y', out1
       ),
-      new Promise((_, rej) => setTimeout(() => rej(new Error('FFmpeg timeout 150s')), 150000))
+      new Promise((_, rej) => setTimeout(() => rej(new Error('FFmpeg timeout p1')), 600000))
     ]);
 
     let data = ff.FS('readFile', out1);
@@ -3293,7 +3293,7 @@ async function compressVideo(file, onProgress) {
           '-c:a', 'aac', '-b:a', '64k',
           '-movflags', '+faststart', '-y', out2
         ),
-        new Promise((_, rej) => setTimeout(() => rej(new Error('FFmpeg timeout p2 150s')), 150000))
+        new Promise((_, rej) => setTimeout(() => rej(new Error('FFmpeg timeout p2')), 600000))
       ]);
       data = ff.FS('readFile', out2);
       const r2 = new File([data.buffer], 'video.mp4', { type: 'video/mp4' });
@@ -3316,7 +3316,7 @@ async function compressVideo(file, onProgress) {
           '-c:a', 'aac', '-b:a', '48k',
           '-movflags', '+faststart', '-y', out3
         ),
-        new Promise((_, rej) => setTimeout(() => rej(new Error('FFmpeg timeout p3 150s')), 150000))
+        new Promise((_, rej) => setTimeout(() => rej(new Error('FFmpeg timeout p3')), 600000))
       ]);
       data = ff.FS('readFile', out3);
       const r3 = new File([data.buffer], 'video.mp4', { type: 'video/mp4' });
