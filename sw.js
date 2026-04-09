@@ -4,7 +4,7 @@
 // • PWA cache — offline shell
 // ══════════════════════════════════════════════════════════════════
 
-const CACHE_NAME = 'voltclip-v7'; // ← bumped : force la mise à jour chez tous les clients
+const CACHE_NAME = 'voltclip-v8'; // ← bumped v8 : fix Range request CORS → videos restaurées
 
 const PRECACHE = [
   './',
@@ -69,24 +69,42 @@ self.addEventListener('fetch', event => {
 });
 
 // ── Range handler : inject CORP, pas de cache ─────────────────────
+// FIX CRITIQUE : les <video> font des Range requests en mode no-cors par défaut
+// → réponse opaque → impossible d'injecter CORP → COEP require-corp bloque tout.
+// Solution : on recrée la requête en mode cors pour les URLs cross-origin
+// (Cloudinary supporte CORS + Range), ce qui donne une réponse non-opaque
+// sur laquelle on peut injecter Cross-Origin-Resource-Policy: cross-origin.
 async function handleRangeRequest(request) {
   try {
-    const response = await fetch(request);
-    // Réponse opaque : rien à modifier
+    const url = new URL(request.url);
+    const isSameOrigin = url.origin === self.location.origin;
+
+    const fetchReq = isSameOrigin
+      ? request
+      : new Request(request.url, {
+          method:      'GET',
+          mode:        'cors',       // ← force CORS pour éviter réponse opaque
+          credentials: 'omit',       // pas de cookies sur CDN Cloudinary
+          headers:     request.headers, // conserve le header Range
+        });
+
+    const response = await fetch(fetchReq);
+
+    // Réponse opaque résiduelle (CDN qui refuse CORS) — on la laisse passer,
+    // le navigateur la bloquera de toute façon avec require-corp, mais au moins
+    // on ne génère pas d'erreur supplémentaire.
     if (response.type === 'opaque') return response;
 
     const headers = new Headers(response.headers);
     if (!headers.has('Cross-Origin-Resource-Policy')) {
       headers.set('Cross-Origin-Resource-Policy', 'cross-origin');
     }
-    // Reconstruction sans mise en cache — body stream direct
     return new Response(response.body, {
       status:     response.status,
       statusText: response.statusText,
       headers,
     });
   } catch (_) {
-    // Réseau KO sur range request → 503 minimal
     return new Response('', { status: 503 });
   }
 }
