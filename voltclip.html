@@ -3056,7 +3056,10 @@ function _resetUploadUI(){
   uploadFile=null;
 }
 function _recreateFileInputs(){['fileInput','camInput'].forEach(id=>{let old=document.getElementById(id);if(!old)return;let neo=document.createElement('input');neo.type='file';neo.id=id;neo.style.display='none';if(id==='fileInput'){neo.accept='video/*,video/mp4,video/webm,video/mov,video/avi,video/quicktime';}else{neo.accept='video/*';neo.setAttribute('capture','environment');}neo.onchange=function(){handleFileSelect(this)};old.parentNode.replaceChild(neo,old);});}
-function openUpload(){if(!currentUser){openAuth();return}const _alreadyOpen=document.getElementById(`uploadModal`).classList.contains(`open`);_recreateFileInputs();document.getElementById(`uploadModal`).classList.add(`open`),document.getElementById(`uploadErr`).textContent=``,document.getElementById(`uploadProgress`).style.display=`none`,document.getElementById(`uploadSubmit`).style.display=`block`;if(!_alreadyOpen){document.getElementById(`uploadStep1`).style.display=`flex`,document.getElementById(`uploadStep2`).style.display=`none`,uploadFile=null;document.getElementById(`uploadTitle`).value=``,document.getElementById(`uploadDesc`).value=``,document.getElementById(`uploadTags`).value=``;const _atd=document.getElementById(`autoTagsDisplay`);if(_atd){_atd.textContent=``;_atd.style.display=`none`;}let _uc=document.getElementById(`uploadCategory`);if(_uc)_uc.value=``;let _usc=document.getElementById(`uploadSubcategory`);if(_usc)_usc.value=``;initCategoryPicker();}// Scroll vers Publier quand le clavier se ferme sur mobile
+function openUpload(){if(!currentUser){openAuth();return}
+// Pré-charger FFmpeg en arrière-plan dès l'ouverture — évite l'OOM quand le fichier est déjà en RAM
+if(!_ffmpegLoaded&&!_ffmpegLoading){loadFFmpeg().catch(()=>{});}
+const _alreadyOpen=document.getElementById(`uploadModal`).classList.contains(`open`);_recreateFileInputs();document.getElementById(`uploadModal`).classList.add(`open`),document.getElementById(`uploadErr`).textContent=``,document.getElementById(`uploadProgress`).style.display=`none`,document.getElementById(`uploadSubmit`).style.display=`block`;if(!_alreadyOpen){document.getElementById(`uploadStep1`).style.display=`flex`,document.getElementById(`uploadStep2`).style.display=`none`,uploadFile=null;document.getElementById(`uploadTitle`).value=``,document.getElementById(`uploadDesc`).value=``,document.getElementById(`uploadTags`).value=``;const _atd=document.getElementById(`autoTagsDisplay`);if(_atd){_atd.textContent=``;_atd.style.display=`none`;}let _uc=document.getElementById(`uploadCategory`);if(_uc)_uc.value=``;let _usc=document.getElementById(`uploadSubcategory`);if(_usc)_usc.value=``;initCategoryPicker();}// Scroll vers Publier quand le clavier se ferme sur mobile
 ['uploadTitle','uploadDesc','uploadTags'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('blur',()=>setTimeout(_scrollToPublishBtn,350),{passive:true});})}function closeUpload(){_isSubmitting=false;document.getElementById('uploadModal').classList.remove('open');_resetUploadUI();}function uploadGoBack(){_isSubmitting=false;_resetUploadUI();_recreateFileInputs();}function setUploadType(type){
   uploadType=type;
   document.getElementById('typeVideo').classList.toggle('active',type==='video');
@@ -3215,13 +3218,15 @@ async function loadFFmpeg() {
   try {
     // Core single-thread (@ffmpeg/core-st) : ne nécessite PAS SharedArrayBuffer
     // → fonctionne sur Android Chrome sans dépendre de crossOriginIsolated/COOP/COEP
-    await new Promise((resolve, reject) => {
+    const _loadScript = (src) => new Promise((resolve, reject) => {
       const s = document.createElement('script');
-      s.src = 'https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js';
-      s.onload = resolve;
-      s.onerror = reject;
+      s.src = src; s.onload = resolve; s.onerror = reject;
       document.head.appendChild(s);
     });
+    // Retry 1× si le CDN est lent/flaky
+    await _loadScript('https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js')
+      .catch(() => new Promise(r=>setTimeout(r,1500))
+        .then(() => _loadScript('https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js')));
     const { createFFmpeg, fetchFile } = FFmpeg;
     const ff = createFFmpeg({
       corePath: 'https://unpkg.com/@ffmpeg/core-st@0.11.1/dist/ffmpeg-core.js',
@@ -3498,8 +3503,8 @@ async function submitUpload() {
           const afterMB = (fileToUpload.size / 1024 / 1024).toFixed(1);
           toast(`🗜️ Compressé : ${beforeMB}Mo → ${afterMB}Mo`);
         } else if (compressed === null) {
-          // FFmpeg a planté (OOM, WASM error) — garder l'original, le check taille va afficher l'erreur
-          fileToUpload = _preCompressFile;
+          // FFmpeg a planté (OOM, WASM indispo) — lever une erreur explicite plutôt que le message générique
+          throw new Error(`Compression impossible (FFmpeg indisponible — mémoire insuffisante ?). Raccourcis la vidéo à moins de 4 min ou réduis la résolution avant d'importer.`);
         } else {
           fileToUpload = _preCompressFile;
         }
