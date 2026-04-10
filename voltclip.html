@@ -3317,8 +3317,13 @@ async function compressWithMediabunny(file, onProgress) {
     onProgress('🗜️ Analyse…');
     const input  = new Input({ source: new BlobSource(file), formats: ALL_FORMATS });
     const output = new Output({ format: new Mp4OutputFormat(), target: new BufferTarget() });
-    // Conversion avec réduction bitrate vidéo : cible ~2.5 Mbps (bon compromis qualité/poids)
-    const conversion = await Conversion.init({ input, output, video: { bitrate: 2_500_000 } });
+    // Calcul bitrate dynamique : cible 88MB max, basé sur durée réelle
+    const _dur = await getVideoDuration(file).catch(() => 0) || 0;
+    const _targetBytes = 88 * 1024 * 1024; // 88MB — marge sécurité sous 100MB
+    const _targetBitrate = _dur > 5
+      ? Math.max(400_000, Math.min(2_500_000, Math.floor((_targetBytes * 8) / _dur)))
+      : 1_500_000;
+    const conversion = await Conversion.init({ input, output, video: { bitrate: _targetBitrate } });
     let lastPct = 0;
     const tick = setInterval(() => {
       const p = conversion.progress ?? conversion.getProgress?.() ?? null;
@@ -3373,7 +3378,15 @@ async function submitUpload() {
     if (!fileToUpload || fileToUpload.size === 0) throw new Error('Fichier vide — resélectionne la vidéo');
     if (fileToUpload.size > 40 * 1024 * 1024) {
       const hasWebCodecs = typeof VideoEncoder !== 'undefined';
-      const hasLib = typeof Mediabunny !== 'undefined';
+      // Attendre jusqu'à 4s que Mediabunny soit chargé (CDN peut être lent)
+      let hasLib = typeof Mediabunny !== 'undefined';
+      if (!hasLib && hasWebCodecs) {
+        await new Promise(r => {
+          let tries = 0;
+          const t = setInterval(() => { tries++; if (typeof Mediabunny !== 'undefined' || tries >= 8) clearInterval(t); r(); }, 500);
+        });
+        hasLib = typeof Mediabunny !== 'undefined';
+      }
       if (hasWebCodecs && hasLib) {
         const beforeMB = (fileToUpload.size / 1024 / 1024).toFixed(1);
         const compressed = await compressWithMediabunny(fileToUpload, msg => { prog.textContent = msg; });
@@ -3384,13 +3397,12 @@ async function submitUpload() {
           toast('⚠️ Compression échouée — upload en brut');
         }
       } else if (fileToUpload.size > 98 * 1024 * 1024) {
-        // iOS/Safari sans WebCodecs et fichier trop gros
-        throw new Error(`Vidéo trop lourde (${(fileToUpload.size/1024/1024).toFixed(0)}MB). Sur iOS, réduis la qualité caméra dans les Réglages ou raccourcis la vidéo.`);
+        throw new Error(`Vidéo trop lourde (${(fileToUpload.size/1024/1024).toFixed(0)}MB > 100MB). Réduis la qualité caméra ou raccourcis la vidéo.`);
       }
     }
     // Bloquer si encore trop gros après tentative de compression
     if (fileToUpload.size > 98 * 1024 * 1024) {
-      throw new Error(`Vidéo encore trop lourde (${(fileToUpload.size/1024/1024).toFixed(0)}MB > 98MB). Raccourcis la vidéo ou réduis la qualité.`);
+      throw new Error(`Vidéo encore trop lourde après compression (${(fileToUpload.size/1024/1024).toFixed(0)}MB). Raccourcis la vidéo ou réduis la qualité.`);
     }
 
     prog.textContent = `☁️ Envoi (${(fileToUpload.size/1024/1024).toFixed(1)}MB)…`;
