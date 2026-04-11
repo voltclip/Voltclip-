@@ -5011,42 +5011,21 @@ function confirmBoost() {
   <div style="background:#13131a;border-radius:24px 24px 0 0;padding:0 0 max(24px,env(safe-area-inset-bottom));max-height:92vh;overflow-y:auto">
     <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px">
       <div>
-        <div style="font-family:'Space Mono',monospace;font-size:17px;font-weight:700">💰 Boutique Coins</div>
-        <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">Achète des coins — dépense-les dans les battles</div>
+        <div style="font-family:'Space Mono',monospace;font-size:17px;font-weight:700">💰 Acheter des Coins</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">Paiement sécurisé via PayPal</div>
       </div>
       <button onclick="closeShopModal()" style="background:rgba(255,255,255,.1);border:none;color:#fff;width:30px;height:30px;border-radius:50%;font-size:16px;cursor:pointer">✕</button>
     </div>
     <!-- Solde actuel -->
-    <div style="margin:0 16px 16px;background:linear-gradient(135deg,rgba(124,92,252,.18),rgba(255,215,0,.08));border:1px solid rgba(255,215,0,.25);border-radius:16px;padding:16px;text-align:center">
+    <div style="margin:0 16px 20px;background:linear-gradient(135deg,rgba(124,92,252,.18),rgba(255,215,0,.08));border:1px solid rgba(255,215,0,.25);border-radius:16px;padding:16px;text-align:center">
       <div style="font-size:11px;color:rgba(255,255,255,.5);font-family:'Space Mono',monospace;margin-bottom:4px">TON SOLDE</div>
       <div id="shopBalanceDisplay" style="font-size:36px;font-family:'Space Mono',monospace;color:#ffd700;font-weight:700">—</div>
       <div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:2px">coins</div>
     </div>
-    <!-- Packs coins -->
-    <div style="padding:0 16px;font-family:'Space Mono',monospace;font-size:10px;color:rgba(255,255,255,.4);letter-spacing:.08em;margin-bottom:10px">PACKS DE COINS</div>
-    <div style="display:flex;flex-direction:column;gap:10px;padding:0 16px 20px" id="shopPacksList">
-      <!-- généré par JS -->
-    </div>
-    <!-- Gagner gratuitement -->
-    <div style="margin:0 16px 8px;background:rgba(255,255,255,.04);border-radius:14px;padding:14px 16px">
-      <div style="font-family:'Space Mono',monospace;font-size:11px;font-weight:700;margin-bottom:10px">🎁 GAGNER DES COINS GRATUITEMENT</div>
-      <div style="display:flex;flex-direction:column;gap:8px;font-size:12px;color:rgba(255,255,255,.7)">
-        <div style="display:flex;justify-content:space-between"><span>🎬 Publier une vidéo</span><span style="color:#ffd700;font-family:'Space Mono',monospace;font-size:11px">+5</span></div>
-        <div style="display:flex;justify-content:space-between"><span>🔥 Connexion quotidienne</span><span style="color:#ffd700;font-family:'Space Mono',monospace;font-size:11px">+5 à +50</span></div>
-        <div style="display:flex;justify-content:space-between"><span>🏆 Gagner une battle</span><span style="color:#ffd700;font-family:'Space Mono',monospace;font-size:11px">+25</span></div>
-        <div style="display:flex;justify-content:space-between"><span>🎯 Missions daily</span><span style="color:#ffd700;font-family:'Space Mono',monospace;font-size:11px">+10 à +30</span></div>
-      </div>
-    </div>
-    <div style="padding:12px 16px 4px;color:rgba(255,255,255,.25);font-size:9px;font-family:'Space Mono',monospace;text-align:center">Paiement sécurisé via PayPal — Coins crédités sous 24h par l'équipe VoltClip</div>
-    <!-- Paiement direct PayPal -->
-    <div style="margin:8px 16px 20px;background:rgba(0,68,204,.13);border:1px solid rgba(0,120,255,.3);border-radius:16px;padding:16px">
-      <div style="font-family:'Space Mono',monospace;font-size:11px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:8px">
-        <img src="https://www.paypalobjects.com/webstatic/mktg/logo/pp_cc_mark_37x23.jpg" alt="PayPal" style="height:20px;border-radius:3px">
-        PAYER DIRECTEMENT VIA PAYPAL
-      </div>
-      <div style="font-size:10px;color:rgba(255,255,255,.45);margin-bottom:12px">Clique sur un pack → PayPal s'ouvre → Coins crédités sous 24h</div>
-      <div style="display:flex;flex-direction:column;gap:8px" id="shopPaypalList"></div>
-    </div>
+    <!-- Packs PayPal -->
+    <div style="padding:0 16px;font-family:'Space Mono',monospace;font-size:10px;color:rgba(255,255,255,.4);letter-spacing:.08em;margin-bottom:10px">CHOISIR UN PACK</div>
+    <div style="display:flex;flex-direction:column;gap:10px;padding:0 16px 16px" id="shopPacksList"></div>
+    <div style="padding:8px 16px 24px;color:rgba(255,255,255,.22);font-size:9px;font-family:'Space Mono',monospace;text-align:center">Clique sur un pack → PayPal s'ouvre → Coins crédités sous 24h</div>
   </div>
 </div>
 
@@ -5330,51 +5309,27 @@ function openShopModal() {
   document.getElementById('shopModal').style.display = 'flex';
   const coins = _cachedProfile?.coins || 0;
   document.getElementById('shopBalanceDisplay').textContent = fmtNum(coins);
-  document.getElementById('shopPacksList').innerHTML = VC_COIN_PACKS.map((p,i) => `
-    <div onclick="buyPack(${i})" style="background:${p.highlight?'rgba(124,92,252,.15)':'#1c1c27'};border:2px solid ${p.highlight?'#7c5cfc':'rgba(255,255,255,.1)'};border-radius:16px;padding:14px 16px;cursor:pointer;position:relative">
-      ${p.highlight?'<div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#7c5cfc,#fc5c7d);color:#fff;font-family:\'Space Mono\',monospace;font-size:9px;font-weight:700;padding:3px 12px;border-radius:20px">⭐ POPULAIRE</div>':''}
-      <div style="display:flex;align-items:center;gap:12px">
-        <span style="font-size:28px">${p.emoji}</span>
-        <div style="flex:1">
-          <div style="font-family:'Space Mono',monospace;font-weight:700;font-size:13px">${p.label}</div>
-          <div style="color:#ffd700;font-family:'Space Mono',monospace;font-size:14px;font-weight:700;margin-top:2px">💰 ${p.coins.toLocaleString()} coins</div>
-        </div>
-        <div style="font-family:'Space Mono',monospace;font-weight:700;font-size:16px;color:${p.highlight?'#7c5cfc':'#fff'}">${p.price}</div>
-      </div>
-    </div>`).join('');
-  // Packs PayPal direct
   const _ppEmail = atob('YWxleGFuZHJhaGVydmU4NkBnbWFpbC5jb20=');
-  document.getElementById('shopPaypalList').innerHTML = VC_COIN_PACKS.map(p => {
+  document.getElementById('shopPacksList').innerHTML = VC_COIN_PACKS.map(p => {
     const priceNum = parseFloat(p.price.replace(',','.'));
     const ppUrl = 'https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=' + encodeURIComponent(_ppEmail)
       + '&amount=' + priceNum.toFixed(2)
       + '&currency_code=EUR'
-      + '&item_name=' + encodeURIComponent('[VoltClip] ' + p.label + ' — ' + p.coins + ' coins')
+      + '&item_name=' + encodeURIComponent('[VoltClip] ' + p.label + ' - ' + p.coins + ' coins (user:' + (currentUser.id||'') + ')')
       + '&no_shipping=1';
-    return `<a href="${ppUrl}" target="_blank" onclick="closeShopModal();toast('💙 PayPal ouvert ! Coins crédités sous 24h après paiement.')"
-      style="display:flex;align-items:center;justify-content:space-between;background:#003087;border-radius:12px;padding:10px 14px;text-decoration:none;color:#fff;gap:10px">
-      <span style="font-size:18px">${p.emoji}</span>
-      <span style="flex:1;font-family:'Space Mono',monospace;font-size:11px;font-weight:700">${p.label} — 💰 ${p.coins.toLocaleString()} coins</span>
-      <span style="font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:#ffd700">${p.price}</span>
+    return `<a href="${ppUrl}" target="_blank" onclick="closeShopModal();toast('💙 PayPal ouvert ! Coins crédités sous 24h.')"
+      style="display:flex;align-items:center;gap:14px;background:${p.highlight?'rgba(124,92,252,.15)':'#1c1c27'};border:2px solid ${p.highlight?'#7c5cfc':'rgba(255,255,255,.1)'};border-radius:16px;padding:14px 16px;text-decoration:none;color:#fff;position:relative">
+      ${p.highlight?'<div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#7c5cfc,#fc5c7d);color:#fff;font-family:Space Mono,monospace;font-size:9px;font-weight:700;padding:3px 12px;border-radius:20px">⭐ POPULAIRE</div>':''}
+      <span style="font-size:28px">${p.emoji}</span>
+      <div style="flex:1">
+        <div style="font-family:'Space Mono',monospace;font-weight:700;font-size:13px">${p.label}</div>
+        <div style="color:#ffd700;font-family:'Space Mono',monospace;font-size:14px;font-weight:700;margin-top:2px">💰 ${p.coins.toLocaleString()} coins</div>
+      </div>
+      <div style="font-family:'Space Mono',monospace;font-weight:700;font-size:16px;color:${p.highlight?'#7c5cfc':'#fff'}">${p.price}</div>
     </a>`;
   }).join('');
 }
 function closeShopModal() { document.getElementById('shopModal').style.display='none'; }
-function buyPack(idx) {
-  if (!currentUser) { closeShopModal(); openAuth(); return; }
-  const p = VC_COIN_PACKS[idx];
-  const subject = encodeURIComponent(`[VoltClip Shop] ${p.label} — ${p.price}`);
-  const body = encodeURIComponent(
-    `Bonjour,\n\nJe souhaite acheter le ${p.label}.\n\n`+
-    `Pack : ${p.label} — ${p.coins} coins — ${p.price}\n`+
-    `Compte : ${currentUser.email||'N/A'}\n`+
-    `ID utilisateur : ${currentUser.id}\n\n`+
-    `Merci de me confirmer la procédure de paiement.`
-  );
-  window.open(`mailto:hervecaporale17@gmail.com?subject=${subject}&body=${body}`);
-  closeShopModal();
-  toast('📧 Email ouvert ! Coins crédités sous 24h après paiement.');
-}
 
 // ═══════════════════════════════════════
 // HOOKS — dispatch events depuis les actions existantes
