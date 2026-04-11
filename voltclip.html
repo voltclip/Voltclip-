@@ -4171,6 +4171,7 @@ e.preventDefault(),pwaInstallPrompt=e,setTimeout(()=>{pwaInstallPrompt&&showPwaT
 let challengeTargetUserId = null;
 let challengeCategory = 'solo_danse';
 let challengeStakeCoins = 0;
+const _battlePotAwarded = new Set(); // Guard anti double-award de pot
 
 
 let challengeTargetUsername = null;
@@ -4696,6 +4697,18 @@ async function confirmAcceptChallenge() {
     return;
   }
 
+  // Désactiver le(s) battle(s) pending_challenge correspondants (nettoyage DB)
+  await sb.from('battles')
+    .update({ status: 'inactive' })
+    .eq('video_left_id', data.video_id)
+    .eq('status', 'pending_challenge');
+
+  // Désactiver le battle pending_challenge correspondant (évite pollution DB + doublon)
+  await sb.from('battles')
+    .update({ status: 'inactive' })
+    .eq('video_left_id', data.video_id)
+    .eq('status', 'pending_challenge');
+
   // Marquer la notification comme lue
   await sb.from('notifications').update({ is_read: true }).eq('id', notifId);
   // Retirer du DOM
@@ -5175,7 +5188,6 @@ async function loadMissionsFromSupabase() {
 async function trackMission(missionId) {
   if (!currentUser) return;
   const mis = VC_MISSIONS_DEF.find(m => m.id === missionId); if(!mis) return;
-  // Vérifier si déjà claimée localement pour éviter un appel inutile
   if (_vcMissionsCache[missionId]?.claimed) return;
   try {
     const { data } = await sb.rpc('track_mission', {
@@ -5183,11 +5195,9 @@ async function trackMission(missionId) {
       p_target:     mis.target,
       p_coins:      mis.coins
     });
-    // Supabase retourne parfois un tableau [{...}] au lieu d'un objet {...}
     const result = Array.isArray(data) ? data[0] : data;
     if (result) {
       _vcMissionsCache[missionId] = { progress: result.progress, claimed: result.claimed };
-      // Mettre à jour affichage coins si mission claimée
       if (result.coins_earned) {
         const el = document.getElementById('pCoins');
         if (el) el.textContent = fmtNum(result.new_balance);
@@ -5196,7 +5206,6 @@ async function trackMission(missionId) {
         if (_cachedProfile) _cachedProfile.coins = result.new_balance;
         toast(`🎯 Mission accomplie — +${result.coins_earned} coins !`);
       }
-      // Refresh le modal si ouvert
       if (document.getElementById('missionsModal').style.display !== 'none') _renderMissionsModal();
     }
   } catch(e) { console.warn('trackMission error', e); }
