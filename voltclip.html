@@ -3829,10 +3829,10 @@ async function submitUpload() {
     showTab('battle');
     // 💰 +5 coins en arrière-plan (RPC award_coins_secure) — fire-and-forget
     if (currentUser) {
+      document.dispatchEvent(new Event('voltclip:posted')); // → trackMission('post1')
       (async () => {
         try {
           const coinOk = await awardCoins(currentUser.id, 5, 'video_upload');
-          document.dispatchEvent(new Event('voltclip:posted')); // → trackMission('post1')
           if (coinOk) {
             setTimeout(() => toast('💰 +5 coins pour ta publication !'), 800);
           }
