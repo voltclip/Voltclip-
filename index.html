@@ -3,6 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<script>
+// ── Redirection automatique mobile → app ──
+// Ajouter ?lp à l'URL pour rester sur la landing (ex: partage lien, debug)
+(function(){
+  try {
+    // Ne s'exécute que sur GitHub Pages (évite les 404 en preview/local)
+    if(location.hostname !== 'voltclip.github.io') return;
+    if(new URLSearchParams(location.search).has('lp')) return;
+    var ua = navigator.userAgent || '';
+    var isMobile = /Android|iPhone|iPad|iPod|IEMobile|Opera Mini|BlackBerry|webOS/i.test(ua)
+                   || screen.width <= 768;
+    if(isMobile) location.replace('voltclip.html');
+  } catch(e){}
+})();
+</script>
 <title>VoltClip — La plateforme de battle vidéo où les créateurs s'affrontent</title>
 <meta name="description" content="VoltClip — Publie tes clips, affronte d'autres créateurs en battle vidéo, vote pour les meilleurs talents. Danse, vocal, gaming, humour. Feed plein écran, classement mondial 2026.">
 <meta name="keywords" content="VoltClip, battle vidéo, duel créateur, vote talent, danse battle, vocal battle, gaming clips, humour, feed plein écran, classement mondial, clips courts">
@@ -375,7 +390,7 @@ function vcConsentRefuse(){
     <a href="#categories">Catégories</a>
     <a href="#features">Features</a>
   </div>
-  <a href="voltclip.html" class="nav-cta">Lancer l'app ⚡</a>
+  <a href="voltclip.html" class="nav-cta">Entrer dans l'app ⚡</a>
 </nav>
 
 <header id="hero" role="banner">
@@ -421,7 +436,7 @@ function vcConsentRefuse(){
 
   <div class="hero-actions">
     <a href="voltclip.html" class="btn-primary">
-      ⚡ Lancer VoltClip <span class="arrow">→</span>
+      ⚡ Entrer dans l'app <span class="arrow">→</span>
     </a>
     <a href="#battles" class="btn-ghost">Voir les battles</a>
   </div>
@@ -619,7 +634,7 @@ function vcConsentRefuse(){
   <p class="cta-sub">Rejoins VoltClip gratuitement. Publie tes clips, lance des battles, vote pour les meilleurs. Fonctionne dans ton navigateur.</p>
   <div class="cta-actions">
     <a href="voltclip.html" class="btn-primary" style="font-size:15px;padding:18px 38px">
-      ⚡ Lancer VoltClip <span class="arrow">→</span>
+      ⚡ Entrer dans l'app <span class="arrow">→</span>
     </a>
   </div>
 </section>
