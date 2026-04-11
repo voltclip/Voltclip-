@@ -3090,19 +3090,25 @@ async function openWebcamRecorder(){
       </div>
       <div id="webcamTimer" style="font-family:'Space Mono',monospace;color:#fc5c7d;font-size:22px;font-weight:700;display:none;position:absolute;bottom:12px;left:0;right:0;text-align:center">00:00</div>
     </div>
-    <div style="background:#0a0a0f;padding:16px 20px 20px;display:flex;flex-direction:column;gap:10px;flex-shrink:0">
+    <div style="background:#0a0a0f;padding:14px 20px 20px;display:flex;flex-direction:column;gap:10px;flex-shrink:0">
+      <div id="webcamQualityRow" style="display:flex;gap:6px;justify-content:center;align-items:center">
+        <span style="color:rgba(255,255,255,0.4);font-family:'Space Mono',monospace;font-size:10px;margin-right:2px">QUALITE</span>
+        <button data-q="480" id="wq480" onclick="setWebcamQuality(480)" style="background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.5);font-family:'Space Mono',monospace;font-size:11px;font-weight:700;padding:6px 12px;border-radius:10px;cursor:pointer;transition:all .15s">480p</button>
+        <button data-q="720" id="wq720" onclick="setWebcamQuality(720)" style="background:linear-gradient(135deg,#7c5cfc33,#fc5c7d1a);border:1.5px solid #7c5cfc;color:#fff;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;padding:6px 12px;border-radius:10px;cursor:pointer;transition:all .15s">720p</button>
+        <button data-q="1080" id="wq1080" onclick="setWebcamQuality(1080)" style="background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.5);font-family:'Space Mono',monospace;font-size:11px;font-weight:700;padding:6px 12px;border-radius:10px;cursor:pointer;transition:all .15s">1080p</button>
+      </div>
       <div style="display:flex;gap:10px;justify-content:center">
         <button id="webcamRecBtn" style="background:linear-gradient(135deg,#fc5c7d,#7c5cfc);border:none;color:#fff;font-family:'Space Mono',monospace;font-size:13px;font-weight:700;padding:12px 24px;border-radius:20px;cursor:pointer;display:flex;align-items:center;gap:8px">
           <span id="webcamRecDot" style="width:10px;height:10px;border-radius:50%;background:#fff;display:inline-block"></span>
-          <span id="webcamRecLabel">⏺ Démarrer</span>
+          <span id="webcamRecLabel">Demarrer</span>
         </button>
-        <button id="webcamStopBtn" style="display:none;background:#ff4444;border:none;color:#fff;font-family:'Space Mono',monospace;font-size:13px;font-weight:700;padding:12px 24px;border-radius:20px;cursor:pointer">⏹ Arrêter</button>
+        <button id="webcamStopBtn" style="display:none;background:#ff4444;border:none;color:#fff;font-family:'Space Mono',monospace;font-size:13px;font-weight:700;padding:12px 24px;border-radius:20px;cursor:pointer">Arreter</button>
       </div>
       <div style="display:flex;gap:8px;justify-content:center">
-        <button id="webcamSwitchCam" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);color:#fff;font-family:'Space Mono',monospace;font-size:11px;padding:8px 14px;border-radius:12px;cursor:pointer">🔄 Changer cam</button>
-        <button onclick="closeWebcamRecorder()" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);color:#fff;font-family:'Space Mono',monospace;font-size:11px;padding:8px 14px;border-radius:12px;cursor:pointer">✕ Annuler</button>
+        <button id="webcamSwitchCam" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);color:#fff;font-family:'Space Mono',monospace;font-size:11px;padding:8px 14px;border-radius:12px;cursor:pointer">Changer cam</button>
+        <button onclick="closeWebcamRecorder()" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);color:#fff;font-family:'Space Mono',monospace;font-size:11px;padding:8px 14px;border-radius:12px;cursor:pointer">Annuler</button>
       </div>
-      <div style="color:rgba(255,255,255,0.35);font-size:10px;font-family:'Space Mono',monospace;text-align:center">Max ${uploadMaxDuration}s · Clique Arrêter pour utiliser la vidéo</div>
+      <div id="webcamQualityHint" style="color:rgba(255,255,255,0.35);font-size:10px;font-family:'Space Mono',monospace;text-align:center">Max ${uploadMaxDuration}s &middot; 720p recommande &middot; Arreter pour utiliser</div>
     </div>
   `;
   document.body.appendChild(modal);
@@ -3110,14 +3116,47 @@ async function openWebcamRecorder(){
   let stream = null, recorder = null, chunks = [], timerInterval = null, seconds = 0;
   const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   let facingMode = isMobile ? 'environment' : 'user';
-  
+  let selectedQuality = 720; // défaut 720p
+
+  // Map qualité → contraintes vidéo + bitrate MediaRecorder
+  const QUALITY_MAP = {
+    480:  { width: 854,  height: 480,  bitrate: 1200000 },
+    720:  { width: 1280, height: 720,  bitrate: 2500000 },
+    1080: { width: 1920, height: 1080, bitrate: 5000000 },
+  };
+
+  // Highlight bouton qualité actif
+  function _refreshQualityBtns() {
+    [480, 720, 1080].forEach(q => {
+      const btn = document.getElementById('wq' + q);
+      if (!btn) return;
+      const active = q === selectedQuality;
+      btn.style.background    = active ? 'linear-gradient(135deg,#7c5cfc55,#fc5c7d22)' : 'rgba(255,255,255,0.08)';
+      btn.style.borderColor   = active ? '#7c5cfc' : 'rgba(255,255,255,0.15)';
+      btn.style.color         = active ? '#fff' : 'rgba(255,255,255,0.5)';
+    });
+  }
+  _refreshQualityBtns();
+
+  // Exposer setWebcamQuality sur window (onclick inline dans le HTML injecté)
+  window.setWebcamQuality = async (q) => {
+    if (recorder && recorder.state === 'recording') return; // pas de changement en cours d'enreg
+    selectedQuality = q;
+    _refreshQualityBtns();
+    await startStream(); // relancer le stream avec la nouvelle résolution
+  };
+
   async function startStream(){
     try {
       if(stream) stream.getTracks().forEach(t => t.stop());
-      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode }, audio: true });
+      const qc = QUALITY_MAP[selectedQuality] || QUALITY_MAP[720];
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode, width: { ideal: qc.width }, height: { ideal: qc.height } },
+        audio: true
+      });
       document.getElementById('webcamPreview').srcObject = stream;
     } catch(e) {
-      toast('❌ Impossible d\'accéder à la caméra : ' + e.message);
+      toast('Impossible d\'acceder a la camera : ' + e.message);
       closeWebcamRecorder();
     }
   }
@@ -3132,13 +3171,19 @@ async function openWebcamRecorder(){
   document.getElementById('webcamRecBtn').onclick = () => {
     if(!stream) return;
     chunks = []; seconds = 0;
+    const qc = QUALITY_MAP[selectedQuality] || QUALITY_MAP[720];
     let mimeType = ['video/webm;codecs=vp9','video/webm','video/mp4'].find(t=>MediaRecorder.isTypeSupported(t)) || '';
     let recorder_;
     try {
-      recorder_ = mimeType ? new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 1500000 }) : new MediaRecorder(stream);
+      recorder_ = mimeType ? new MediaRecorder(stream, { mimeType, videoBitsPerSecond: qc.bitrate }) : new MediaRecorder(stream);
     } catch(e) {
-      try { recorder_ = new MediaRecorder(stream); mimeType = ''; } catch(e2) { toast('❌ Enregistrement non supporté sur ce navigateur'); return; }
+      try { recorder_ = new MediaRecorder(stream); mimeType = ''; } catch(e2) { toast('Enregistrement non supporte sur ce navigateur'); return; }
     }
+    // Masquer le sélecteur qualité pendant l'enregistrement
+    const qRow = document.getElementById('webcamQualityRow');
+    if (qRow) qRow.style.display = 'none';
+    const qHint = document.getElementById('webcamQualityHint');
+    if (qHint) qHint.textContent = selectedQuality + 'p \u00b7 En cours...';
     recorder = recorder_;
     recorder.ondataavailable = e => { if(e.data.size) chunks.push(e.data); };
     recorder.onstop = async () => {
@@ -3198,6 +3243,7 @@ function closeWebcamRecorder(){
     window._webcamStream.getTracks().forEach(t => t.stop());
     window._webcamStream = null;
   }
+  delete window.setWebcamQuality;
   document.getElementById('webcamModal')?.remove();
 }function handleFileSelect(input){let file=input.files[0];if(!file)return;_uploadOriginalFile=file;// Sur Android caméra, file.type peut être vide ou 'video/mp4' — on accepte si extension vidéo ou type absent
 const ext=(file.name||'').split('.').pop().toLowerCase();const validExt=['mp4','mov','webm','avi','mkv','3gp','m4v','ts',''].includes(ext);// Caméra Android : file.type souvent vide — on bloque seulement si type clairement non-vidéo
