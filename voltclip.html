@@ -1034,7 +1034,7 @@ const SUPABASE_URL=`https://czdfoqgcjbsoupekpxpg.supabase.co`,SUPABASE_ANON=`eyJ
 // ══════════════════════════════════════════
 // STATE GLOBAL
 // ══════════════════════════════════════════
-let currentUser=null,currentTab='feed',uploadType='video',uploadFile=null,_uploadOriginalFile=null,_isCameraRecording=false,uploadMaxDuration=240,activeVideoEl=null,commentsVideoId=null,storyInterval=null,audioCtx=null,_cachedProfile=null;function getAudioCtx(){return audioCtx||=new(window.AudioContext||window.webkitAudioContext),audioCtx}function playUISound(type){try{let ctx=getAudioCtx(),osc=ctx.createOscillator(),gain=ctx.createGain();osc.connect(gain),gain.connect(ctx.destination);let now=ctx.currentTime;type===`like`?(osc.frequency.setValueAtTime(600,now),osc.frequency.exponentialRampToValueAtTime(900,now+.08),gain.gain.setValueAtTime(.15,now),gain.gain.exponentialRampToValueAtTime(.001,now+.15),osc.start(now),osc.stop(now+.15)):type===`follow`?(osc.frequency.setValueAtTime(400,now),osc.frequency.exponentialRampToValueAtTime(700,now+.12),osc.frequency.exponentialRampToValueAtTime(900,now+.2),gain.gain.setValueAtTime(.12,now),gain.gain.exponentialRampToValueAtTime(.001,now+.25),osc.start(now),osc.stop(now+.25)):type===`bookmark`?(osc.type=`sine`,osc.frequency.setValueAtTime(500,now),osc.frequency.setValueAtTime(700,now+.06),gain.gain.setValueAtTime(.1,now),gain.gain.exponentialRampToValueAtTime(.001,now+.18),osc.start(now),osc.stop(now+.18)):type===`comment`&&(osc.type=`sine`,osc.frequency.setValueAtTime(450,now),osc.frequency.exponentialRampToValueAtTime(550,now+.1),gain.gain.setValueAtTime(.08,now),gain.gain.exponentialRampToValueAtTime(.001,now+.15),osc.start(now),osc.stop(now+.15))}catch{}}function haptic(pattern){navigator.vibrate&&navigator.vibrate(pattern)}
+let currentUser=null,currentTab='feed',uploadType='video',uploadFile=null,_uploadOriginalFile=null,_isCameraRecording=false,_cameraRecordingDuration=0,uploadMaxDuration=240,activeVideoEl=null,commentsVideoId=null,storyInterval=null,audioCtx=null,_cachedProfile=null;function getAudioCtx(){return audioCtx||=new(window.AudioContext||window.webkitAudioContext),audioCtx}function playUISound(type){try{let ctx=getAudioCtx(),osc=ctx.createOscillator(),gain=ctx.createGain();osc.connect(gain),gain.connect(ctx.destination);let now=ctx.currentTime;type===`like`?(osc.frequency.setValueAtTime(600,now),osc.frequency.exponentialRampToValueAtTime(900,now+.08),gain.gain.setValueAtTime(.15,now),gain.gain.exponentialRampToValueAtTime(.001,now+.15),osc.start(now),osc.stop(now+.15)):type===`follow`?(osc.frequency.setValueAtTime(400,now),osc.frequency.exponentialRampToValueAtTime(700,now+.12),osc.frequency.exponentialRampToValueAtTime(900,now+.2),gain.gain.setValueAtTime(.12,now),gain.gain.exponentialRampToValueAtTime(.001,now+.25),osc.start(now),osc.stop(now+.25)):type===`bookmark`?(osc.type=`sine`,osc.frequency.setValueAtTime(500,now),osc.frequency.setValueAtTime(700,now+.06),gain.gain.setValueAtTime(.1,now),gain.gain.exponentialRampToValueAtTime(.001,now+.18),osc.start(now),osc.stop(now+.18)):type===`comment`&&(osc.type=`sine`,osc.frequency.setValueAtTime(450,now),osc.frequency.exponentialRampToValueAtTime(550,now+.1),gain.gain.setValueAtTime(.08,now),gain.gain.exponentialRampToValueAtTime(.001,now+.15),osc.start(now),osc.stop(now+.15))}catch{}}function haptic(pattern){navigator.vibrate&&navigator.vibrate(pattern)}
 // Reset session count chaque nouveau jour
 const _todaySession=(/* @__PURE__ */ new Date()).toDateString();localStorage.getItem(`voltclip_session_day`)!==_todaySession&&(localStorage.setItem(`voltclip_session_day`,_todaySession),localStorage.setItem(`voltclip_session_count`,`0`));
 // ══════════════════════════════════════════
@@ -3201,6 +3201,7 @@ async function openWebcamRecorder(){
       }
       _uploadOriginalFile = file;
       _isCameraRecording = true;
+      _cameraRecordingDuration = seconds;
       closeWebcamRecorder();
       // Injecter dans le flow d'upload
       uploadFile = file;
@@ -3558,7 +3559,8 @@ async function submitUpload() {
 
     // 3. Préparer les URLs (le trim a déjà été fait localement)
     const rawUrl = cdnData.secure_url;
-    const rawDuration = parseFloat(cdnData.duration) || 0;
+    // Durée : Cloudinary peut renvoyer 0 pour les webm bruts → fallback sur le timer caméra
+    const rawDuration = parseFloat(cdnData.duration) || (_isCameraRecording ? _cameraRecordingDuration : 0);
     const videoUrl = rawUrl;
     // Thumbnail généré côté client — 0 crédit Cloudinary
     const thumbUrl = await (async () => {
@@ -3631,6 +3633,9 @@ async function submitUpload() {
         });
         clearTimeout(_insertTimeout);
         const insertData = await insertResp.json();
+        if (!insertResp.ok) {
+          console.error('❌ Supabase INSERT /videos erreur:', insertResp.status, JSON.stringify(insertData));
+        }
         insertedVideoId = Array.isArray(insertData) ? insertData[0]?.id : insertData?.id;
         // Incrémenter videos_count dans profiles
         if (insertedVideoId) {
