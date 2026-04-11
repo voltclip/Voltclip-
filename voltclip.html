@@ -3387,8 +3387,8 @@ async function submitUpload() {
       throw new Error(`Vidéo trop longue — maximum 4 minutes autorisé sur VoltClip.`);
     }
 
-    if (fileToUpload.size > 100 * 1024 * 1024) {
-      throw new Error(`Fichier trop lourd (${(fileToUpload.size/1024/1024).toFixed(0)} MB) — maximum 100 MB. Raccourcis ta vidéo.`);
+    if (fileToUpload.size > 200 * 1024 * 1024) {
+      throw new Error(`Fichier trop lourd (${(fileToUpload.size/1024/1024).toFixed(0)} MB) — maximum 200 MB. Raccourcis ta vidéo.`);
     }
 
     // 1c. Compression si > 50 MB
