@@ -5340,7 +5340,8 @@ function openShopModal() {
       + '&amount=' + priceNum.toFixed(2)
       + '&currency_code=EUR'
       + '&item_name=' + encodeURIComponent('[VoltClip] ' + p.label + ' - ' + p.coins + ' coins (user:' + (currentUser.id||'') + ')')
-      + '&no_shipping=1';
+      + '&no_shipping=1'
+      + '&notify_url=' + encodeURIComponent('https://czdfoqgcjbsoupekpxpg.supabase.co/functions/v1/paypal-ipn');
     return `<a href="${ppUrl}" target="_blank" onclick="closeShopModal();toast('💙 PayPal ouvert ! Coins crédités sous 24h.')"
       style="display:flex;align-items:center;gap:14px;background:${p.highlight?'rgba(124,92,252,.15)':'#1c1c27'};border:2px solid ${p.highlight?'#7c5cfc':'rgba(255,255,255,.1)'};border-radius:16px;padding:14px 16px;text-decoration:none;color:#fff;position:relative">
       ${p.highlight?'<div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#7c5cfc,#fc5c7d);color:#fff;font-family:Space Mono,monospace;font-size:9px;font-weight:700;padding:3px 12px;border-radius:20px">⭐ POPULAIRE</div>':''}
