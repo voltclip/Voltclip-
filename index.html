@@ -45,6 +45,21 @@
         'width:100%','max-width:340px','justify-content:center'
       ].join(';');
       document.body.appendChild(bar);
+
+      // Repositionne la barre au-dessus du banner cookies s'il est visible
+      function _adjustBar(){
+        var banner = document.getElementById('vcCookieBanner');
+        if(banner && banner.style.display !== 'none'){
+          bar.style.bottom = banner.offsetHeight + 'px';
+        } else {
+          bar.style.bottom = '0';
+        }
+      }
+      _adjustBar();
+      // Observe les changements d'affichage du banner cookies
+      var _mo = new MutationObserver(_adjustBar);
+      var _cb = document.getElementById('vcCookieBanner');
+      if(_cb) _mo.observe(_cb, { attributes: true, attributeFilter: ['style'] });
     });
   } catch(e){}
 })();
