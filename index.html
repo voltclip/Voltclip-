@@ -15,7 +15,6 @@
     var ua = navigator.userAgent || '';
     var isMobile = /Android|iPhone|iPad|iPod|IEMobile|Opera Mini|BlackBerry|webOS/i.test(ua)
                    || screen.width <= 768;
-    if(!isMobile) return;
     // Déjà vue → redirect immédiat
     if(localStorage.getItem('vc_landing_seen')) {
       location.replace('voltclip.html');
