@@ -2923,7 +2923,7 @@ if(!data?.length){list.innerHTML=`<div class="empty-state"><span class="ei">🏆
           <div class="rank-video-title">${escHtml(v.title)}</div>
           <div class="rank-username" style="cursor:pointer;display:flex;align-items:center;gap:4px" onclick="event.stopPropagation();openPublicProfile('${v.user_id}')">
             ${v.profiles?.country_code ? '<span style=\"font-size:13px\">' + (_COUNTRY_FLAGS[v.profiles.country]||'') + '</span>' : ''}
-            @${escHtml(v.username)}
+            @${escHtml(v.username || v.profiles?.username || 'user')}
           </div>
           <div class="rank-score">❤️ ${fmtNum(v.likes_count)} · 👁 ${fmtNum(v.views_count)} · 💬 ${fmtNum(v.comments_count)}</div>
 
