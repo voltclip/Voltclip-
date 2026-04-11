@@ -13,18 +13,28 @@
 <meta property="og:title" content="VoltClip — Battle de clips ⚔️ | Danse · Vocal · Gaming · Humour">
 <meta property="og:description" content="Publie tes clips, affronte d'autres créateurs en duel vidéo, vote pour les meilleurs. Feed plein écran, battles, classement mondial.">
 <meta property="og:locale" content="fr_FR">
+<meta property="og:image" content="https://voltclip.github.io/Voltclip-/icon-1200.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:image" content="https://voltclip.github.io/Voltclip-/icon-1200.png">
+<link rel="canonical" href="https://voltclip.github.io/Voltclip-/">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="VoltClip — Battle de clips ⚔️ Danse, Vocal, Gaming & Humour">
 <meta name="twitter:description" content="La plateforme de battle créatif. Publie tes clips, affronte d'autres créateurs en duel, vote pour le meilleur. Feed, algo, DM, classement ⚔️">
+<link rel="manifest" href="manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Bebas+Neue&display=swap" rel="stylesheet">
 <script>
-if (localStorage.getItem('voltclip_cookies') === 'accepted') {
-  var s = document.createElement('script');
-  s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5433648295830648';
-  s.async = true; s.crossOrigin = 'anonymous';
-  document.head.appendChild(s);
-}
+// AdSense — chargement conditionnel selon le consentement cookies
+(function(){
+  if(localStorage.getItem('vc_cookie_consent')==='accepted'){
+    var s=document.createElement('script');
+    s.async=true;
+    s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5433648295830648';
+    s.crossOrigin='anonymous';
+    document.head.appendChild(s);
+  }
+})();
 </script>
 <script type="application/ld+json">
 {
@@ -283,8 +293,57 @@ footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:32
 ::-webkit-scrollbar-track{background:var(--bg)}
 ::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:3px}
 </style>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-3FRM3MTWHP"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-3FRM3MTWHP');
+</script>
 </head>
 <body>
+<!-- ── Bandeau consentement cookies RGPD ── -->
+<div id="vcCookieBanner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;background:#13131a;border-top:1.5px solid rgba(124,92,252,.5);padding:16px 20px;box-shadow:0 -8px 32px rgba(0,0,0,.6)">
+  <div style="max-width:700px;margin:0 auto">
+    <div style="font-family:'Space Mono',monospace;font-size:12px;font-weight:700;color:#fff;margin-bottom:6px">🍪 Cookies & Vie privée</div>
+    <div style="font-size:13px;color:rgba(255,255,255,.55);line-height:1.5;margin-bottom:14px">VoltClip utilise des cookies publicitaires (Google AdSense) et analytiques (Google Analytics). En cliquant sur <strong style="color:#fff">Accepter</strong>, vous consentez à leur utilisation. En cliquant sur <strong style="color:#fff">Refuser</strong>, seuls les cookies essentiels seront actifs. <a href="cookies.html" style="color:#7c5cfc;text-decoration:underline">En savoir plus</a></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button onclick="vcConsentAccept()" style="background:linear-gradient(135deg,#7c5cfc,#fc5c7d);color:#fff;border:none;border-radius:10px;padding:11px 24px;font-family:'Space Mono',monospace;font-size:12px;font-weight:700;cursor:pointer;flex:1;min-width:130px">✓ Accepter</button>
+      <button onclick="vcConsentRefuse()" style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:11px 24px;font-family:'Space Mono',monospace;font-size:12px;font-weight:700;cursor:pointer;flex:1;min-width:130px">✗ Refuser</button>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var _k='vc_cookie_consent';
+  if(!localStorage.getItem(_k)){
+    document.addEventListener('DOMContentLoaded',function(){
+      var b=document.getElementById('vcCookieBanner');
+      if(b) b.style.display='block';
+    });
+  }
+})();
+function vcConsentAccept(){
+  localStorage.setItem('vc_cookie_consent','accepted');
+  // Charger AdSense si pas encore chargé
+  if(!window._vcAdSenseLoaded){
+    window._vcAdSenseLoaded=true;
+    var s=document.createElement('script');
+    s.async=true;s.crossOrigin='anonymous';
+    s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5433648295830648';
+    document.head.appendChild(s);
+  }
+  var b=document.getElementById('vcCookieBanner');
+  if(b) b.style.display='none';
+}
+function vcConsentRefuse(){
+  localStorage.setItem('vc_cookie_consent','refused');
+  var b=document.getElementById('vcCookieBanner');
+  if(b) b.style.display='none';
+}
+</script>
+
 
 <div class="glow-orb purple" aria-hidden="true"></div>
 <div class="glow-orb pink" aria-hidden="true"></div>
@@ -350,6 +409,17 @@ footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:32
     <a href="#battles" class="btn-ghost">Voir les battles</a>
   </div>
 </header>
+
+<!-- PUB ADSENSE BANNIÈRE HAUT -->
+<div id="adTop" style="text-align:center;padding:12px 24px;position:relative;z-index:1;max-width:1080px;margin:0 auto">
+  <ins class="adsbygoogle"
+       style="display:block"
+       data-ad-client="ca-pub-5433648295830648"
+       data-ad-slot="6944960172"
+       data-ad-format="horizontal"
+       data-full-width-responsive="true"></ins>
+</div>
+<script>try{(adsbygoogle=window.adsbygoogle||[]).push({});}catch(e){}</script>
 
 <div class="stats-bar" role="region" aria-label="Chiffres clés">
   <div class="stat-item"><div class="stat-val purple">∞</div><div class="stat-label">Talents mondiaux</div></div>
@@ -542,18 +612,22 @@ footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:32
   <ins class="adsbygoogle"
        style="display:block"
        data-ad-client="ca-pub-5433648295830648"
-       data-ad-slot="auto"
+       data-ad-slot="6944960172"
        data-ad-format="auto"
        data-full-width-responsive="true"></ins>
 </div>
-<script>
-if (localStorage.getItem('voltclip_cookies') === 'accepted') {
-  document.getElementById('adMid').style.display = 'block';
-  try { (adsbygoogle = window.adsbygoogle || []).push({}); } catch(e) {}
-} else {
-  document.getElementById('adMid').style.display = 'none';
-}
-</script>
+<script>try{(adsbygoogle=window.adsbygoogle||[]).push({});}catch(e){}</script>
+
+<!-- PUB ADSENSE BANNIÈRE BAS DE PAGE -->
+<div id="adBottom" style="text-align:center;padding:12px 24px;position:relative;z-index:1;max-width:1080px;margin:0 auto">
+  <ins class="adsbygoogle"
+       style="display:block"
+       data-ad-client="ca-pub-5433648295830648"
+       data-ad-slot="6944960172"
+       data-ad-format="horizontal"
+       data-full-width-responsive="true"></ins>
+</div>
+<script>try{(adsbygoogle=window.adsbygoogle||[]).push({});}catch(e){}</script>
 
 <footer role="contentinfo">
   <div class="footer-logo">⚡ <span>VOLT</span>CLIP</div>
@@ -571,18 +645,12 @@ if (localStorage.getItem('voltclip_cookies') === 'accepted') {
       <li><a href="politique-confidentialite.html">Confidentialité</a></li>
       <li><a href="cgu.html">CGU</a></li>
       <li><a href="cookies.html">Cookies</a></li>
+      <li><a href="contact.html">Contact</a></li>
     </ul>
   </nav>
   <div class="footer-copy">© 2026 VoltClip — Caporale Hervé — Tous droits réservés</div>
 </footer>
 
-<div id="cookieBanner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;background:rgba(19,19,26,0.98);backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,0.07);padding:16px 20px;display:flex;flex-wrap:wrap;align-items:center;gap:12px">
-  <p style="flex:1;min-width:220px;font-size:13px;color:rgba(255,255,255,0.6);margin:0">🍪 VoltClip utilise des cookies pour le fonctionnement du service et des publicités personnalisées. <a href="cookies.html" style="color:#7c5cfc">En savoir plus</a></p>
-  <div style="display:flex;gap:8px;flex-shrink:0">
-    <button onclick="refuseCookies()" style="background:none;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.5);font-size:12px;padding:8px 16px;border-radius:20px;cursor:pointer;font-family:'Space Mono',monospace">Refuser</button>
-    <button onclick="acceptCookies()" style="background:linear-gradient(135deg,#7c5cfc,#fc5c7d);border:none;color:#fff;font-size:12px;font-weight:700;padding:8px 20px;border-radius:20px;cursor:pointer;font-family:'Space Mono',monospace">Accepter</button>
-  </div>
-</div>
 
 <script>
 const obs = new IntersectionObserver((entries) => {
@@ -618,27 +686,7 @@ setInterval(() => {
   if (el) el.textContent = count
 }, 2800)
 
-function acceptCookies() {
-  localStorage.setItem('voltclip_cookies','accepted');
-  document.getElementById('cookieBanner').style.display='none';
-  if (!window._adsLoaded) {
-    window._adsLoaded = true;
-    var s = document.createElement('script');
-    s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5433648295830648';
-    s.async = true; s.crossOrigin = 'anonymous';
-    s.onload = function() {
-      var adSlots = document.querySelectorAll('.adsbygoogle');
-      adSlots.forEach(function() {
-        try { (adsbygoogle = window.adsbygoogle || []).push({}); } catch(e) {}
-      });
-    };
-    document.head.appendChild(s);
-  }
-  var adMid = document.getElementById('adMid');
-  if (adMid) adMid.style.display = 'block';
-}
-function refuseCookies() { localStorage.setItem('voltclip_cookies','refused'); document.getElementById('cookieBanner').style.display='none' }
-if (!localStorage.getItem('voltclip_cookies')) document.getElementById('cookieBanner').style.display='flex'
+
 </script>
 
 <script id="voltclip-i18n">
@@ -698,8 +746,6 @@ const T = {
     cta_sub:"Join VoltClip for free. Post clips, launch battles, vote for the best. Works in your browser.",
     cta_btn:"⚡ Launch VoltClip →",
     footer_categories:"Categories",footer_battles:"Battles",footer_features:"Features",
-    cookie_text:'🍪 VoltClip uses cookies for service functionality and personalised advertising. <a href="cookies.html" style="color:#7c5cfc">Learn more</a>',
-    cookie_accept:"Accept",cookie_refuse:"Decline",
   },
   es:{
     page_title:"VoltClip — La plataforma de batalla de vídeos donde compiten los creadores",
@@ -748,8 +794,6 @@ const T = {
     cta_sub:"Únete a VoltClip gratis. Publica clips, lanza batallas, vota por los mejores. Funciona en tu navegador.",
     cta_btn:"⚡ Abrir VoltClip →",
     footer_categories:"Categorías",footer_battles:"Batallas",footer_features:"Features",
-    cookie_text:'🍪 VoltClip usa cookies para el funcionamiento del servicio y publicidad personalizada. <a href="cookies.html" style="color:#7c5cfc">Más información</a>',
-    cookie_accept:"Aceptar",cookie_refuse:"Rechazar",
   },
   pt:{
     page_title:"VoltClip — A plataforma de batalha de vídeos onde criadores se enfrentam",
@@ -797,8 +841,6 @@ const T = {
     cta_sub:"Junta-te ao VoltClip gratuitamente. Publica clips, lança batalhas, vota nos melhores.",
     cta_btn:"⚡ Abrir VoltClip →",
     footer_categories:"Categorias",footer_battles:"Batalhas",footer_features:"Features",
-    cookie_text:'🍪 O VoltClip usa cookies para o funcionamento do serviço e publicidade personalizada. <a href="cookies.html" style="color:#7c5cfc">Saber mais</a>',
-    cookie_accept:"Aceitar",cookie_refuse:"Recusar",
   },
   de:{
     page_title:"VoltClip — Die Video-Battle-Plattform, auf der Creators gegeneinander antreten",
@@ -846,8 +888,6 @@ const T = {
     cta_sub:"Tritt VoltClip kostenlos bei. Poste Clips, starte Battles, stimme für die Besten.",
     cta_btn:"⚡ VoltClip starten →",
     footer_categories:"Kategorien",footer_battles:"Battles",footer_features:"Features",
-    cookie_text:'🍪 VoltClip verwendet Cookies für den Servicebetrieb und personalisierte Werbung. <a href="cookies.html" style="color:#7c5cfc">Mehr erfahren</a>',
-    cookie_accept:"Akzeptieren",cookie_refuse:"Ablehnen",
   },
   it:{
     page_title:"VoltClip — La piattaforma di battle video dove i creator si sfidano",
@@ -895,8 +935,6 @@ const T = {
     cta_sub:"Unisciti a VoltClip gratuitamente. Pubblica clip, lancia battaglie, vota i migliori.",
     cta_btn:"⚡ Apri VoltClip →",
     footer_categories:"Categorie",footer_battles:"Battaglie",footer_features:"Features",
-    cookie_text:'🍪 VoltClip usa i cookie per il funzionamento del servizio e la pubblicità personalizzata. <a href="cookies.html" style="color:#7c5cfc">Scopri di più</a>',
-    cookie_accept:"Accetta",cookie_refuse:"Rifiuta",
   },
   ar:{
     rtl:true,
@@ -945,8 +983,6 @@ const T = {
     cta_sub:"انضم إلى VoltClip مجاناً. انشر مقاطع، أطلق معارك، صوّت للأفضل.",
     cta_btn:"⚡ فتح VoltClip →",
     footer_categories:"الفئات",footer_battles:"المعارك",footer_features:"المزايا",
-    cookie_text:'🍪 يستخدم VoltClip ملفات تعريف الارتباط لتشغيل الخدمة والإعلانات المخصصة. <a href="cookies.html" style="color:#7c5cfc">اعرف المزيد</a>',
-    cookie_accept:"قبول",cookie_refuse:"رفض",
   },
   ja:{
     page_title:"VoltClip — クリエイターが競い合う動画バトルプラットフォーム",
@@ -994,8 +1030,6 @@ const T = {
     cta_sub:"VoltClipに無料参加。クリップを投稿、バトルを開始、最高の才能に投票。ブラウザで動作。",
     cta_btn:"⚡ VoltClipを開く →",
     footer_categories:"カテゴリー",footer_battles:"バトル",footer_features:"機能",
-    cookie_text:'🍪 VoltClipはサービス運営とパーソナライズド広告のためにCookieを使用します。 <a href="cookies.html" style="color:#7c5cfc">詳細を見る</a>',
-    cookie_accept:"同意する",cookie_refuse:"拒否する",
   },
   ko:{
     page_title:"VoltClip — 크리에이터가 경쟁하는 영상 배틀 플랫폼",
@@ -1043,8 +1077,6 @@ const T = {
     cta_sub:"VoltClip에 무료로 참가하세요. 클립을 올리고, 배틀을 시작하고, 최고에게 투표하세요.",
     cta_btn:"⚡ VoltClip 열기 →",
     footer_categories:"카테고리",footer_battles:"배틀",footer_features:"기능",
-    cookie_text:'🍪 VoltClip은 서비스 운영 및 맞춤 광고를 위해 쿠키를 사용합니다. <a href="cookies.html" style="color:#7c5cfc">자세히 알아보기</a>',
-    cookie_accept:"수락",cookie_refuse:"거부",
   },
   tr:{
     page_title:"VoltClip — İçerik üreticilerinin yarıştığı video battle platformu",
@@ -1092,8 +1124,6 @@ const T = {
     cta_sub:"VoltClip'e ücretsiz katıl. Klip yayınla, battle başlat, en iyilere oy ver.",
     cta_btn:"⚡ VoltClip'i aç →",
     footer_categories:"Kategoriler",footer_battles:"Battle'lar",footer_features:"Özellikler",
-    cookie_text:'🍪 VoltClip, hizmetin işleyişi ve kişiselleştirilmiş reklamlar için çerezler kullanır. <a href="cookies.html" style="color:#7c5cfc">Daha fazla bilgi</a>',
-    cookie_accept:"Kabul et",cookie_refuse:"Reddet",
   },
   nl:{
     page_title:"VoltClip — Het video battle platform waar creators tegen elkaar strijden",
@@ -1141,8 +1171,6 @@ const T = {
     cta_sub:"Word gratis lid van VoltClip. Post clips, start battles, stem voor de besten.",
     cta_btn:"⚡ VoltClip openen →",
     footer_categories:"Categorieën",footer_battles:"Battles",footer_features:"Features",
-    cookie_text:'🍪 VoltClip gebruikt cookies voor de werking van de dienst en gepersonaliseerde advertenties. <a href="cookies.html" style="color:#7c5cfc">Meer informatie</a>',
-    cookie_accept:"Accepteren",cookie_refuse:"Weigeren",
   },
   ru:{
     page_title:"VoltClip — Платформа видео-баттлов, где соревнуются создатели контента",
@@ -1190,8 +1218,6 @@ const T = {
     cta_sub:"Присоединяйся к VoltClip бесплатно. Публикуй клипы, запускай баттлы, голосуй за лучших.",
     cta_btn:"⚡ Открыть VoltClip →",
     footer_categories:"Категории",footer_battles:"Баттлы",footer_features:"Функции",
-    cookie_text:'🍪 VoltClip использует cookies для работы сервиса и персонализированной рекламы. <a href="cookies.html" style="color:#7c5cfc">Подробнее</a>',
-    cookie_accept:"Принять",cookie_refuse:"Отказать",
   },
   zh:{
     page_title:"VoltClip — 创作者竞技的视频对决平台",
@@ -1239,8 +1265,6 @@ const T = {
     cta_sub:"免费加入 VoltClip。发布视频，发起对决，为最佳投票。在浏览器中即可使用。",
     cta_btn:"⚡ 打开 VoltClip →",
     footer_categories:"分类",footer_battles:"对决",footer_features:"功能",
-    cookie_text:'🍪 VoltClip 使用 Cookie 来提供服务并投放个性化广告。 <a href="cookies.html" style="color:#7c5cfc">了解更多</a>',
-    cookie_accept:"接受",cookie_refuse:"拒绝",
   },
 };
 
@@ -1372,16 +1396,6 @@ function _applyLang(lang){
   if(fl[1]&&t.footer_battles) fl[1].textContent=t.footer_battles;
   if(fl[2]&&t.footer_categories) fl[2].textContent=t.footer_categories;
   if(fl[3]&&t.footer_features) fl[3].textContent=t.footer_features;
-
-  /* COOKIE BANNER */
-  const cb = document.getElementById('cookieBanner');
-  if(cb){
-    const cp2=cb.querySelector('p');
-    if(cp2&&t.cookie_text) cp2.innerHTML=t.cookie_text;
-    const btns=cb.querySelectorAll('button');
-    if(btns[0]&&t.cookie_refuse) btns[0].textContent=t.cookie_refuse;
-    if(btns[1]&&t.cookie_accept) btns[1].textContent=t.cookie_accept;
-  }
 }
 
 /* ── API publique : changer la langue manuellement ── */
