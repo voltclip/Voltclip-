@@ -1457,10 +1457,6 @@ async function loadBattles(append = false) {
       _showBattleExpiredOverlay(el, b, pctLeft, pctRight, userLeft, userRight)
       const cdEl = document.getElementById('cd-' + b.id)
       if (cdEl) { cdEl.textContent = '⏱ TERMINÉ'; cdEl.classList.add('urgent') }
-      // Auto-rematch après 4s
-      setTimeout(() => {
-        triggerAutoRematch(b.id, b.category || '', b.video_left_id || '', b.video_right_id || '')
-      }, 4000)
     }
   })
 
@@ -2003,6 +1999,7 @@ function _showBattleExpiredOverlay(div, b, pctLeft, pctRight, userLeft, userRigh
 
   const overlay = document.createElement('div')
   overlay.className = 'battle-expired-overlay'
+  const rematchBtnId = 'rematch-btn-' + b.id
   overlay.innerHTML = `
     <div style="font-size:48px">🏆</div>
     <div class="battle-expired-title">BATTLE TERMINÉ</div>
@@ -2010,14 +2007,19 @@ function _showBattleExpiredOverlay(div, b, pctLeft, pctRight, userLeft, userRigh
       ? `<div class="battle-expired-winner">🥇 @${escHtml(winnerName)} gagne avec ${winnerPct}% des votes</div>`
       : `<div class="battle-expired-winner">Match nul — 50/50 !</div>`
     }
-    <div style="color:rgba(255,255,255,.5);font-family:'Space Mono',monospace;font-size:10px;margin-top:4px">Nouveau battle dans 3s...</div>
+    <button id="${rematchBtnId}" class="battle-expired-rematch">⚔️ Nouveau Battle</button>
   `
   div.appendChild(overlay)
 
-  // Auto-rematch après 3s
+  // Bouton rematch
   setTimeout(() => {
-    triggerAutoRematch(b.id, b.category || '', b.video_left_id || '', b.video_right_id || '')
-  }, 3000)
+    const btn = document.getElementById(rematchBtnId)
+    if (btn) btn.addEventListener('click', () => {
+      btn.disabled = true
+      btn.textContent = '🔍 Recherche...'
+      triggerAutoRematch(b.id, b.category || '', b.video_left_id || '', b.video_right_id || '')
+    })
+  }, 100)
 
   // Sauvegarder le résultat complet dans Supabase
   ;(async () => {
@@ -2099,13 +2101,17 @@ function _showBattleExpiredOverlay(div, b, pctLeft, pctRight, userLeft, userRigh
   })()
 }
 
+const _rematchedBattles = window._rematchedBattles || (window._rematchedBattles = new Set())
 async function triggerAutoRematch(oldBattleId, category, oldLeftId, oldRightId) {
+  if (_rematchedBattles.has(oldBattleId)) return
+  _rematchedBattles.add(oldBattleId)
   try {
-    // Récupérer les IDs déjà en battle actif non expiré
+    await new Promise(r => setTimeout(r, 1500))
     const alreadyInBattle = new Set()
     const { data: activeBattles } = await sb.from('battles')
       .select('video_left_id, video_right_id')
       .eq('status', 'active')
+      .neq('id', oldBattleId)
       .gt('expires_at', new Date().toISOString())
     ;(activeBattles || []).forEach(b => {
       if (b.video_left_id) alreadyInBattle.add(b.video_left_id)
@@ -2219,11 +2225,6 @@ function startBattleTicker() {
           const userRight = div.querySelector('.battle-username[style*="right"]')?.textContent?.replace('@','')?.replace('🔴','')?.trim() || 'user'
           const fakeB = { id: battleId, category: div.dataset.category, video_left_id: div.dataset.videoLeftId, video_right_id: div.dataset.videoRightId }
           _showBattleExpiredOverlay(div, fakeB, pctLeft, pctRight, userLeft, userRight)
-          // Auto-rematch après 4s sans intervention
-          setTimeout(() => {
-            if (!document.body.contains(div)) return
-            triggerAutoRematch(battleId, div.dataset.category, div.dataset.videoLeftId, div.dataset.videoRightId)
-          }, 4000)
         }
       } else {
         if (cdEl) {
@@ -2249,7 +2250,7 @@ async function init(){currentTab='battle';try{let{data:{session}}=await sb.auth.
     detectAndSaveLocation();
   }
   checkAdmin();
-}),loadSearch(),loadRank(`week`);checkAdmin();if(currentUser){setupRealtimeNotifs(currentUser.id);await refreshProfile();}else{refreshProfile();}battlePage=0;battleAllLoaded=false;loadBattles();setupRealtimeBattles();startBattleTicker();checkOnboarding();}catch(e){console.error('init error:',e);document.getElementById('battleFeed').innerHTML='<div class="empty-state" style="height:calc(100dvh - 60px)"><span class="ei">⚠️</span><p>Erreur de connexion.<br>Vérifie ta connexion et recharge.</p></div>';}
+}),loadSearch(),loadRank(`week`);checkAdmin();if(currentUser){setupRealtimeNotifs(currentUser.id);await refreshProfile();}else{refreshProfile();}battlePage=0;battleAllLoaded=false;loadBattles();setupRealtimeBattles();startBattleTicker();}catch(e){console.error('init error:',e);document.getElementById('battleFeed').innerHTML='<div class="empty-state" style="height:calc(100dvh - 60px)"><span class="ei">⚠️</span><p>Erreur de connexion.<br>Vérifie ta connexion et recharge.</p></div>';}
 }
 // ══════════════════════════════════════════
 // NOTIFICATIONS PUSH + REALTIME
@@ -4094,7 +4095,7 @@ function checkAgeGate(){
 const AGE_GATE_VERSION=`v2`;if(localStorage.getItem(`voltclip_age_version`)!==AGE_GATE_VERSION){localStorage.removeItem(`voltclip_age_ok`);localStorage.setItem(`voltclip_age_version`,AGE_GATE_VERSION)}
 if(localStorage.getItem(`voltclip_age_ok`)===`1`)return;
 let maxDate=new Date();maxDate.setFullYear(maxDate.getFullYear()-15);const _ag=document.getElementById(`ageGateModal`);if(_ag&&_ag.style.display!==`flex`){_ag.style.display=`flex`;_ag.classList.add(`open`)}}
-function submitAgeGate(){let errEl=document.getElementById(`ageGateErr`),day=document.getElementById(`ageDaySelect`).value,month=document.getElementById(`ageMonthSelect`).value,year=document.getElementById(`ageYearSelect`).value;if(!day||!month||!year){errEl.textContent=`Indique ta date de naissance complète`,errEl.style.display=`block`;return}let birth=new Date(parseInt(year),parseInt(month)-1,parseInt(day)),now=/* @__PURE__ */ new Date;if(now.getFullYear()-birth.getFullYear()-(now<new Date(now.getFullYear(),birth.getMonth(),birth.getDate())?1:0)<15){errEl.textContent=`🚫 Tu dois avoir au moins 15 ans pour accéder à VoltClip.`,errEl.style.display=`block`;return}let val=`${year}-${String(month).padStart(2,`0`)}-${String(day).padStart(2,`0`)}`;localStorage.setItem(`voltclip_age_ok`,`1`);const _ag2=document.getElementById(`ageGateModal`);if(_ag2){_ag2.style.display=`none`;_ag2.classList.remove(`open`);};currentUser&&sb.from(`profiles`).update({birthdate:val}).eq(`id`,currentUser.id).then(()=>{})}
+function submitAgeGate(){let errEl=document.getElementById(`ageGateErr`),day=document.getElementById(`ageDaySelect`).value,month=document.getElementById(`ageMonthSelect`).value,year=document.getElementById(`ageYearSelect`).value;if(!day||!month||!year){errEl.textContent=`Indique ta date de naissance complète`,errEl.style.display=`block`;return}let birth=new Date(parseInt(year),parseInt(month)-1,parseInt(day)),now=/* @__PURE__ */ new Date;if(now.getFullYear()-birth.getFullYear()-(now<new Date(now.getFullYear(),birth.getMonth(),birth.getDate())?1:0)<15){errEl.textContent=`🚫 Tu dois avoir au moins 15 ans pour accéder à VoltClip.`,errEl.style.display=`block`;return}let val=`${year}-${String(month).padStart(2,`0`)}-${String(day).padStart(2,`0`)}`;localStorage.setItem(`voltclip_age_ok`,`1`);const _ag2=document.getElementById(`ageGateModal`);if(_ag2){_ag2.style.display=`none`;_ag2.classList.remove(`open`);};checkOnboarding();currentUser&&sb.from(`profiles`).update({birthdate:val}).eq(`id`,currentUser.id).then(()=>{})}
 (function initAgeSelects(){let daySelect=document.getElementById(`ageDaySelect`),yearSelect=document.getElementById(`ageYearSelect`);if(!daySelect||!yearSelect)return;for(let d=1;d<=31;d++){let opt=document.createElement(`option`);opt.value=d,opt.textContent=d,daySelect.appendChild(opt)}let currentYear=(new Date()).getFullYear();for(let y=currentYear-5;y>=1920;y--){let opt=document.createElement(`option`);opt.value=y,opt.textContent=y,yearSelect.appendChild(opt)}})();
 // ══════════════════════════════════════════
 // UTILS
@@ -4129,7 +4130,7 @@ function checkOnboarding(){
   if(!localStorage.getItem('vc_onboarded')) showOnboarding();
 }
 
-init();checkAgeGate();`serviceWorker`in navigator&&window.addEventListener(`load`,()=>{
+init();checkAgeGate();if(localStorage.getItem(`voltclip_age_ok`)===`1`)checkOnboarding();`serviceWorker`in navigator&&window.addEventListener(`load`,()=>{
   navigator.serviceWorker.register(`./sw.js`,{scope:`./`})
     .then(reg=>{
       console.log(`SW registered:`,reg.scope);
