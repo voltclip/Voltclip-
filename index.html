@@ -293,13 +293,26 @@ footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:32
 ::-webkit-scrollbar-track{background:var(--bg)}
 ::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:3px}
 </style>
-<!-- Google tag (gtag.js) -->
+<!-- Google tag (gtag.js) — Consent Mode v2 RGPD -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-3FRM3MTWHP"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
+  // Consent Mode v2 — refus par défaut (CNIL/RGPD)
+  gtag('consent','default',{
+    'ad_storage':'denied','analytics_storage':'denied',
+    'ad_user_data':'denied','ad_personalization':'denied',
+    'wait_for_update':500
+  });
   gtag('js', new Date());
-  gtag('config', 'G-3FRM3MTWHP');
+  gtag('config', 'G-3FRM3MTWHP', {'send_page_view': false});
+  // Restaurer si déjà accepté
+  (function(){
+    if(localStorage.getItem('vc_cookie_consent')==='accepted'){
+      gtag('consent','update',{'ad_storage':'granted','analytics_storage':'granted','ad_user_data':'granted','ad_personalization':'granted'});
+      gtag('event','page_view');
+    }
+  })();
 </script>
 </head>
 <body>
@@ -326,6 +339,7 @@ footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:32
 })();
 function vcConsentAccept(){
   localStorage.setItem('vc_cookie_consent','accepted');
+  if(typeof gtag==='function'){gtag('consent','update',{'ad_storage':'granted','analytics_storage':'granted','ad_user_data':'granted','ad_personalization':'granted'});gtag('event','page_view');}
   // Charger AdSense si pas encore chargé
   if(!window._vcAdSenseLoaded){
     window._vcAdSenseLoaded=true;
@@ -333,6 +347,9 @@ function vcConsentAccept(){
     s.async=true;s.crossOrigin='anonymous';
     s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5433648295830648';
     document.head.appendChild(s);
+    s.onload=function(){
+      try{document.querySelectorAll('.adsbygoogle').forEach(function(el){(adsbygoogle=window.adsbygoogle||[]).push({});});}catch(e){}
+    };
   }
   var b=document.getElementById('vcCookieBanner');
   if(b) b.style.display='none';
@@ -419,7 +436,7 @@ function vcConsentRefuse(){
        data-ad-format="horizontal"
        data-full-width-responsive="true"></ins>
 </div>
-<script>try{(adsbygoogle=window.adsbygoogle||[]).push({});}catch(e){}</script>
+<script>if(localStorage.getItem('vc_cookie_consent')=='accepted'){try{(adsbygoogle=window.adsbygoogle||[]).push({});}catch(e){}}</script>
 
 <div class="stats-bar" role="region" aria-label="Chiffres clés">
   <div class="stat-item"><div class="stat-val purple">∞</div><div class="stat-label">Talents mondiaux</div></div>
@@ -616,7 +633,7 @@ function vcConsentRefuse(){
        data-ad-format="auto"
        data-full-width-responsive="true"></ins>
 </div>
-<script>try{(adsbygoogle=window.adsbygoogle||[]).push({});}catch(e){}</script>
+<script>if(localStorage.getItem('vc_cookie_consent')=='accepted'){try{(adsbygoogle=window.adsbygoogle||[]).push({});}catch(e){}}</script>
 
 <!-- PUB ADSENSE BANNIÈRE BAS DE PAGE -->
 <div id="adBottom" style="text-align:center;padding:12px 24px;position:relative;z-index:1;max-width:1080px;margin:0 auto">
@@ -627,7 +644,7 @@ function vcConsentRefuse(){
        data-ad-format="horizontal"
        data-full-width-responsive="true"></ins>
 </div>
-<script>try{(adsbygoogle=window.adsbygoogle||[]).push({});}catch(e){}</script>
+<script>if(localStorage.getItem('vc_cookie_consent')=='accepted'){try{(adsbygoogle=window.adsbygoogle||[]).push({});}catch(e){}}</script>
 
 <footer role="contentinfo">
   <div class="footer-logo">⚡ <span>VOLT</span>CLIP</div>
