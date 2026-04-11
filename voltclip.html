@@ -3141,11 +3141,19 @@ async function openWebcamRecorder(){
     }
     recorder = recorder_;
     recorder.ondataavailable = e => { if(e.data.size) chunks.push(e.data); };
-    recorder.onstop = () => {
+    recorder.onstop = async () => {
       const blobType = mimeType || 'video/webm';
       const blob = new Blob(chunks, { type: blobType });
       const fname = blobType.includes('mp4') ? 'webcam-record.mp4' : 'webcam-record.webm';
-      const file = new File([blob], fname, { type: blobType });
+      // Matérialiser le blob en mémoire (évite les blobs "fantômes" sur Android
+      // après fermeture du stream caméra)
+      let file;
+      try {
+        const buf = await blob.arrayBuffer();
+        file = new File([buf], fname, { type: blobType });
+      } catch(e) {
+        file = new File([blob], fname, { type: blobType });
+      }
       _uploadOriginalFile = file;
       closeWebcamRecorder();
       // Injecter dans le flow d'upload
@@ -3207,7 +3215,10 @@ async function _compressVideoMobile(file, onProgress, targetHeight = 720) {
 
     video.onloadedmetadata = () => {
       const dur = video.duration;
-      if (!dur || !isFinite(dur)) { URL.revokeObjectURL(url); reject(new Error('Durée inconnue')); return; }
+      // Accepte Infinity (webm MediaRecorder) — on s'appuie sur onended pour stopper
+      // Rejette seulement si la durée est 0, NaN ou autre valeur invalide non-Infinity
+      if (!dur && dur !== Infinity) { URL.revokeObjectURL(url); reject(new Error('Durée inconnue')); return; }
+      const effectiveDur = isFinite(dur) ? dur : null; // null = webm sans durée dans le header
 
       // Calcul dimensions de sortie (respecte le ratio, limite à targetHeight)
       const origW = video.videoWidth || 1280;
@@ -3262,7 +3273,8 @@ async function _compressVideoMobile(file, onProgress, targetHeight = 720) {
       };
       recorder.onerror = () => { cancelAnimationFrame(rafId); URL.revokeObjectURL(url); reject(new Error('MediaRecorder error')); };
       video.ontimeupdate = () => {
-        if (onProgress && dur > 0) onProgress(Math.min(99, Math.round(video.currentTime / dur * 100)));
+        // Pour webm sans durée (effectiveDur=null), pas de barre de progression
+        if (onProgress && effectiveDur && effectiveDur > 0) onProgress(Math.min(99, Math.round(video.currentTime / effectiveDur * 100)));
       };
       video.onended = () => { setTimeout(() => { try { recorder.stop(); } catch(_) {} }, 300); };
       video.onerror = () => { cancelAnimationFrame(rafId); URL.revokeObjectURL(url); reject(new Error('Erreur lecture vidéo')); };
