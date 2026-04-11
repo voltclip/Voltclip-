@@ -2905,6 +2905,8 @@ async function loadRank(period,tabEl){tabEl&&(document.querySelectorAll(`.period
 // Essaie la RPC, sinon fallback direct sur la table (évite les vidéos supprimées)
 let data;
 try{let rpc=await sb.rpc(`get_top_videos`,{period});data=rpc.data;}catch{}
+// Si la RPC ne retourne pas les usernames, invalider pour forcer le fallback avec JOIN profils
+if(data?.length&&!data[0].username&&!data[0].profiles?.username)data=null;
 if(!data?.length){
   // Fallback direct: filtre uniquement les vidéos status=active
   let dateFilter=new Date();
