@@ -2191,9 +2191,93 @@ async function triggerAutoRematch(oldBattleId, category, oldLeftId, oldRightId) 
 
     if (created > 0) {
       battlePage = 0; battleAllLoaded = false; loadBattles(); subscribeBattleRealtime()
+    } else {
+      // Aucun rematch trouvé → tenter l'auto-matchmaking global
+      setTimeout(runAutoMatchmaking, 2000)
     }
   } catch(e) {
     console.warn('autoRematch err:', e)
+  }
+}
+
+// ─── AUTO-MATCHMAKING ────────────────────────────────────────────────────────
+// Cherche toutes les vidéos actives qui ne sont dans AUCUN battle actif,
+// les groupe par catégorie, et crée automatiquement des battles pour les paires.
+let _autoMatchRunning = false
+async function runAutoMatchmaking() {
+  if (_autoMatchRunning) return
+  _autoMatchRunning = true
+  try {
+    // 1. Récupérer tous les IDs de vidéos déjà dans un battle actif non expiré
+    const { data: activeBattles } = await sb.from('battles')
+      .select('video_left_id, video_right_id')
+      .eq('status', 'active')
+      .gt('expires_at', new Date().toISOString())
+    const inBattle = new Set()
+    ;(activeBattles || []).forEach(b => {
+      if (b.video_left_id)  inBattle.add(b.video_left_id)
+      if (b.video_right_id) inBattle.add(b.video_right_id)
+    })
+
+    // 2. Récupérer les vidéos actives avec leur catégorie
+    const { data: videos } = await sb.from('videos')
+      .select('id, user_id, category')
+      .eq('status', 'active')
+      .order('created_at', { ascending: true })
+      .limit(200)
+
+    if (!videos?.length) return
+
+    // 3. Garder uniquement les vidéos sans battle
+    const free = videos.filter(v => !inBattle.has(v.id))
+    if (free.length < 2) return
+
+    // 4. Grouper par catégorie (null/undefined → 'general')
+    const byCategory = {}
+    free.forEach(v => {
+      const cat = v.category || 'general'
+      if (!byCategory[cat]) byCategory[cat] = []
+      byCategory[cat].push(v)
+    })
+
+    // 5. Pour chaque catégorie avec 2+ vidéos → créer des battles
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+    let created = 0
+    const usedIds = new Set()
+
+    for (const [cat, vids] of Object.entries(byCategory)) {
+      const pool = vids.filter(v => !usedIds.has(v.id))
+      // Paires consécutives (ne pas mettre la même personne vs elle-même)
+      let i = 0
+      while (i < pool.length - 1) {
+        const left  = pool[i]
+        const right = pool.find((v, idx) => idx > i && v.user_id !== left.user_id && !usedIds.has(v.id))
+        if (!right) { i++; continue }
+        usedIds.add(left.id)
+        usedIds.add(right.id)
+        const catLabel = (BATTLE_CATEGORIES || []).find(c => c.id === cat)?.label || cat || 'Général'
+        const { error } = await sb.from('battles').insert({
+          video_left_id: left.id,
+          video_right_id: right.id,
+          title: `Battle ${catLabel} ⚔️ #${Math.random().toString(36).slice(2,7).toUpperCase()}`,
+          category: cat === 'general' ? null : cat,
+          created_by: null,
+          status: 'active',
+          expires_at: expiresAt
+        })
+        if (!error) created++
+        i++
+      }
+    }
+
+    if (created > 0) {
+      console.log(`[AutoMatch] ${created} nouveau(x) battle(s) créé(s)`)
+      battlePage = 0; battleAllLoaded = false; loadBattles(); subscribeBattleRealtime()
+    }
+  } catch(e) {
+    console.warn('[AutoMatch] err:', e)
+  } finally {
+    _autoMatchRunning = false
   }
 }
 
@@ -2250,7 +2334,7 @@ async function init(){currentTab='battle';try{let{data:{session}}=await sb.auth.
     detectAndSaveLocation();
   }
   checkAdmin();
-}),loadSearch(),loadRank(`week`);checkAdmin();if(currentUser){setupRealtimeNotifs(currentUser.id);await refreshProfile();}else{refreshProfile();}battlePage=0;battleAllLoaded=false;loadBattles();setupRealtimeBattles();startBattleTicker();}catch(e){console.error('init error:',e);document.getElementById('battleFeed').innerHTML='<div class="empty-state" style="height:calc(100dvh - 60px)"><span class="ei">⚠️</span><p>Erreur de connexion.<br>Vérifie ta connexion et recharge.</p></div>';}
+}),loadSearch(),loadRank(`week`);checkAdmin();if(currentUser){setupRealtimeNotifs(currentUser.id);await refreshProfile();}else{refreshProfile();}battlePage=0;battleAllLoaded=false;loadBattles();setupRealtimeBattles();startBattleTicker();setTimeout(runAutoMatchmaking, 4000);setInterval(runAutoMatchmaking, 10*60*1000);}catch(e){console.error('init error:',e);document.getElementById('battleFeed').innerHTML='<div class="empty-state" style="height:calc(100dvh - 60px)"><span class="ei">⚠️</span><p>Erreur de connexion.<br>Vérifie ta connexion et recharge.</p></div>';}
 }
 // ══════════════════════════════════════════
 // NOTIFICATIONS PUSH + REALTIME
