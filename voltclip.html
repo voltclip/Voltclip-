@@ -1566,6 +1566,8 @@ function createBattleItem(b, myVotes) {
   div.dataset.category = b.category || ''
   div.dataset.videoLeftId = b.video_left_id || ''
   div.dataset.videoRightId = b.video_right_id || ''
+  div.dataset.videoLeftUserId = b.video_left?.user_id || ''
+  div.dataset.videoRightUserId = b.video_right?.user_id || ''
 
   div.innerHTML = `
     <div class="battle-header">
@@ -2307,7 +2309,14 @@ function startBattleTicker() {
           const pctRight = parseInt(rawR) || 50
           const userLeft  = div.querySelector('.battle-username[style*="left"]')?.textContent?.replace('🔵 @','')?.trim() || 'user'
           const userRight = div.querySelector('.battle-username[style*="right"]')?.textContent?.replace('@','')?.replace('🔴','')?.trim() || 'user'
-          const fakeB = { id: battleId, category: div.dataset.category, video_left_id: div.dataset.videoLeftId, video_right_id: div.dataset.videoRightId }
+          const fakeB = {
+            id: battleId,
+            category: div.dataset.category,
+            video_left_id: div.dataset.videoLeftId,
+            video_right_id: div.dataset.videoRightId,
+            video_left:  { user_id: div.dataset.videoLeftUserId  || null },
+            video_right: { user_id: div.dataset.videoRightUserId || null }
+          }
           _showBattleExpiredOverlay(div, fakeB, pctLeft, pctRight, userLeft, userRight)
         }
       } else {
@@ -2395,7 +2404,7 @@ function setupRealtimeBattles(){
 // ══════════════════════════════════════════
 // TABS
 // ══════════════════════════════════════════
-function showTab(tab){document.querySelectorAll(`.screen`).forEach(s=>s.classList.remove(`active`)),document.querySelectorAll(`.nav-btn`).forEach(b=>b.classList.remove(`active`));let scr=document.getElementById(tab+`Screen`);if(!scr)return;scr.classList.add(`active`);let navBtn=document.getElementById(`nav-`+tab);navBtn&&navBtn.classList.add(`active`);currentTab=tab;if(tab===`battle`&&!document.querySelector('.battle-item')){battlePage=0;battleAllLoaded=false;try{loadBattles()}catch(e){console.error('init error:',e);document.getElementById('battleFeed').innerHTML='<div class="empty-state" style="height:calc(100dvh - 60px)"><span class="ei">⚠️</span><p>Erreur de connexion.<br>Vérifie ta connexion et recharge.</p></div>';}}let fab=document.getElementById(`fabUpload`);fab&&(fab.style.display=tab===`profile`?`none`:`flex`);tab===`notif`&&(loadNotifs(),document.getElementById(`notifDot`).style.display=`none`);tab===`search`&&loadSearch();tab===`profile`&&refreshProfile();tab===`leaderboard`&&loadLeaderboard()}
+function showTab(tab){if(currentTab==='battle'&&tab!=='battle'){document.querySelectorAll('#battleFeed video').forEach(v=>{try{v.pause();v.currentTime=0;}catch(e){}});}document.querySelectorAll(`.screen`).forEach(s=>s.classList.remove(`active`)),document.querySelectorAll(`.nav-btn`).forEach(b=>b.classList.remove(`active`));let scr=document.getElementById(tab+`Screen`);if(!scr)return;scr.classList.add(`active`);let navBtn=document.getElementById(`nav-`+tab);navBtn&&navBtn.classList.add(`active`);currentTab=tab;if(tab===`battle`&&!document.querySelector('.battle-item')){battlePage=0;battleAllLoaded=false;try{loadBattles()}catch(e){console.error('init error:',e);document.getElementById('battleFeed').innerHTML='<div class="empty-state" style="height:calc(100dvh - 60px)"><span class="ei">⚠️</span><p>Erreur de connexion.<br>Vérifie ta connexion et recharge.</p></div>';}}let fab=document.getElementById(`fabUpload`);fab&&(fab.style.display=tab===`profile`?`none`:`flex`);tab===`notif`&&(loadNotifs(),document.getElementById(`notifDot`).style.display=`none`);tab===`search`&&loadSearch();tab===`profile`&&refreshProfile();tab===`leaderboard`&&loadLeaderboard()}
 // ══════════════════════════════════════════
 // FEED
 // ══════════════════════════════════════════
