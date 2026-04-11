@@ -4,17 +4,63 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <script>
-// ── Redirection automatique mobile → app ──
-// Ajouter ?lp à l'URL pour rester sur la landing (ex: partage lien, debug)
+// ── Redirection mobile intelligente ──
+// 1ère visite : landing visible + countdown 3s → app
+// Visites suivantes : redirect immédiat (déjà vue)
+// Desktop : jamais de redirect
 (function(){
   try {
-    // Ne s'exécute que sur GitHub Pages (évite les 404 en preview/local)
     if(location.hostname !== 'voltclip.github.io') return;
     if(new URLSearchParams(location.search).has('lp')) return;
     var ua = navigator.userAgent || '';
     var isMobile = /Android|iPhone|iPad|iPod|IEMobile|Opera Mini|BlackBerry|webOS/i.test(ua)
                    || screen.width <= 768;
-    if(isMobile) location.replace('voltclip.html');
+    if(!isMobile) return;
+    // Déjà vue → redirect immédiat
+    if(localStorage.getItem('vc_landing_seen')) {
+      location.replace('voltclip.html');
+      return;
+    }
+    // 1ère visite → marquer + countdown au DOMContentLoaded
+    localStorage.setItem('vc_landing_seen', '1');
+    document.addEventListener('DOMContentLoaded', function(){
+      // Injecter la bannière countdown
+      var bar = document.createElement('div');
+      bar.id = 'vc-redirect-bar';
+      bar.innerHTML =
+        '<span id="vc-redir-txt">Redirection dans <strong id="vc-redir-count">3</strong>s…</span>' +
+        '<a href="voltclip.html" id="vc-redir-btn">⚡ Entrer dans l\'app</a>' +
+        '<button id="vc-redir-cancel">Rester</button>';
+      bar.style.cssText = [
+        'position:fixed','bottom:0','left:0','right:0','z-index:9999',
+        'display:flex','align-items:center','justify-content:space-between','gap:10px',
+        'padding:14px 20px','background:#13131a',
+        'border-top:1px solid rgba(124,92,252,.4)',
+        'backdrop-filter:blur(16px)',
+        'font-family:\'Space Mono\',monospace','font-size:12px','color:rgba(255,255,255,.7)',
+        'box-shadow:0 -4px 24px rgba(124,92,252,.2)'
+      ].join(';');
+      var btn = bar.querySelector('#vc-redir-btn');
+      btn.style.cssText = 'background:linear-gradient(135deg,#7c5cfc,#fc5c7d);color:#fff;padding:9px 18px;border-radius:30px;text-decoration:none;font-size:12px;font-weight:700;white-space:nowrap;flex-shrink:0';
+      var cancel = bar.querySelector('#vc-redir-cancel');
+      cancel.style.cssText = 'background:none;border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.5);padding:8px 14px;border-radius:30px;font-family:inherit;font-size:11px;cursor:pointer;white-space:nowrap;flex-shrink:0';
+      document.body.appendChild(bar);
+      var n = 3;
+      var el = document.getElementById('vc-redir-count');
+      var cancelled = false;
+      cancel.addEventListener('click', function(){
+        cancelled = true;
+        bar.style.display = 'none';
+      });
+      var t = setInterval(function(){
+        n--;
+        if(el) el.textContent = n;
+        if(n <= 0){
+          clearInterval(t);
+          if(!cancelled) location.replace('voltclip.html');
+        }
+      }, 1000);
+    });
   } catch(e){}
 })();
 </script>
