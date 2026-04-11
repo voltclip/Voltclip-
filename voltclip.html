@@ -1498,6 +1498,12 @@ async function loadBattles(append = false) {
             vids.forEach(v => { v.muted = true; })
             if (vidRight) { safePlay(vidRight, false) }
           }
+          // Compter ce battle comme "vidéo vue" pour la mission watch10
+          if (currentUser && bid && !window._battleWatchedMission) window._battleWatchedMission = new Set()
+          if (currentUser && bid && !window._battleWatchedMission.has(bid)) {
+            window._battleWatchedMission.add(bid)
+            document.dispatchEvent(new Event('voltclip:watched'))
+          }
           // Infinite scroll
           const feedEl = document.getElementById('battleFeed')
           const items = feedEl ? feedEl.querySelectorAll('.battle-item') : []
