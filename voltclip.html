@@ -2010,11 +2010,14 @@ function _showBattleExpiredOverlay(div, b, pctLeft, pctRight, userLeft, userRigh
       ? `<div class="battle-expired-winner">🥇 @${escHtml(winnerName)} gagne avec ${winnerPct}% des votes</div>`
       : `<div class="battle-expired-winner">Match nul — 50/50 !</div>`
     }
-    <button class="battle-expired-rematch" onclick="event.stopPropagation();triggerAutoRematch('${b.id}','${b.category || ''}','${b.video_left_id || ''}','${b.video_right_id || ''}')">
-      ⚔️ Nouveau battle dans cette catégorie
-    </button>
+    <div style="color:rgba(255,255,255,.5);font-family:'Space Mono',monospace;font-size:10px;margin-top:4px">Nouveau battle dans 3s...</div>
   `
   div.appendChild(overlay)
+
+  // Auto-rematch après 3s
+  setTimeout(() => {
+    triggerAutoRematch(b.id, b.category || '', b.video_left_id || '', b.video_right_id || '')
+  }, 3000)
 
   // Sauvegarder le résultat complet dans Supabase
   ;(async () => {
@@ -2097,14 +2100,8 @@ function _showBattleExpiredOverlay(div, b, pctLeft, pctRight, userLeft, userRigh
 }
 
 async function triggerAutoRematch(oldBattleId, category, oldLeftId, oldRightId) {
-  if (!currentUser) {
-    battlePage = 0; battleAllLoaded = false; loadBattles()
-    return
-  }
-  toast('⚔️ Recherche d\'un nouveau battle...')
-
   try {
-    // IDs déjà en battle actif et non expiré
+    // Récupérer les IDs déjà en battle actif non expiré
     const alreadyInBattle = new Set()
     const { data: activeBattles } = await sb.from('battles')
       .select('video_left_id, video_right_id')
@@ -2117,62 +2114,80 @@ async function triggerAutoRematch(oldBattleId, category, oldLeftId, oldRightId) 
 
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
     const catLabel = (BATTLE_CATEGORIES || []).find(c => c.id === category)?.label || category || 'Général'
+    const createdBy = currentUser?.id || null
 
-    // Chercher video_left : première vidéo dispo dans la même catégorie, pas déjà en battle
-    let qLeft = sb.from('videos').select('id, user_id').eq('status', 'active').order('created_at', { ascending: true }).limit(50)
-    if (category) qLeft = qLeft.eq('category', category)
-    const { data: leftCandidates } = await qLeft
-    const vidLeft = (leftCandidates || []).find(v => !alreadyInBattle.has(v.id)) || null
-
-    if (vidLeft) {
-      // Bloquer video_left pour que video_right ne le reprenne pas
-      alreadyInBattle.add(vidLeft.id)
-
-      // Chercher video_right dans ce qui reste (même catégorie, pas déjà en battle)
-      let qRight = sb.from('videos').select('id, user_id').eq('status', 'active').neq('id', vidLeft.id).order('created_at', { ascending: true }).limit(50)
-      if (category) qRight = qRight.eq('category', category)
-      const { data: rightCandidates } = await qRight
-      const vidRight = (rightCandidates || []).find(v => !alreadyInBattle.has(v.id)) || null
-
-      if (vidRight) {
-        const { error } = await sb.from('battles').insert({
-          video_left_id: vidLeft.id,
-          video_right_id: vidRight.id,
-          title: `Battle ${catLabel} ⚔️ #${Math.random().toString(36).slice(2,7).toUpperCase()}`,
-          category: category || null,
-          created_by: currentUser.id,
-          status: 'active',
-          expires_at: expiresAt
-        })
-        if (!error) {
-          toast('⚔️ Nouveau battle lancé !')
-          battlePage = 0; battleAllLoaded = false; loadBattles(); subscribeBattleRealtime()
-        } else {
-          toast('⚠️ Erreur lors du lancement')
-        }
-        return
-      }
+    // Helper : trouver un nouvel adversaire pour une vidéo donnée
+    const findOpponent = async (videoId) => {
+      const occupied = new Set(alreadyInBattle)
+      occupied.add(videoId) // ne pas se matcher avec soi-même
+      let q = sb.from('videos')
+        .select('id, user_id')
+        .eq('status', 'active')
+        .neq('id', videoId)
+        .order('created_at', { ascending: true })
+        .limit(50)
+      if (category) q = q.eq('category', category)
+      const { data: candidates } = await q
+      return (candidates || []).find(v => !occupied.has(v.id)) || null
     }
 
-    // Les deux recherches ont échoué → revanche exacte entre les mêmes vidéos
-    if (oldLeftId && oldRightId && oldLeftId !== oldRightId) {
+    // Chercher un adversaire pour chaque vidéo indépendamment
+    const opponentForLeft  = await findOpponent(oldLeftId)
+    const opponentForRight = await findOpponent(oldRightId)
+
+    let created = 0
+
+    // Nouveau battle pour la vidéo gauche si adversaire trouvé
+    if (opponentForLeft && opponentForLeft.id !== oldRightId) {
+      alreadyInBattle.add(oldLeftId)
+      alreadyInBattle.add(opponentForLeft.id)
+      const { error } = await sb.from('battles').insert({
+        video_left_id: oldLeftId,
+        video_right_id: opponentForLeft.id,
+        title: `Battle ${catLabel} ⚔️ #${Math.random().toString(36).slice(2,7).toUpperCase()}`,
+        category: category || null,
+        created_by: createdBy,
+        status: 'active',
+        expires_at: expiresAt
+      })
+      if (!error) created++
+    }
+
+    // Nouveau battle pour la vidéo droite si adversaire trouvé (différent du gauche)
+    if (opponentForRight && opponentForRight.id !== oldLeftId && !alreadyInBattle.has(oldRightId)) {
+      alreadyInBattle.add(oldRightId)
+      alreadyInBattle.add(opponentForRight.id)
+      const { error } = await sb.from('battles').insert({
+        video_left_id: oldRightId,
+        video_right_id: opponentForRight.id,
+        title: `Battle ${catLabel} ⚔️ #${Math.random().toString(36).slice(2,7).toUpperCase()}`,
+        category: category || null,
+        created_by: createdBy,
+        status: 'active',
+        expires_at: expiresAt
+      })
+      if (!error) created++
+    }
+
+    // Aucun nouvel adversaire trouvé pour les deux → revanche exacte
+    if (created === 0 && oldLeftId && oldRightId && oldLeftId !== oldRightId) {
       await sb.from('battles').insert({
         video_left_id: oldLeftId,
         video_right_id: oldRightId,
         title: `Battle ${catLabel} ⚔️ #${Math.random().toString(36).slice(2,7).toUpperCase()}`,
         category: category || null,
-        created_by: currentUser.id,
+        created_by: createdBy,
         status: 'active',
         expires_at: expiresAt
       })
-      toast('⚔️ Revanche lancée !')
+      created++
+    }
+
+    if (created > 0) {
       battlePage = 0; battleAllLoaded = false; loadBattles(); subscribeBattleRealtime()
-    } else {
-      toast('⏳ Aucun adversaire disponible dans cette catégorie pour l\'instant.')
     }
   } catch(e) {
     console.warn('autoRematch err:', e)
-    toast('⚠️ Erreur lors du lancement')
   }
 }
 
