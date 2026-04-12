@@ -2080,6 +2080,16 @@ function _showBattleExpiredOverlay(div, b, pctLeft, pctRight, userLeft, userRigh
   const winnerName = winnerSide === 'left' ? userLeft : winnerSide === 'right' ? userRight : null
   const winnerPct = winnerSide === 'left' ? pctLeft : pctRight
 
+  // Identifier le user_id du gagnant (et des deux participants en cas de nul)
+  const leftUserId   = b.video_left?.user_id  || null
+  const rightUserId  = b.video_right?.user_id || null
+  const winnerUserId = winnerSide === 'left' ? leftUserId : winnerSide === 'right' ? rightUserId : null
+  // En cas de nul (50/50), les deux participants peuvent lancer le rematch
+  const isParticipant = currentUser?.id && (currentUser.id === leftUserId || currentUser.id === rightUserId)
+  const isWinner      = currentUser?.id && (
+    winnerUserId ? currentUser.id === winnerUserId : isParticipant
+  )
+
   // Stopper les vidéos
   div.querySelectorAll('video').forEach(v => { v.pause(); v.src = '' })
 
@@ -2093,29 +2103,45 @@ function _showBattleExpiredOverlay(div, b, pctLeft, pctRight, userLeft, userRigh
       ? `<div class="battle-expired-winner">🥇 @${escHtml(winnerName)} gagne avec ${winnerPct}% des votes</div>`
       : `<div class="battle-expired-winner">Match nul — 50/50 !</div>`
     }
-    <button id="${rematchBtnId}" class="battle-expired-rematch">⚔️ Nouveau Battle</button>
+    ${isWinner
+      ? `<button id="${rematchBtnId}" class="battle-expired-rematch">⚔️ Rejouer</button>`
+      : `<div style="font-family:var(--font-mono);font-size:11px;color:rgba(255,255,255,0.45);margin-top:6px">⏳ En attente du gagnant…</div>`
+    }
   `
   div.appendChild(overlay)
 
-  // Bouton rematch
-  setTimeout(() => {
-    const btn = document.getElementById(rematchBtnId)
-    if (btn) btn.addEventListener('click', () => {
-      btn.disabled = true
-      btn.textContent = '🔍 Recherche...'
-      triggerAutoRematch(b.id, b.category || '', b.video_left_id || '', b.video_right_id || '')
-    })
-  }, 100)
+  // Stocker la deadline 24h dans localStorage pour le fallback auto-rematch
+  // Si le gagnant ne clique pas Rejouer dans les 24h, runAutoMatchmaking prend le relais
+  try {
+    const pendingKey = 'vc_rematch_pending_' + b.id
+    if (!localStorage.getItem(pendingKey)) {
+      localStorage.setItem(pendingKey, JSON.stringify({
+        battleId:  b.id,
+        category:  b.category  || null,
+        leftId:    b.video_left_id  || null,
+        rightId:   b.video_right_id || null,
+        deadline:  Date.now() + 24 * 60 * 60 * 1000  // 24h
+      }))
+    }
+  } catch(e) { /* localStorage plein ou bloqué */ }
+
+  // Bouton rematch — uniquement visible et cliquable par le gagnant
+  if (isWinner) {
+    setTimeout(() => {
+      const btn = document.getElementById(rematchBtnId)
+      if (btn) btn.addEventListener('click', () => {
+        btn.disabled = true
+        btn.textContent = '🔍 Recherche...'
+        // Annuler le fallback 24h : le gagnant a cliqué
+        try { localStorage.removeItem('vc_rematch_pending_' + b.id) } catch(e) {}
+        triggerAutoRematch(b.id, b.category || '', b.video_left_id || '', b.video_right_id || '')
+      })
+    }, 100)
+  }
 
   // Sauvegarder le résultat complet dans Supabase
   ;(async () => {
-    const winnerUserId = winnerSide === 'left'
-      ? (b.video_left?.user_id || null)
-      : winnerSide === 'right'
-      ? (b.video_right?.user_id || null)
-      : null
-    const leftUserId  = b.video_left?.user_id  || null
-    const rightUserId = b.video_right?.user_id || null
+    // winnerUserId / leftUserId / rightUserId déjà calculés en haut de la fonction
 
     // 1. Mettre à jour le battle avec résultat final
     await sb.from('battles').update({
@@ -2276,7 +2302,13 @@ async function triggerAutoRematch(oldBattleId, category, oldLeftId, oldRightId) 
     }
 
     if (created > 0) {
-      battlePage = 0; battleAllLoaded = false; loadBattles(); subscribeBattleRealtime()
+      // Bug 2 fix : retirer la carte expirée du DOM en premier,
+      // puis recharger le feed après 800ms pour laisser la transition se faire
+      const expiredDiv = document.querySelector(`.battle-item[data-battle-id="${oldBattleId}"]`)
+      if (expiredDiv) expiredDiv.remove()
+      setTimeout(() => {
+        battlePage = 0; battleAllLoaded = false; loadBattles(); subscribeBattleRealtime()
+      }, 800)
     } else {
       // Aucun rematch trouvé → tenter l'auto-matchmaking global
       setTimeout(runAutoMatchmaking, 2000)
@@ -2294,6 +2326,25 @@ async function runAutoMatchmaking() {
   if (_autoMatchRunning) return
   _autoMatchRunning = true
   try {
+    // ── Fallback 24h : si le gagnant n'a pas cliqué Rejouer dans les 24h,
+    //    on déclenche automatiquement le rematch pour chaque battle en attente
+    try {
+      const now = Date.now()
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i)
+        if (!key?.startsWith('vc_rematch_pending_')) continue
+        let entry
+        try { entry = JSON.parse(localStorage.getItem(key)) } catch(e) { continue }
+        if (!entry?.deadline || now < entry.deadline) continue
+        // Deadline dépassée → nettoyer et déclencher le rematch
+        localStorage.removeItem(key)
+        console.debug('[AutoMatch] Fallback 24h → rematch auto pour battle', entry.battleId)
+        if (entry.battleId && entry.leftId && entry.rightId) {
+          triggerAutoRematch(entry.battleId, entry.category || '', entry.leftId, entry.rightId)
+        }
+      }
+    } catch(e) { /* localStorage inaccessible */ }
+
     // 1. Récupérer tous les IDs de vidéos déjà dans un battle actif non expiré
     const { data: activeBattles } = await sb.from('battles')
       .select('video_left_id, video_right_id')
@@ -2333,11 +2384,14 @@ async function runAutoMatchmaking() {
 
     for (const [cat, vids] of Object.entries(byCategory)) {
       const pool = vids.filter(v => !usedIds.has(v.id))
-      // Paires consécutives (ne pas mettre la même personne vs elle-même)
+      // Paires consécutives (préférer des users différents, fallback même user)
       let i = 0
       while (i < pool.length - 1) {
         const left  = pool[i]
-        const right = pool.find((v, idx) => idx > i && v.user_id !== left.user_id && !usedIds.has(v.id))
+        // Bug 4 fix : d'abord chercher un adversaire d'un autre user…
+        let right = pool.find((v, idx) => idx > i && v.user_id !== left.user_id && !usedIds.has(v.id))
+        // …si aucun, accepter le même user plutôt que de bloquer
+        if (!right) right = pool.find((v, idx) => idx > i && !usedIds.has(v.id))
         if (!right) { i++; continue }
         usedIds.add(left.id)
         usedIds.add(right.id)
@@ -2455,6 +2509,12 @@ function setupRealtimeBattles(){
     .on('postgres_changes',{event:'INSERT',schema:'public',table:'battles'},payload=>{
       // Nouveau battle créé → on l'ajoute en tête si on est sur l'onglet battle
       if(payload.new?.status==='active'){
+        // Bug 1 fix : si un overlay "BATTLE TERMINÉ" est visible, ne pas recharger
+        // le feed par surprise — l'user doit pouvoir cliquer "Rejouer" d'abord
+        if(document.querySelector('.battle-expired-overlay')){
+          showNotifToast('⚔️ Nouveau battle disponible !');
+          return;
+        }
         if(currentTab==='battle'){
           // Reload propre pour avoir toutes les données jointes
           battlePage=0;
@@ -3870,7 +3930,8 @@ async function submitUpload() {
           try {
             const { data: activeBattles } = await sb.from('battles')
               .select('video_left_id, video_right_id')
-              .eq('status', 'active');
+              .eq('status', 'active')
+              .gt('expires_at', new Date().toISOString()); // Bug 3 fix : exclure les battles expirés
             if (activeBattles) {
               activeBattles.forEach(b => {
                 if (b.video_left_id) alreadyInBattle.add(b.video_left_id);
