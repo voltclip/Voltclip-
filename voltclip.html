@@ -5780,5 +5780,10 @@ function vcAcceptCookies() {
     document.getElementById('vcCookieBanner').style.display='flex';
   }
 })();
+
+// Fix retour arrière depuis page externe (BFCache) : force rechargement propre
+window.addEventListener('pageshow', function(e) {
+  if (e.persisted) { window.location.reload(); }
+});
 </script>
 </html>
