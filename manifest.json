@@ -9,20 +9,23 @@
   "background_color": "#0a0a0f",
   "theme_color": "#7c5cfc",
   "lang": "fr",
-  "categories": [
-    "social",
-    "entertainment"
-  ],
+  "categories": ["social", "entertainment"],
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "https://voltclip.github.io/Voltclip-/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "icon-512.png",
+      "src": "https://voltclip.github.io/Voltclip-/icon-512.png",
       "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://voltclip.github.io/Voltclip-/icon-1200.png",
+      "sizes": "1200x1200",
       "type": "image/png",
       "purpose": "any maskable"
     }
@@ -30,16 +33,11 @@
   "screenshots": [],
   "shortcuts": [
     {
-      "name": "Feed",
-      "short_name": "Feed",
-      "description": "Voir le feed vidéo",
+      "name": "Battle",
+      "short_name": "Battle",
+      "description": "Voir les battles",
       "url": "/Voltclip-/voltclip.html",
-      "icons": [
-        {
-          "src": "icon-192.png",
-          "sizes": "192x192"
-        }
-      ]
+      "icons": [{ "src": "https://voltclip.github.io/Voltclip-/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }
