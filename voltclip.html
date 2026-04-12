@@ -3380,13 +3380,21 @@ async function loadPersonalRank() {
   loadFeed();
   // Recharger les battles pour retirer les battles obsolètes
   if(currentTab === 'battle'){ battlePage=0; battleAllLoaded=false; loadBattles(); }
-}function donateToUser(){
-  const _d=atob('YWxleGFuZHJhaGVydmU4NkBnbWFpbC5jb20=')
-  const url='https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business='+encodeURIComponent(_d)+'&currency_code=EUR&item_name=Soutenir+VoltClip'
-  document.getElementById('donateIframe').src=url
-  document.getElementById('donateModal').style.display='flex'
+}let _donateAmount=5;
+function donateToUser(){_donateAmount=5;document.getElementById('donateModal').style.display='flex';}
+function closeDonateModal(){document.getElementById('donateModal').style.display='none';}
+function selectDonateAmount(amt,btn){
+  _donateAmount=amt;
+  document.querySelectorAll('._donate-amt').forEach(b=>b.style.borderColor='#ffffff18');
+  btn.style.borderColor='#7c5cfc';
+  document.getElementById('donatePaypalBtn').textContent='💳 Faire un don de '+amt+'€ via PayPal';
 }
-function closeDonateModal(){document.getElementById('donateModal').style.display='none';document.getElementById('donateIframe').src=''}
+function submitDonate(){
+  const _d=atob('YWxleGFuZHJhaGVydmU4NkBnbWFpbC5jb20=')
+  const url='https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business='+encodeURIComponent(_d)+'&amount='+_donateAmount+'&currency_code=EUR&item_name=Soutenir+VoltClip'
+  closeDonateModal();
+  window.open(url,'_blank');
+}
 async function editProfile(){if(!currentUser){openAuth();return}let bio=prompt(`Ta bio (max 100 caractères) :`);bio!==null&&(await sb.from(`profiles`).update({bio:bio.slice(0,100)}).eq(`id`,currentUser.id),toast(`Profil mis à jour ✓`),refreshProfile())}async function changeAvatar(){if(!currentUser){openAuth();return}let input=document.createElement(`input`);input.type=`file`,input.accept=`image/*`,input.onchange=async()=>{let file=input.files[0];if(!file)return;let path=`${currentUser.id}/avatar.jpg`,{error}=await sb.storage.from(`avatars`).upload(path,file,{upsert:!0});if(error){toast(`Erreur upload avatar`);return}let{data:{publicUrl}}=sb.storage.from(`avatars`).getPublicUrl(path);await sb.from(`profiles`).update({avatar_url:publicUrl}).eq(`id`,currentUser.id),toast(`Avatar mis à jour ✓`),refreshProfile()},input.click()}
 // ══════════════════════════════════════════
 // PROFIL PUBLIC
@@ -5413,7 +5421,20 @@ function confirmBoost() {
     <button onclick="closeDonateModal()" style="color:#fff;cursor:pointer;background:rgba(255,255,255,.1);border:none;border-radius:50%;width:36px;height:36px;font-size:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0">✕</button>
     <span style="font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:#fff">💜 Soutenir VoltClip</span>
   </div>
-  <iframe id="donateIframe" src="" style="flex:1;width:100%;border:none;background:#fff"></iframe>
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;padding:32px 24px">
+    <div style="text-align:center">
+      <div style="font-size:48px;margin-bottom:12px">💜</div>
+      <div style="font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:#fff;margin-bottom:8px">Fais un don à VoltClip</div>
+      <div style="color:#ffffff70;font-size:13px;line-height:1.5">VoltClip est gratuit &amp; indépendant.<br>Ton soutien nous aide à grandir 🙏</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:320px">
+      <button onclick="selectDonateAmount(2,this)" class="_donate-amt" style="background:#1c1c27;border:2px solid #ffffff18;color:#fff;font-family:'Space Mono',monospace;font-size:16px;font-weight:700;border-radius:14px;padding:16px;cursor:pointer;transition:all .15s">☕ 2€</button>
+      <button onclick="selectDonateAmount(5,this)" class="_donate-amt" style="background:#1c1c27;border:2px solid #7c5cfc;color:#fff;font-family:'Space Mono',monospace;font-size:16px;font-weight:700;border-radius:14px;padding:16px;cursor:pointer;transition:all .15s">🍕 5€</button>
+      <button onclick="selectDonateAmount(10,this)" class="_donate-amt" style="background:#1c1c27;border:2px solid #ffffff18;color:#fff;font-family:'Space Mono',monospace;font-size:16px;font-weight:700;border-radius:14px;padding:16px;cursor:pointer;transition:all .15s">🎬 10€</button>
+      <button onclick="selectDonateAmount(20,this)" class="_donate-amt" style="background:#1c1c27;border:2px solid #ffffff18;color:#fff;font-family:'Space Mono',monospace;font-size:16px;font-weight:700;border-radius:14px;padding:16px;cursor:pointer;transition:all .15s">⚡ 20€</button>
+    </div>
+    <button id="donatePaypalBtn" onclick="submitDonate()" style="width:100%;max-width:320px;background:linear-gradient(135deg,#009CDE,#003087);color:#fff;font-family:'Space Mono',monospace;font-weight:700;font-size:15px;border-radius:14px;padding:16px;border:none;cursor:pointer;letter-spacing:.03em">💳 Faire un don de 5€ via PayPal</button>
+  </div>
 </div>
 <div id="shopModal" style="display:none;position:fixed;inset:0;z-index:1600;background:rgba(0,0,0,.88);flex-direction:column;justify-content:flex-end">
   <div style="background:#13131a;border-radius:24px 24px 0 0;padding:0 0 max(24px,env(safe-area-inset-bottom));max-height:92vh;overflow-y:auto">
