@@ -1333,31 +1333,35 @@ function switchLbTab(tab, btn) {
   loadLeaderboard()
 }
 
+let _lbSeq = 0
 async function loadLeaderboard() {
   const list = document.getElementById('leaderboardList')
   if (!list) return
+  const seq = ++_lbSeq
   list.innerHTML = '<div class="loader-dots"><span></span><span></span><span></span></div>'
   try {
-    if (_lbCurrentTab === 'voters') await _loadLbVoters(list)
-    else if (_lbCurrentTab === 'videos') await _loadLbVideos(list)
-    else if (_lbCurrentTab === 'creators') await _loadLbCreators(list)
-    else if (_lbCurrentTab === 'countries') await _loadLbGeo(list, 'country')
+    if (_lbCurrentTab === 'voters') await _loadLbVoters(list, seq)
+    else if (_lbCurrentTab === 'videos') await _loadLbVideos(list, seq)
+    else if (_lbCurrentTab === 'creators') await _loadLbCreators(list, seq)
+    else if (_lbCurrentTab === 'countries') await _loadLbGeo(list, 'country', seq)
   } catch(e) {
     console.error('loadLeaderboard error:', e)
-    list.innerHTML = '<div class="empty-state"><span class="ei">⚠️</span><p>Erreur de chargement.<br>Vérifie ta connexion.</p></div>'
+    if (seq === _lbSeq) list.innerHTML = '<div class="empty-state"><span class="ei">⚠️</span><p>Erreur de chargement.<br>Vérifie ta connexion.</p></div>'
   }
 }
 
-async function _loadLbVideos(list) {
+async function _loadLbVideos(list, seq) {
   const { data, error } = await sb.from('videos')
     .select('id,title,thumbnail_url,video_url,views_count,likes_count,comments_count,user_id,profiles!videos_user_id_fkey(username,avatar_url,country,country_code)')
     .eq('status', 'active')
     .order('likes_count', { ascending: false })
     .limit(100)
   if (error || !data?.length) {
+    if (seq !== _lbSeq) return
     list.innerHTML = '<div class="empty-state"><span class="ei">🎬</span><p>Pas encore de classement vidéo.<br>Poste ta première vidéo !</p></div>'
     return
   }
+  if (seq !== _lbSeq) return
   const medals = ['🥇','🥈','🥉']
   list.innerHTML = data.map((v, i) => {
     const username = v.profiles?.username || 'user'
@@ -1378,13 +1382,14 @@ async function _loadLbVideos(list) {
   }).join('')
 }
 
-async function _loadLbCreators(list) {
+async function _loadLbCreators(list, seq) {
   // Récupère les profils triés par score combiné (likes totaux + vues + abonnés)
   const { data: profiles, error } = await sb.from('profiles')
     .select('id,username,avatar_url,followers_count,total_views,videos_count,country,country_code')
     .order('followers_count', { ascending: false })
     .limit(200)
   if (error || !profiles?.length) {
+    if (seq !== _lbSeq) return
     list.innerHTML = '<div class="empty-state"><span class="ei">🌟</span><p>Pas encore de données créateurs.<br>Reviens bientôt !</p></div>'
     return
   }
@@ -1410,9 +1415,11 @@ async function _loadLbCreators(list) {
     _videos: userStats[p.id]?.videos || (p.videos_count || 0)
   })).filter(p => p._score > 0 || p.followers_count > 0).sort((a, b) => b._score - a._score).slice(0, 100)
   if (!scored.length) {
+    if (seq !== _lbSeq) return
     list.innerHTML = '<div class="empty-state"><span class="ei">🌟</span><p>Pas encore de données créateurs.</p></div>'
     return
   }
+  if (seq !== _lbSeq) return
   const medals = ['🥇','🥈','🥉']
   list.innerHTML = scored.map((p, i) => {
     const rankColor = i < 3 ? ['#ffd700','#c0c0c0','#cd7f32'][i] : 'var(--muted)'
@@ -1441,11 +1448,12 @@ async function _loadLbCreators(list) {
   }
 }
 
-async function _loadLbVoters(list) {
+async function _loadLbVoters(list, seq) {
   const { data: votes } = await sb.from('battle_votes')
     .select('user_id, profiles(username, avatar_url)')
     .limit(500)
   if (!votes?.length) {
+    if (seq !== _lbSeq) return
     list.innerHTML = '<div class="empty-state"><span class="ei">🏆</span><p>Aucun vote encore.<br>Sois le premier à voter !</p></div>'
     return
   }
@@ -1456,6 +1464,7 @@ async function _loadLbVoters(list) {
     counts[v.user_id].count++
   })
   const sorted = Object.entries(counts).sort(([,a],[,b]) => b.count - a.count).slice(0, 20)
+  if (seq !== _lbSeq) return
   const medals = ['🥇','🥈','🥉']
   const badgeClass = (i) => i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : 'regular'
   const badgeText = (i, count) => i < 3 ? medals[i] + ' ' + count + ' votes' : count + ' votes'
@@ -1480,15 +1489,16 @@ async function _loadLbVoters(list) {
 
 const _COUNTRY_FLAGS = {"Afghanistan":"🇦🇫","Albania":"🇦🇱","Algeria":"🇩🇿","Andorra":"🇦🇩","Angola":"🇦🇴","Argentina":"🇦🇷","Armenia":"🇦🇲","Australia":"🇦🇺","Austria":"🇦🇹","Azerbaijan":"🇦🇿","Bahrain":"🇧🇭","Bangladesh":"🇧🇩","Belarus":"🇧🇾","Belgium":"🇧🇪","Belize":"🇧🇿","Benin":"🇧🇯","Bolivia":"🇧🇴","Bosnia and Herzegovina":"🇧🇦","Botswana":"🇧🇼","Brazil":"🇧🇷","Brunei":"🇧🇳","Bulgaria":"🇧🇬","Burkina Faso":"🇧🇫","Burundi":"🇧🇮","Cambodia":"🇰🇭","Cameroon":"🇨🇲","Canada":"🇨🇦","Chad":"🇹🇩","Chile":"🇨🇱","China":"🇨🇳","Colombia":"🇨🇴","Congo":"🇨🇬","Costa Rica":"🇨🇷","Croatia":"🇭🇷","Cuba":"🇨🇺","Cyprus":"🇨🇾","Czech Republic":"🇨🇿","Denmark":"🇩🇰","Dominican Republic":"🇩🇴","Ecuador":"🇪🇨","Egypt":"🇪🇬","El Salvador":"🇸🇻","Estonia":"🇪🇪","Ethiopia":"🇪🇹","Finland":"🇫🇮","France":"🇫🇷","Gabon":"🇬🇦","Georgia":"🇬🇪","Germany":"🇩🇪","Ghana":"🇬🇭","Greece":"🇬🇷","Guatemala":"🇬🇹","Guinea":"🇬🇳","Haiti":"🇭🇹","Honduras":"🇭🇳","Hungary":"🇭🇺","Iceland":"🇮🇸","India":"🇮🇳","Indonesia":"🇮🇩","Iran":"🇮🇷","Iraq":"🇮🇶","Ireland":"🇮🇪","Israel":"🇮🇱","Italy":"🇮🇹","Jamaica":"🇯🇲","Japan":"🇯🇵","Jordan":"🇯🇴","Kazakhstan":"🇰🇿","Kenya":"🇰🇪","Kuwait":"🇰🇼","Kyrgyzstan":"🇰🇬","Latvia":"🇱🇻","Lebanon":"🇱🇧","Libya":"🇱🇾","Lithuania":"🇱🇹","Luxembourg":"🇱🇺","Madagascar":"🇲🇬","Malaysia":"🇲🇾","Mali":"🇲🇱","Malta":"🇲🇹","Mauritania":"🇲🇷","Mauritius":"🇲🇺","Mexico":"🇲🇽","Moldova":"🇲🇩","Monaco":"🇲🇨","Mongolia":"🇲🇳","Montenegro":"🇲🇪","Morocco":"🇲🇦","Mozambique":"🇲🇿","Myanmar":"🇲🇲","Namibia":"🇳🇦","Nepal":"🇳🇵","Netherlands":"🇳🇱","New Zealand":"🇳🇿","Nicaragua":"🇳🇮","Niger":"🇳🇪","Nigeria":"🇳🇬","North Macedonia":"🇲🇰","Norway":"🇳🇴","Oman":"🇴🇲","Pakistan":"🇵🇰","Panama":"🇵🇦","Paraguay":"🇵🇾","Peru":"🇵🇪","Philippines":"🇵🇭","Poland":"🇵🇱","Portugal":"🇵🇹","Qatar":"🇶🇦","Romania":"🇷🇴","Russia":"🇷🇺","Rwanda":"🇷🇼","Saudi Arabia":"🇸🇦","Senegal":"🇸🇳","Serbia":"🇷🇸","Singapore":"🇸🇬","Slovakia":"🇸🇰","Slovenia":"🇸🇮","Somalia":"🇸🇴","South Africa":"🇿🇦","South Korea":"🇰🇷","Spain":"🇪🇸","Sri Lanka":"🇱🇰","Sudan":"🇸🇩","Sweden":"🇸🇪","Switzerland":"🇨🇭","Syria":"🇸🇾","Taiwan":"🇹🇼","Tajikistan":"🇹🇯","Tanzania":"🇹🇿","Thailand":"🇹🇭","Togo":"🇹🇬","Tunisia":"🇹🇳","Turkey":"🇹🇷","Turkmenistan":"🇹🇲","Uganda":"🇺🇬","Ukraine":"🇺🇦","United Arab Emirates":"🇦🇪","United Kingdom":"🇬🇧","United States":"🇺🇸","Uruguay":"🇺🇾","Uzbekistan":"🇺🇿","Venezuela":"🇻🇪","Vietnam":"🇻🇳","Yemen":"🇾🇪","Zambia":"🇿🇲","Zimbabwe":"🇿🇼"}
 
-async function _loadLbGeo(list, mode) {
+async function _loadLbGeo(list, mode, seq) {
   const limit = mode === 'city' ? 100 : 200
   const col = mode === 'country' ? 'country,country_code' : 'city,country,country_code'
   // Récupère les profils avec pays
   const { data: profiles, error } = await sb.from('profiles')
     .select('id,' + col + ',followers_count')
     .not(mode === 'country' ? 'country' : 'city', 'is', null)
-    .limit(5000)
+    .limit(300)
   if (error || !profiles?.length) {
+    if (seq !== _lbSeq) return
     list.innerHTML = '<div class="empty-state"><span class="ei">🌍</span><p>Pas encore assez de données géo.<br>Reviens bientôt !</p></div>'
     return
   }
@@ -1502,7 +1512,8 @@ async function _loadLbGeo(list, mode) {
   const { data: vids } = await sb.from('videos')
     .select('user_id,likes_count,views_count,comments_count')
     .eq('status', 'active')
-    .limit(5000)
+    .limit(300)
+  if (seq !== _lbSeq) return
   // Agrège par pays
   const agg = {}
   profiles.forEach(p => {
@@ -3393,7 +3404,7 @@ let{data:videos}=await sb.from(`videos`).select(`id,thumbnail_url,views_count,vi
 // Update follower count
 let cnt=document.getElementById(`pubFollowers`);
 // Update video feed follow buttons
-cnt.textContent=fmtNum((parseInt(cnt.textContent)||0)+(currentPublicIsFollowing?1:-1)),document.querySelectorAll(`#fol-${currentPublicUserId}`).forEach(b=>{b.textContent=currentPublicIsFollowing?`✓`:`+`,b.classList.toggle(`following`,currentPublicIsFollowing),b.setAttribute(`onclick`,`event.stopPropagation();toggleFollow('${currentPublicUserId}',${currentPublicIsFollowing})`)})}function closePublicProfile(){document.getElementById(`publicProfilePage`).classList.remove(`open`),currentPublicUserId=null}function openUserProfile(userId){openPublicProfile(userId)}async function signOut(){await sb.auth.signOut(),currentUser=null,toast(`Déconnecté`),refreshProfile()}
+cnt.textContent=fmtNum((parseInt(cnt.textContent)||0)+(currentPublicIsFollowing?1:-1)),document.querySelectorAll(`#fol-${currentPublicUserId}`).forEach(b=>{b.textContent=currentPublicIsFollowing?`✓`:`+`,b.classList.toggle(`following`,currentPublicIsFollowing),b.setAttribute(`onclick`,`event.stopPropagation();toggleFollow('${currentPublicUserId}',${currentPublicIsFollowing})`)})}function closePublicProfile(){document.getElementById(`publicProfilePage`).classList.remove(`open`),currentPublicUserId=null}function openUserProfile(userId){openPublicProfile(userId)}async function signOut(){try{await sb.auth.signOut()}catch(e){console.warn('signOut error:',e)}currentUser=null,toast(`Déconnecté`),refreshProfile()}
 // ══════════════════════════════════════════
 // AUTH
 // ══════════════════════════════════════════
