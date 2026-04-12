@@ -3383,10 +3383,10 @@ async function loadPersonalRank() {
 }function donateToUser(){
   const _d=atob('YWxleGFuZHJhaGVydmU4NkBnbWFpbC5jb20=')
   const url='https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business='+encodeURIComponent(_d)+'&currency_code=EUR&item_name=Soutenir+VoltClip'
-  document.getElementById('donatePaypalLink').href=url
+  document.getElementById('donateIframe').src=url
   document.getElementById('donateModal').style.display='flex'
 }
-function closeDonateModal(){document.getElementById('donateModal').style.display='none'}
+function closeDonateModal(){document.getElementById('donateModal').style.display='none';document.getElementById('donateIframe').src=''}
 async function editProfile(){if(!currentUser){openAuth();return}let bio=prompt(`Ta bio (max 100 caractères) :`);bio!==null&&(await sb.from(`profiles`).update({bio:bio.slice(0,100)}).eq(`id`,currentUser.id),toast(`Profil mis à jour ✓`),refreshProfile())}async function changeAvatar(){if(!currentUser){openAuth();return}let input=document.createElement(`input`);input.type=`file`,input.accept=`image/*`,input.onchange=async()=>{let file=input.files[0];if(!file)return;let path=`${currentUser.id}/avatar.jpg`,{error}=await sb.storage.from(`avatars`).upload(path,file,{upsert:!0});if(error){toast(`Erreur upload avatar`);return}let{data:{publicUrl}}=sb.storage.from(`avatars`).getPublicUrl(path);await sb.from(`profiles`).update({avatar_url:publicUrl}).eq(`id`,currentUser.id),toast(`Avatar mis à jour ✓`),refreshProfile()},input.click()}
 // ══════════════════════════════════════════
 // PROFIL PUBLIC
@@ -5408,18 +5408,12 @@ function confirmBoost() {
 </div>
 
 <!-- SHOP MODAL -->
-<div id="donateModal" style="display:none;position:fixed;inset:0;z-index:1600;background:rgba(0,0,0,.88);flex-direction:column;justify-content:flex-end" onclick="if(event.target.id==='donateModal')closeDonateModal()">
-  <div style="background:#13131a;border-radius:24px 24px 0 0;padding:0 0 max(24px,env(safe-area-inset-bottom))">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px">
-      <div style="font-family:'Space Mono',monospace;font-size:16px;font-weight:700">💜 Soutenir VoltClip</div>
-      <button onclick="closeDonateModal()" style="color:#fff6;cursor:pointer;background:rgba(255,255,255,.1);border:none;border-radius:50%;width:32px;height:32px;font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center">✕</button>
-    </div>
-    <div style="padding:0 20px 20px;display:flex;flex-direction:column;gap:14px">
-      <div style="color:#ffffff80;font-size:13px;line-height:1.5;font-family:'DM Sans',sans-serif">VoltClip est gratuit et indépendant. Si tu kiffes la plateforme, ton soutien nous aide à la faire grandir 🙏</div>
-      <a id="donatePaypalLink" href="" target="_blank" rel="noopener noreferrer" onclick="closeDonateModal()" style="display:block;text-align:center;background:linear-gradient(135deg,#009CDE,#003087);color:#fff;font-family:'Space Mono',monospace;font-weight:700;font-size:14px;border-radius:14px;padding:15px;text-decoration:none;letter-spacing:.03em">💳 Soutenir via PayPal</a>
-      <button onclick="closeDonateModal()" style="color:#ffffff60;font-family:'Space Mono',monospace;cursor:pointer;background:0 0;border:none;padding:8px;font-size:12px">Pas maintenant</button>
-    </div>
+<div id="donateModal" style="display:none;position:fixed;inset:0;z-index:1700;flex-direction:column;background:#0a0a0f">
+  <div style="display:flex;align-items:center;gap:12px;padding:max(14px,env(safe-area-inset-top)) 16px 12px;background:#13131a;border-bottom:1px solid #ffffff12;flex-shrink:0">
+    <button onclick="closeDonateModal()" style="color:#fff;cursor:pointer;background:rgba(255,255,255,.1);border:none;border-radius:50%;width:36px;height:36px;font-size:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0">✕</button>
+    <span style="font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:#fff">💜 Soutenir VoltClip</span>
   </div>
+  <iframe id="donateIframe" src="" style="flex:1;width:100%;border:none;background:#fff"></iframe>
 </div>
 <div id="shopModal" style="display:none;position:fixed;inset:0;z-index:1600;background:rgba(0,0,0,.88);flex-direction:column;justify-content:flex-end">
   <div style="background:#13131a;border-radius:24px 24px 0 0;padding:0 0 max(24px,env(safe-area-inset-bottom));max-height:92vh;overflow-y:auto">
