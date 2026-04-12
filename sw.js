@@ -4,13 +4,14 @@
 // (COI/COOP/COEP supprimés — FFmpeg.wasm retiré)
 // ══════════════════════════════════════════════════════════════════
 
-const CACHE_NAME = 'voltclip-v9';
+const CACHE_NAME = 'voltclip-v10';
 
 const PRECACHE = [
   './',
   './voltclip.html',
   './manifest.json',
   './icon-192.png',
+  './icon-512.png',
 ];
 
 // ── Install : précache du shell ────────────────────────────────────
