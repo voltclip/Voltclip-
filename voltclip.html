@@ -128,6 +128,21 @@
   overflow:hidden;
 }
 .battle-vote-btn-right-float:active{transform:translateY(-50%)scale(.88)}
+/* ── SUPER VOTE : positionnement mobile (vidéos empilées verticalement) ──
+   sv-left = sous le bouton VOTE gauche (vidéo du bas)
+   sv-right = sous le bouton VOTE droit (vidéo du haut)             ── */
+.sv-left{
+  position:absolute;
+  left:10px;
+  bottom:calc(25% - 36px);
+  z-index:26;
+}
+.sv-right{
+  position:absolute;
+  right:10px;
+  top:calc(25% + 36px);
+  z-index:26;
+}
 .battle-vote-btn-float-pct{font-family:var(--font-mono);color:#fff;font-size:10px;font-weight:700;line-height:1}
 .battle-vote-fill-float{pointer-events:none;position:absolute;inset:0;transition:opacity .4s}
 
@@ -1075,8 +1090,20 @@
     font-size:14px!important;
   }
 
-  /* ── SUPER VOTE : un peu plus grand sur PC ── */
-  button[onclick*="superVoteBattle"]{
+  /* ── SUPER VOTE : PC (vidéos côte à côte) ──
+     On replace chaque bouton en bas de sa propre vidéo          ── */
+  .sv-left{
+    left:10px!important;
+    bottom:20px!important;
+    top:auto!important;
+    font-size:10px!important;
+    padding:5px 12px!important;
+    border-radius:22px!important;
+  }
+  .sv-right{
+    right:10px!important;
+    bottom:20px!important;
+    top:auto!important;
     font-size:10px!important;
     padding:5px 12px!important;
     border-radius:22px!important;
@@ -1776,8 +1803,8 @@ function createBattleItem(b, myVotes) {
         <span style="font-size:13px;font-family:var(--font-mono);font-weight:700;letter-spacing:.04em">VOTE</span>
         <span class="battle-vote-btn-float-pct" id="pct-right-${b.id}">${hasVoted ? pctRight + '%' : '👍'}</span>
       </button>
-      <button onclick="event.stopPropagation();superVoteBattle('${b.id}','left')" style="position:absolute;left:10px;bottom:62px;z-index:26;background:linear-gradient(135deg,#ffd700,#ff9900);border:none;color:#000;border-radius:20px;padding:4px 10px;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;cursor:pointer;white-space:nowrap">⚡ SUPER VOTE</button>
-      <button onclick="event.stopPropagation();superVoteBattle('${b.id}','right')" style="position:absolute;right:10px;bottom:62px;z-index:26;background:linear-gradient(135deg,#ffd700,#ff9900);border:none;color:#000;border-radius:20px;padding:4px 10px;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;cursor:pointer;white-space:nowrap">⚡ SUPER VOTE</button>
+      <button class="sv-left" onclick="event.stopPropagation();superVoteBattle('${b.id}','left')" style="background:linear-gradient(135deg,#ffd700,#ff9900);border:none;color:#000;border-radius:20px;padding:4px 10px;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;cursor:pointer;white-space:nowrap">⚡ SUPER VOTE</button>
+      <button class="sv-right" onclick="event.stopPropagation();superVoteBattle('${b.id}','right')" style="background:linear-gradient(135deg,#ffd700,#ff9900);border:none;color:#000;border-radius:20px;padding:4px 10px;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;cursor:pointer;white-space:nowrap">⚡ SUPER VOTE</button>
     </div>
   `
 
