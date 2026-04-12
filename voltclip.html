@@ -1014,6 +1014,92 @@
 #welcomeBackBanner{position:fixed;top:max(14px,env(safe-area-inset-top));left:12px;right:12px;z-index:9997;background:linear-gradient(135deg,rgba(124,92,252,.97),rgba(252,92,125,.9));backdrop-filter:blur(20px);border-radius:18px;padding:14px 16px;box-shadow:0 8px 32px rgba(124,92,252,.45);animation:slideWelcome .4s ease;pointer-events:all}
 /* ── RANK BADGE PROFIL ── */
 #profilePersonalRank{color:rgba(255,215,0,.9);margin-top:4px;font-family:'Space Mono',monospace;font-size:11px;text-align:center;display:none}
+
+/* ══════════════════════════════════════════
+   PC BATTLE — REDESIGN VISUEL
+   ══════════════════════════════════════════ */
+@media(min-width:768px){
+
+  /* ── Battle item : pleine hauteur, pas de max-height limitative ── */
+  .battle-item{
+    height:calc(100dvh - 80px)!important;
+    max-height:none!important;
+    max-width:680px!important;
+    margin:10px auto!important;
+    border-radius:20px!important;
+    box-shadow:0 0 0 1px rgba(255,255,255,.06),0 20px 60px rgba(0,0,0,.8)!important;
+  }
+
+  /* ── Header battle : 2 zones claires gauche/droite ── */
+  .battle-header{
+    display:flex!important;
+    flex-wrap:nowrap!important;
+    align-items:center!important;
+    justify-content:space-between!important;
+    gap:8px!important;
+    padding:12px 16px 10px!important;
+    background:linear-gradient(180deg,rgba(10,10,15,.95) 0%,rgba(10,10,15,.5) 80%,transparent 100%)!important;
+  }
+  /* Zone gauche : catégorie + timer regroupés */
+  .battle-category-chip{
+    font-size:11px!important;
+    padding:4px 12px!important;
+    flex-shrink:0!important;
+  }
+  .battle-countdown{
+    font-size:11px!important;
+    flex-shrink:0!important;
+  }
+  /* Bouton Partager : toujours à droite */
+  .battle-share-duel{
+    margin-left:auto!important;
+    font-size:10px!important;
+    padding:5px 12px!important;
+    flex-shrink:0!important;
+  }
+
+  /* ── Badges "Son actif" / "Tape pour écouter" → bas de vidéo ── */
+  .battle-sound-badge{
+    top:auto!important;
+    bottom:72px!important;
+  }
+
+  /* ── Boutons VOTE : légèrement plus grands sur PC ── */
+  .battle-vote-btn-left-float,
+  .battle-vote-btn-right-float{
+    width:64px!important;
+    height:64px!important;
+  }
+  .battle-vote-btn-left-float span:first-of-type,
+  .battle-vote-btn-right-float span:first-of-type{
+    font-size:14px!important;
+  }
+
+  /* ── SUPER VOTE : un peu plus grand sur PC ── */
+  button[onclick*="superVoteBattle"]{
+    font-size:10px!important;
+    padding:5px 12px!important;
+    border-radius:22px!important;
+  }
+
+  /* ── Flèches navigation : intégrées proprement ── */
+  #battleNavUp,#battleNavDown{
+    right:calc(50% - 380px)!important;
+    border-radius:50%!important;
+    width:44px!important;
+    height:44px!important;
+    box-shadow:0 4px 20px rgba(0,0,0,.5)!important;
+  }
+}
+
+@media(min-width:1200px){
+  .battle-item{
+    max-width:760px!important;
+  }
+  #battleNavUp,#battleNavDown{
+    right:calc(50% - 440px)!important;
+  }
+}
 </style><noscript><div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#0a0a0f;color:#f0f0f5;font-family:sans-serif;text-align:center;padding:24px;z-index:99999"><p>⚡ Active JavaScript pour utiliser VoltClip</p></div></noscript><body><div id=toast></div>
 
 <!-- ONBOARDING FIRST VISIT -->
