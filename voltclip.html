@@ -134,7 +134,9 @@
 .sv-left{
   position:absolute;
   left:10px;
-  bottom:calc(25% - 36px);
+  /* VOTE gauche : bottom:25% + translateY(+28px) → bord bas visuel à (25%-28px).
+     SUPER VOTE fait ~28px de haut. On pose son bord bas à (25%-70px) pour un gap de ~14px. */
+  bottom:calc(25% - 70px);
   z-index:26;
 }
 .sv-right{
