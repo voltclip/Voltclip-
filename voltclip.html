@@ -1223,7 +1223,7 @@ function vcConsentRefuse(){
 // CONFIG — remplace par tes clés Supabase
 // ══════════════════════════════════════════
 function getVideoDuration(file){return new Promise(resolve=>{const v=document.createElement('video');v.preload='metadata';const url=URL.createObjectURL(file);v.onloadedmetadata=()=>{URL.revokeObjectURL(url);resolve(v.duration)};v.onerror=()=>{URL.revokeObjectURL(url);resolve(null)};setTimeout(()=>resolve(null),5000);v.src=url})}
-const SUPABASE_URL=`https://czdfoqgcjbsoupekpxpg.supabase.co`,SUPABASE_ANON=`eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6ZGZvcWdjamJzb3VwZWtweHBnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0MzQ3MzgsImV4cCI6MjA4OTAxMDczOH0.ANivcmm64cYQCZZiFrCpduigWytloZSzwJ1vi1BbOy0`,CLOUDINARY_CLOUD=`dtdkrbdoo`,CLOUDINARY_PRESET=`voltclip_raw`,CLOUDINARY_URL=`https://api.cloudinary.com/v1_1/dtdkrbdoo`,{createClient}=supabase,sb=createClient(SUPABASE_URL,SUPABASE_ANON);
+const SUPABASE_URL=`https://czdfoqgcjbsoupekpxpg.supabase.co`,SUPABASE_ANON=`eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6ZGZvcWdjamJzb3VwZWtweHBnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0MzQ3MzgsImV4cCI6MjA4OTAxMDczOH0.ANivcmm64cYQCZZiFrCpduigWytloZSzwJ1vi1BbOy0`,CLOUDINARY_CLOUD=`dkgjb8wbv`,CLOUDINARY_PRESET=`voltclip_raw`,CLOUDINARY_URL=`https://api.cloudinary.com/v1_1/dkgjb8wbv`,{createClient}=supabase,sb=createClient(SUPABASE_URL,SUPABASE_ANON);
 // ══════════════════════════════════════════
 // STATE GLOBAL
 // ══════════════════════════════════════════
